@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/fetcher';
 import { QuoteData } from '@/types/events';
@@ -7,14 +8,17 @@ import { QuoteData } from '@/types/events';
 const SYMBOLS = ['QQQ', 'SPY', 'SCHD'];
 
 export default function EtfTracker() {
-  const { data, isLoading, dataUpdatedAt } = useSWR<Record<string, QuoteData>>(
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+
+  const { data, isLoading } = useSWR<Record<string, QuoteData>>(
     '/api/quote',
     fetcher,
     {
-      refreshInterval:    60_000,  // 60초마다 자동 갱신
-      revalidateOnFocus:  true,    // 탭 포커스 시 갱신
-      revalidateOnReconnect: true, // 네트워크 재연결 시 갱신
-      dedupingInterval:   30_000,  // 30초 내 중복 요청 방지
+      refreshInterval:       60_000,
+      revalidateOnFocus:     true,
+      revalidateOnReconnect: true,
+      dedupingInterval:      30_000,
+      onSuccess: () => setUpdatedAt(new Date()),
     },
   );
 
@@ -47,9 +51,9 @@ export default function EtfTracker() {
           </div>
         );
       })}
-      {dataUpdatedAt && (
+      {updatedAt && (
         <span className="text-gray-700 text-xs hidden sm:block">
-          {new Date(dataUpdatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+          {updatedAt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
         </span>
       )}
     </div>

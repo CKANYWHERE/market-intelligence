@@ -14,8 +14,8 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")   // Vercel 런타임 — Supabase Transaction Pooler (포트 6543)
-  directUrl = env("DIRECT_URL")     // 마이그레이션 전용 — Supabase Direct Connection (포트 5432)
+  url       = env("DATABASE_URL") // Vercel 런타임 — Supabase Transaction Pooler (포트 6543)
+  directUrl = env("DIRECT_URL") // 마이그레이션 전용 — Supabase Direct Connection (포트 5432)
 }
 
 // ─────────────────────────────────────────────
@@ -24,19 +24,19 @@ datasource db {
 //    Batch: daily 08:00 ET + actual update 09:00 ET on release day
 // ─────────────────────────────────────────────
 model EconomicEvent {
-  id         String   @id @default(cuid())
-  source_id  String   @unique // Finnhub event ID for upsert dedup
+  id         String     @id @default(cuid())
+  source_id  String     @unique // Finnhub event ID for upsert dedup
   date       DateTime // scheduled release date (date-only, UTC midnight)
-  time       String?  // "08:30", "14:00" (ET)
-  title      String   // "CPI m/m", "FOMC Rate Decision"
+  time       String? // "08:30", "14:00" (ET)
+  title      String // "CPI m/m", "FOMC Rate Decision"
   category   Category // monetary_policy | inflation | employment | growth
   importance Importance @default(medium)
-  unit       String?  // "%", "K", "B"
+  unit       String? // "%", "K", "B"
 
   // Data fields — null until announced
-  actual    Float?
-  estimate  Float?
-  prev      Float?
+  actual   Float?
+  estimate Float?
+  prev     Float?
 
   // FRED series for historical chart data
   fred_series_id String? // "CPIAUCSL", "PAYEMS", etc.
@@ -55,13 +55,13 @@ model EconomicEvent {
 //    Batch: daily 08:00 ET; actuals updated after release
 // ─────────────────────────────────────────────
 model EarningsEvent {
-  id        String   @id @default(cuid())
-  source_id String   @unique // Finnhub earningsCalendar id
-  symbol    String   // "AAPL", "NVDA"
-  company   String   // "Apple Inc."
+  id        String        @id @default(cuid())
+  source_id String        @unique // Finnhub earningsCalendar id
+  symbol    String // "AAPL", "NVDA"
+  company   String // "Apple Inc."
   date      DateTime // earnings release date
   hour      EarningsHour? // bmo | amc | dmh
-  quarter   Int?     // 1–4
+  quarter   Int? // 1–4
   year      Int?
 
   // EPS
@@ -86,21 +86,21 @@ model EarningsEvent {
 //    Batch: daily 08:00 ET
 // ─────────────────────────────────────────────
 model IpoEvent {
-  id         String    @id @default(cuid())
-  source_id  String    @unique
-  symbol     String?   // ticker (may be empty before pricing)
-  company    String
-  date       DateTime  // expected or confirmed IPO date
-  exchange   String?   // "NASDAQ", "NYSE"
-  status     IpoStatus @default(expected)
+  id        String    @id @default(cuid())
+  source_id String    @unique
+  symbol    String? // ticker (may be empty before pricing)
+  company   String
+  date      DateTime // expected or confirmed IPO date
+  exchange  String? // "NASDAQ", "NYSE"
+  status    IpoStatus @default(expected)
 
   // Pricing (populated after priced)
-  price             Float?  // per-share IPO price
-  number_of_shares  BigInt?
-  total_shares_value Float?  // deal size in USD
+  price              Float? // per-share IPO price
+  number_of_shares   BigInt?
+  total_shares_value Float? // deal size in USD
 
   // NASDAQ Fast Entry Rule flag
-  nasdaq_fast_entry Boolean @default(false)
+  nasdaq_fast_entry   Boolean @default(false)
   // estimated forced-buy volume by passive ETFs (USD)
   etf_inflow_estimate Float?
 
@@ -118,19 +118,19 @@ model IpoEvent {
 //    Only rows with ai_classification = HIGH are surfaced in the UI
 // ─────────────────────────────────────────────
 model BreakingEvent {
-  id        String   @id @default(cuid())
-  source_id String   @unique // Finnhub news ID or SEC accession number
+  id        String @id @default(cuid())
+  source_id String @unique // Finnhub news ID or SEC accession number
 
-  headline  String
-  summary   String?  @db.Text
-  url       String
-  image_url String?
-  source    String   // "Finnhub", "Federal Reserve", "SEC EDGAR"
+  headline     String
+  summary      String?  @db.Text
+  url          String
+  image_url    String?
+  source       String // "Finnhub", "Federal Reserve", "SEC EDGAR"
   published_at DateTime
 
   // AI classification by Claude Haiku
   ai_classification AiClassification
-  ai_reason         String?  @db.Text // why Haiku gave this rating
+  ai_reason         String?          @db.Text // why Haiku gave this rating
   ai_classified_at  DateTime?
 
   // Display control — HIGH items auto-show; others hidden
@@ -150,10 +150,10 @@ model BreakingEvent {
 // ─────────────────────────────────────────────
 model EtfQuote {
   id             String   @id @default(cuid())
-  symbol         String   // "QQQ", "SPY", "SCHD"
+  symbol         String // "QQQ", "SPY", "SCHD"
   price          Float
-  change         Float    // absolute change
-  change_percent Float    // % change vs prev close
+  change         Float // absolute change
+  change_percent Float // % change vs prev close
   high           Float
   low            Float
   open           Float
@@ -173,7 +173,7 @@ model EtfQuote {
 // ─────────────────────────────────────────────
 model FredSnapshot {
   id         String   @id @default(cuid())
-  series_id  String   // "CPIAUCSL", "PAYEMS", etc.
+  series_id  String // "CPIAUCSL", "PAYEMS", etc.
   date       DateTime // observation date
   value      Float
   fetched_at DateTime @default(now())
