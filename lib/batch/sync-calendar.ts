@@ -93,7 +93,7 @@ export async function syncCalendar(from: string, to: string): Promise<SyncResult
       }));
       counts.economic++;
     }
-    if (ecoOps.length > 0) await db.$transaction(ecoOps);
+    if (ecoOps.length > 0) await Promise.all(ecoOps);
     log.push(`  ✓ ${counts.economic} upserted (${counts.skipped} skipped)`);
   } else {
     log.push(`  ✗ economic: ${String(ecoResult.reason)}`);
@@ -139,7 +139,7 @@ export async function syncCalendar(from: string, to: string): Promise<SyncResult
       }));
       counts.earnings++;
     }
-    if (earnOps.length > 0) await db.$transaction(earnOps);
+    if (earnOps.length > 0) await Promise.all(earnOps);
     log.push(`  ✓ ${counts.earnings} upserted`);
   } else {
     log.push(`  ✗ earnings: ${String(earnResult.reason)}`);
@@ -183,7 +183,7 @@ export async function syncCalendar(from: string, to: string): Promise<SyncResult
       }));
       counts.ipo++;
     }
-    if (ipoOps.length > 0) await db.$transaction(ipoOps);
+    if (ipoOps.length > 0) await Promise.all(ipoOps);
     log.push(`  ✓ ${counts.ipo} upserted`);
   } else {
     log.push(`  ✗ ipo: ${String(ipoResult.reason)}`);

@@ -81,7 +81,8 @@ export async function GET(req: NextRequest) {
         const observations = (await getFredSeries(seriesId, 24)) as FredObs[];
         const valid = observations.filter((o) => o.value !== '.' && o.value !== '');
 
-        // ── fred_snapshots — 배치 transaction ─────────────────
+        // ── fred_snapshots — 병렬 upsert ($transaction 대신 Promise.all)
+        // Supabase Transaction Pooler(pgBouncer)와 $transaction 궁합 불량
         const snapshotOps = valid
           .map((obs) => ({ date: obs.date, value: parseFloat(obs.value) }))
           .filter(({ value }) => !isNaN(value))
@@ -93,7 +94,7 @@ export async function GET(req: NextRequest) {
             }),
           );
 
-        if (snapshotOps.length > 0) await db.$transaction(snapshotOps);
+        if (snapshotOps.length > 0) await Promise.all(snapshotOps);
 
         // ── economic_events.actual 업데이트 ───────────────────
         let eventUpdated = false;

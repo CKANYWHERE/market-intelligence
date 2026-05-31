@@ -30,7 +30,7 @@ export async function getFredSeries(
   try {
     res = await fetch(url.toString(), {
       signal: controller.signal,
-      next: { revalidate: 3600 },
+      cache: 'no-store', // cron에서 Next.js 캐시 개입 금지
     });
   } catch (err) {
     if ((err as Error).name === 'AbortError') {
