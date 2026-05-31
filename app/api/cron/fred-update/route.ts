@@ -28,6 +28,23 @@ const SERIES_CONFIG = [
 
 type FredObs = { date: string; value: string };
 
+// FRED API rate limit 방지 — 동시 호출 수 제한
+async function pLimit<T>(
+  tasks: (() => Promise<T>)[],
+  concurrency: number,
+): Promise<T[]> {
+  const results: T[] = [];
+  let idx = 0;
+  async function worker() {
+    while (idx < tasks.length) {
+      const i = idx++;
+      results[i] = await tasks[i]();
+    }
+  }
+  await Promise.all(Array.from({ length: concurrency }, worker));
+  return results;
+}
+
 function isAuthorized(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
   if (!secret) return true;
@@ -56,9 +73,9 @@ export async function GET(req: NextRequest) {
     latestDate?: string;
   }> = {};
 
-  // 모든 FRED 시리즈를 병렬로 fetch + upsert
-  await Promise.all(
-    SERIES_CONFIG.map(async ({ seriesId, titleKeyword }) => {
+  // FRED API rate limit 방지 — 최대 3개 동시 처리
+  await pLimit(
+    SERIES_CONFIG.map(({ seriesId, titleKeyword }) => async () => {
       log.push(`▶ ${seriesId} (${titleKeyword})...`);
       try {
         const observations = (await getFredSeries(seriesId, 24)) as FredObs[];
@@ -115,6 +132,7 @@ export async function GET(req: NextRequest) {
         log.push(`  ✗ ${String(err)}`);
       }
     }),
+    3, // 동시 3개
   );
 
   const totalSnapshots   = Object.values(results).reduce((s, r) => s + r.snapshots, 0);

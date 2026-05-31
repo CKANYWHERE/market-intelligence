@@ -23,7 +23,24 @@ export async function getFredSeries(
   url.searchParams.set('sort_order', 'desc');
   url.searchParams.set('limit', String(limit));
 
-  const res = await fetch(url.toString(), { next: { revalidate: 3600 } });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10_000); // 10s per series
+
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      signal: controller.signal,
+      next: { revalidate: 3600 },
+    });
+  } catch (err) {
+    if ((err as Error).name === 'AbortError') {
+      throw new Error(`FRED ${seriesId} → timeout (10s)`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+
   if (!res.ok) throw new Error(`FRED ${seriesId} → HTTP ${res.status}`);
 
   const data = await res.json() as { observations: Array<{ date: string; value: string }> };
