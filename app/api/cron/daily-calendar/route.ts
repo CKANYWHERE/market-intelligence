@@ -8,6 +8,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { syncCalendar } from '@/lib/batch/sync-calendar';
 
+export const maxDuration = 60;
+
 function isAuthorized(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
   if (!secret) return true;

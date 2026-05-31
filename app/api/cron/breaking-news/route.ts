@@ -17,6 +17,9 @@ import { db } from '@/lib/batch/db';
 import { getMarketNews } from '@/lib/api/finnhub';
 import { classifyNews, fallbackClassify } from '@/lib/batch/classify-news';
 
+// Vercel 함수 최대 실행 시간 (Hobby: 60s, Pro: 300s)
+export const maxDuration = 60;
+
 type RawNews = Record<string, unknown>;
 
 function isAuthorized(req: NextRequest): boolean {
@@ -69,14 +72,20 @@ export async function GET(req: NextRequest) {
     const hasApiKey = Boolean(process.env.ANTHROPIC_API_KEY);
     const classified = hasApiKey
       ? await (async () => {
-          const results = [];
+          // 배치를 병렬로 처리 (순서 보장 위해 Promise.all 사용)
+          const batches: typeof newsInputs[] = [];
           for (let i = 0; i < newsInputs.length; i += 10) {
-            const batch = newsInputs.slice(i, i + 10);
-            const res = await classifyNews(batch);
-            results.push(...res);
-            log.push(`  ✓ Batch ${Math.floor(i / 10) + 1}: ${batch.length} items classified`);
+            batches.push(newsInputs.slice(i, i + 10));
           }
-          return results;
+          const batchResults = await Promise.all(
+            batches.map((batch, idx) =>
+              classifyNews(batch).then((res) => {
+                log.push(`  ✓ Batch ${idx + 1}: ${batch.length} items classified`);
+                return res;
+              })
+            )
+          );
+          return batchResults.flat();
         })()
       : (() => {
           log.push('  ⚠ No ANTHROPIC_API_KEY — using keyword fallback');

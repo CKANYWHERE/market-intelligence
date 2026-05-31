@@ -8,6 +8,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/batch/db';
 import { getFredSeries } from '@/lib/api/fred';
 
+export const maxDuration = 60;
+
 const SERIES_CONFIG = [
   { seriesId: 'CPIAUCSL', titleKeyword: 'CPI' },
   { seriesId: 'CPILFESL', titleKeyword: 'Core CPI' },
@@ -54,66 +56,66 @@ export async function GET(req: NextRequest) {
     latestDate?: string;
   }> = {};
 
-  for (const { seriesId, titleKeyword } of SERIES_CONFIG) {
-    log.push(`▶ ${seriesId} (${titleKeyword})...`);
-    try {
-      const observations = (await getFredSeries(seriesId, 24)) as FredObs[];
-      const valid = observations.filter((o) => o.value !== '.' && o.value !== '');
+  // 모든 FRED 시리즈를 병렬로 fetch + upsert
+  await Promise.all(
+    SERIES_CONFIG.map(async ({ seriesId, titleKeyword }) => {
+      log.push(`▶ ${seriesId} (${titleKeyword})...`);
+      try {
+        const observations = (await getFredSeries(seriesId, 24)) as FredObs[];
+        const valid = observations.filter((o) => o.value !== '.' && o.value !== '');
 
-      // ── fred_snapshots upsert ──────────────────────────────
-      let snapshotCount = 0;
-      for (const obs of valid) {
-        const value = parseFloat(obs.value);
-        if (isNaN(value)) continue;
+        // ── fred_snapshots — 배치 transaction ─────────────────
+        const snapshotOps = valid
+          .map((obs) => ({ date: obs.date, value: parseFloat(obs.value) }))
+          .filter(({ value }) => !isNaN(value))
+          .map(({ date, value }) =>
+            db.fredSnapshot.upsert({
+              where:  { series_id_date: { series_id: seriesId, date: new Date(`${date}T00:00:00Z`) } },
+              create: { series_id: seriesId, date: new Date(`${date}T00:00:00Z`), value },
+              update: { value },
+            }),
+          );
 
-        // Prisma compound unique key: series_id_date (@@unique([series_id, date]))
-        await db.fredSnapshot.upsert({
-          where:  { series_id_date: { series_id: seriesId, date: new Date(`${obs.date}T00:00:00Z`) } },
-          create: { series_id: seriesId, date: new Date(`${obs.date}T00:00:00Z`), value },
-          update: { value },
-        });
-        snapshotCount++;
-      }
+        if (snapshotOps.length > 0) await db.$transaction(snapshotOps);
 
-      // ── economic_events.actual 업데이트 (당일 발표 시) ─────
-      let eventUpdated = false;
-      if (valid.length > 0) {
-        const latest      = valid[0];
-        const latestValue = parseFloat(latest.value);
-        const latestDate  = new Date(`${latest.date}T00:00:00Z`);
+        // ── economic_events.actual 업데이트 ───────────────────
+        let eventUpdated = false;
+        if (valid.length > 0) {
+          const latest      = valid[0];
+          const latestValue = parseFloat(latest.value);
+          const latestDate  = new Date(`${latest.date}T00:00:00Z`);
 
-        if (!isNaN(latestValue)) {
-          const updated = await db.economicEvent.updateMany({
-            where: {
-              date:   latestDate,
-              title:  { contains: titleKeyword, mode: 'insensitive' },
-              actual: null,
-            },
-            data: { actual: latestValue },
-          });
-          eventUpdated = updated.count > 0;
-          if (eventUpdated) {
-            log.push(`  ✓ actual updated for "${titleKeyword}" on ${latest.date}`);
+          if (!isNaN(latestValue)) {
+            const updated = await db.economicEvent.updateMany({
+              where: {
+                date:   latestDate,
+                title:  { contains: titleKeyword, mode: 'insensitive' },
+                actual: null,
+              },
+              data: { actual: latestValue },
+            });
+            eventUpdated = updated.count > 0;
+            if (eventUpdated) log.push(`  ✓ actual updated for "${titleKeyword}" on ${latest.date}`);
           }
-        }
 
-        results[seriesId] = {
-          snapshots:   snapshotCount,
-          eventUpdated,
-          latestValue: parseFloat(latest.value),
-          latestDate:  latest.date,
-        };
-        log.push(`  ✓ ${snapshotCount} snapshots, latest ${latest.value} (${latest.date})`);
-      } else {
+          results[seriesId] = {
+            snapshots: snapshotOps.length,
+            eventUpdated,
+            latestValue: parseFloat(latest.value),
+            latestDate:  latest.date,
+          };
+          log.push(`  ✓ ${snapshotOps.length} snapshots, latest ${latest.value} (${latest.date})`);
+        } else {
+          results[seriesId] = { snapshots: 0, eventUpdated: false };
+          log.push(`  ⚠ no valid observations`);
+        }
+      } catch (err) {
+        console.error(`[cron/fred-update] ${seriesId}:`, err);
         results[seriesId] = { snapshots: 0, eventUpdated: false };
-        log.push(`  ⚠ no valid observations`);
+        log.push(`  ✗ ${String(err)}`);
       }
-    } catch (err) {
-      console.error(`[cron/fred-update] ${seriesId}:`, err);
-      results[seriesId] = { snapshots: 0, eventUpdated: false };
-      log.push(`  ✗ ${String(err)}`);
-    }
-  }
+    }),
+  );
 
   const totalSnapshots   = Object.values(results).reduce((s, r) => s + r.snapshots, 0);
   const updatedEvents    = Object.values(results).filter((r) => r.eventUpdated).length;

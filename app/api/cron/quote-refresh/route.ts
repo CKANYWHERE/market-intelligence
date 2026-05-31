@@ -8,6 +8,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/batch/db';
 import { getQuote } from '@/lib/api/finnhub';
 
+export const maxDuration = 60;
+
 const SYMBOLS = ['QQQ', 'SPY', 'SCHD'] as const;
 type RawQuote = Record<string, unknown>;
 

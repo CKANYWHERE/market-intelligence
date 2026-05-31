@@ -59,6 +59,7 @@ export async function syncCalendar(from: string, to: string): Promise<SyncResult
     const items: RawRecord[] =
       ((ecoResult.value as RawRecord)?.economicCalendar as RawRecord[]) ?? [];
 
+    const ecoOps = [];
     for (const item of items) {
       if (item.country !== 'US') { counts.skipped++; continue; }
       const importance = mapImpact(String(item.impact ?? ''));
@@ -70,7 +71,7 @@ export async function syncCalendar(from: string, to: string): Promise<SyncResult
       const title    = String(item.event ?? '');
       const sourceId = String(item.id ?? `eco_${date.toISOString().slice(0, 10)}_${title.slice(0, 20)}`);
 
-      await db.economicEvent.upsert({
+      ecoOps.push(db.economicEvent.upsert({
         where:  { source_id: sourceId },
         create: {
           source_id:  sourceId,
@@ -89,9 +90,10 @@ export async function syncCalendar(from: string, to: string): Promise<SyncResult
           estimate: item.estimate != null ? Number(item.estimate) : null,
           prev:     item.prev     != null ? Number(item.prev)     : null,
         },
-      });
+      }));
       counts.economic++;
     }
+    if (ecoOps.length > 0) await db.$transaction(ecoOps);
     log.push(`  ✓ ${counts.economic} upserted (${counts.skipped} skipped)`);
   } else {
     log.push(`  ✗ economic: ${String(ecoResult.reason)}`);
@@ -103,6 +105,7 @@ export async function syncCalendar(from: string, to: string): Promise<SyncResult
     const items: RawRecord[] =
       ((earnResult.value as RawRecord)?.earningsCalendar as RawRecord[]) ?? [];
 
+    const earnOps = [];
     for (const item of items) {
       const symbol = String(item.symbol ?? '');
       if (!TRACKED_SYMBOLS.has(symbol)) continue;
@@ -114,7 +117,7 @@ export async function syncCalendar(from: string, to: string): Promise<SyncResult
       const hourRaw  = String(item.hour ?? '');
       const hour     = (['bmo', 'amc', 'dmh'] as const).find((h) => h === hourRaw) ?? null;
 
-      await db.earningsEvent.upsert({
+      earnOps.push(db.earningsEvent.upsert({
         where:  { source_id: sourceId },
         create: {
           source_id:        sourceId,
@@ -133,9 +136,10 @@ export async function syncCalendar(from: string, to: string): Promise<SyncResult
           eps_actual:     item.epsActual     != null ? Number(item.epsActual)     : null,
           revenue_actual: item.revenueActual != null ? Number(item.revenueActual) : null,
         },
-      });
+      }));
       counts.earnings++;
     }
+    if (earnOps.length > 0) await db.$transaction(earnOps);
     log.push(`  ✓ ${counts.earnings} upserted`);
   } else {
     log.push(`  ✗ earnings: ${String(earnResult.reason)}`);
@@ -147,6 +151,7 @@ export async function syncCalendar(from: string, to: string): Promise<SyncResult
     const items: RawRecord[] =
       ((ipoResult.value as RawRecord)?.ipoCalendar as RawRecord[]) ?? [];
 
+    const ipoOps = [];
     for (const item of items) {
       const date    = toDate(item.date);
       if (!date) continue;
@@ -157,7 +162,7 @@ export async function syncCalendar(from: string, to: string): Promise<SyncResult
       const status    = (['expected', 'filed', 'priced', 'withdrawn'] as const)
         .find((s) => s === statusRaw) ?? 'expected';
 
-      await db.ipoEvent.upsert({
+      ipoOps.push(db.ipoEvent.upsert({
         where:  { source_id: sourceId },
         create: {
           source_id:          sourceId,
@@ -175,9 +180,10 @@ export async function syncCalendar(from: string, to: string): Promise<SyncResult
           status,
           price: item.price != null ? Number(item.price) : null,
         },
-      });
+      }));
       counts.ipo++;
     }
+    if (ipoOps.length > 0) await db.$transaction(ipoOps);
     log.push(`  ✓ ${counts.ipo} upserted`);
   } else {
     log.push(`  ✗ ipo: ${String(ipoResult.reason)}`);
