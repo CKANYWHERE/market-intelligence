@@ -81,20 +81,27 @@ export async function GET(req: NextRequest) {
         const observations = (await getFredSeries(seriesId, 24)) as FredObs[];
         const valid = observations.filter((o) => o.value !== '.' && o.value !== '');
 
-        // ── fred_snapshots — 병렬 upsert ($transaction 대신 Promise.all)
-        // Supabase Transaction Pooler(pgBouncer)와 $transaction 궁합 불량
-        const snapshotOps = valid
+        // ── fred_snapshots — raw SQL bulk upsert (쿼리 1개로 처리)
+        const rows = valid
           .map((obs) => ({ date: obs.date, value: parseFloat(obs.value) }))
-          .filter(({ value }) => !isNaN(value))
-          .map(({ date, value }) =>
-            db.fredSnapshot.upsert({
-              where:  { series_id_date: { series_id: seriesId, date: new Date(`${date}T00:00:00Z`) } },
-              create: { series_id: seriesId, date: new Date(`${date}T00:00:00Z`), value },
-              update: { value },
-            }),
-          );
+          .filter(({ value }) => !isNaN(value));
 
-        if (snapshotOps.length > 0) await Promise.all(snapshotOps);
+        const snapshotCount = rows.length;
+
+        if (rows.length > 0) {
+          // VALUES ($1,$2,$3), ($4,$5,$6), ... 형태로 한 번에 upsert
+          const placeholders = rows
+            .map((_, i) => `($${i * 3 + 1}::text, $${i * 3 + 2}::date, $${i * 3 + 3}::float8)`)
+            .join(', ');
+          const values = rows.flatMap(({ date, value }) => [seriesId, date, value]);
+
+          await db.$executeRawUnsafe(
+            `INSERT INTO fred_snapshots (series_id, date, value)
+             VALUES ${placeholders}
+             ON CONFLICT (series_id, date) DO UPDATE SET value = EXCLUDED.value`,
+            ...values,
+          );
+        }
 
         // ── economic_events.actual 업데이트 ───────────────────
         let eventUpdated = false;
@@ -117,12 +124,12 @@ export async function GET(req: NextRequest) {
           }
 
           results[seriesId] = {
-            snapshots: snapshotOps.length,
+            snapshots: snapshotCount,
             eventUpdated,
             latestValue: parseFloat(latest.value),
             latestDate:  latest.date,
           };
-          log.push(`  ✓ ${snapshotOps.length} snapshots, latest ${latest.value} (${latest.date})`);
+          log.push(`  ✓ ${snapshotCount} snapshots, latest ${latest.value} (${latest.date})`);
         } else {
           results[seriesId] = { snapshots: 0, eventUpdated: false };
           log.push(`  ⚠ no valid observations`);
