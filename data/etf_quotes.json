@@ -1,0 +1,47 @@
+[
+  {
+    "id": "etf_QQQ_1780043927093",
+    "symbol": "QQQ",
+    "price": 735.6,
+    "change": 6.15,
+    "change_percent": 0.8431,
+    "high": 736.6,
+    "low": 726.41,
+    "open": 729.73,
+    "prev_close": 729.45,
+    "quoted_at": "2026-05-28T20:00:00.000Z",
+    "fetched_at": "2026-05-29T08:38:47.093Z",
+    "created_at": "2026-05-29T08:38:47.093Z",
+    "updated_at": "2026-05-29T08:38:47.093Z"
+  },
+  {
+    "id": "etf_SPY_1780043927093",
+    "symbol": "SPY",
+    "price": 754.6,
+    "change": 4.14,
+    "change_percent": 0.5517,
+    "high": 755.15,
+    "low": 749.23,
+    "open": 750.25,
+    "prev_close": 750.46,
+    "quoted_at": "2026-05-28T20:00:00.000Z",
+    "fetched_at": "2026-05-29T08:38:47.093Z",
+    "created_at": "2026-05-29T08:38:47.093Z",
+    "updated_at": "2026-05-29T08:38:47.093Z"
+  },
+  {
+    "id": "etf_SCHD_1780043927093",
+    "symbol": "SCHD",
+    "price": 32.63,
+    "change": 0.08,
+    "change_percent": 0.2458,
+    "high": 32.73,
+    "low": 32.5,
+    "open": 32.618,
+    "prev_close": 32.55,
+    "quoted_at": "2026-05-28T20:00:00.000Z",
+    "fetched_at": "2026-05-29T08:38:47.093Z",
+    "created_at": "2026-05-29T08:38:47.093Z",
+    "updated_at": "2026-05-29T08:38:47.093Z"
+  }
+]

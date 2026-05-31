@@ -1,0 +1,27 @@
+name: Cron — Daily Calendar
+
+on:
+  schedule:
+    - cron: '0 12 * * 1-5'   # 평일 08:00 ET (UTC 12:00)
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Call daily-calendar endpoint
+        run: |
+          RESPONSE=$(curl -sf \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.SITE_URL }}/api/cron/daily-calendar")
+          echo "$RESPONSE" | python3 -m json.tool
+          echo "$RESPONSE" | python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          if not d.get('ok'):
+            print('FAILED:', d.get('error'))
+            sys.exit(1)
+          c = d.get('counts', {})
+          print(f'✓ eco={c.get(\"economic\",0)} earn={c.get(\"earnings\",0)} ipo={c.get(\"ipo\",0)} ({d.get(\"durationMs\",0)}ms)')
+          "

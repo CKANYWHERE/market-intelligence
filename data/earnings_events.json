@@ -1,0 +1,50 @@
+[
+  {
+    "id": "earn_earn_NVDA_2026-08-25",
+    "source_id": "earn_NVDA_2026-08-25",
+    "symbol": "NVDA",
+    "company": "NVDA",
+    "date": "2026-08-25",
+    "hour": "amc",
+    "quarter": 2,
+    "year": 2027,
+    "eps_estimate": 2.1196,
+    "eps_actual": null,
+    "revenue_estimate": 93183054750,
+    "revenue_actual": null,
+    "created_at": "2026-05-29T08:37:35.601Z",
+    "updated_at": "2026-05-29T08:37:35.601Z"
+  },
+  {
+    "id": "earn_earn_PANW_2026-08-17",
+    "source_id": "earn_PANW_2026-08-17",
+    "symbol": "PANW",
+    "company": "PANW",
+    "date": "2026-08-17",
+    "hour": "amc",
+    "quarter": 4,
+    "year": 2026,
+    "eps_estimate": 0.9593,
+    "eps_actual": null,
+    "revenue_estimate": 3348693690,
+    "revenue_actual": null,
+    "created_at": "2026-05-29T08:37:35.601Z",
+    "updated_at": "2026-05-29T08:37:35.601Z"
+  },
+  {
+    "id": "earn_earn_AMAT_2026-08-13",
+    "source_id": "earn_AMAT_2026-08-13",
+    "symbol": "AMAT",
+    "company": "AMAT",
+    "date": "2026-08-13",
+    "hour": "amc",
+    "quarter": 3,
+    "year": 2026,
+    "eps_estimate": 3.4571,
+    "eps_actual": null,
+    "revenue_estimate": 9160824448,
+    "revenue_actual": null,
+    "created_at": "2026-05-29T08:37:35.601Z",
+    "updated_at": "2026-05-29T08:37:35.601Z"
+  }
+]

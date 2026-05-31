@@ -1,0 +1,26 @@
+name: Cron — Breaking News
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'   # 30분마다
+  workflow_dispatch:           # 수동 실행 가능
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Call breaking-news endpoint
+        run: |
+          RESPONSE=$(curl -sf \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.SITE_URL }}/api/cron/breaking-news")
+          echo "$RESPONSE" | python3 -m json.tool
+          echo "$RESPONSE" | python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          if not d.get('ok'):
+            print('FAILED:', d.get('error'))
+            sys.exit(1)
+          print(f'✓ new={d.get(\"newItems\",0)} high={d.get(\"highItems\",0)} ({d.get(\"durationMs\",0)}ms)')
+          "

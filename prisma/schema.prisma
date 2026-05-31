@@ -1,0 +1,222 @@
+// Prisma Schema — Market Intelligence Dashboard
+// Database: PostgreSQL (로컬 개발: localhost:5432/guru, 프로덕션: Supabase)
+//
+// Design decisions:
+//  - Separate tables per event type (vs. single polymorphic events table)
+//    → cleaner types, easier indexing on category-specific columns
+//  - All timestamps stored as DateTime (UTC); displayed in ET on the client
+//  - `source_id` is the Finnhub/FRED external ID for idempotent upserts
+//  - `breaking_events` has an `ai_classification` field; only HIGH items reach the UI
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")   // Vercel 런타임 — Supabase Transaction Pooler (포트 6543)
+  directUrl = env("DIRECT_URL")     // 마이그레이션 전용 — Supabase Direct Connection (포트 5432)
+}
+
+// ─────────────────────────────────────────────
+// 1. ECONOMIC EVENTS
+//    Source: Finnhub /calendar/economic + FRED API
+//    Batch: daily 08:00 ET + actual update 09:00 ET on release day
+// ─────────────────────────────────────────────
+model EconomicEvent {
+  id         String   @id @default(cuid())
+  source_id  String   @unique // Finnhub event ID for upsert dedup
+  date       DateTime // scheduled release date (date-only, UTC midnight)
+  time       String?  // "08:30", "14:00" (ET)
+  title      String   // "CPI m/m", "FOMC Rate Decision"
+  category   Category // monetary_policy | inflation | employment | growth
+  importance Importance @default(medium)
+  unit       String?  // "%", "K", "B"
+
+  // Data fields — null until announced
+  actual    Float?
+  estimate  Float?
+  prev      Float?
+
+  // FRED series for historical chart data
+  fred_series_id String? // "CPIAUCSL", "PAYEMS", etc.
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([date])
+  @@index([category])
+  @@map("economic_events")
+}
+
+// ─────────────────────────────────────────────
+// 2. EARNINGS EVENTS
+//    Source: Finnhub /calendar/earnings
+//    Batch: daily 08:00 ET; actuals updated after release
+// ─────────────────────────────────────────────
+model EarningsEvent {
+  id        String   @id @default(cuid())
+  source_id String   @unique // Finnhub earningsCalendar id
+  symbol    String   // "AAPL", "NVDA"
+  company   String   // "Apple Inc."
+  date      DateTime // earnings release date
+  hour      EarningsHour? // bmo | amc | dmh
+  quarter   Int?     // 1–4
+  year      Int?
+
+  // EPS
+  eps_estimate Float?
+  eps_actual   Float?
+
+  // Revenue (in USD)
+  revenue_estimate Float?
+  revenue_actual   Float?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([date])
+  @@index([symbol])
+  @@map("earnings_events")
+}
+
+// ─────────────────────────────────────────────
+// 3. IPO EVENTS
+//    Source: Finnhub /calendar/ipo + SEC EDGAR S-1 RSS
+//    Batch: daily 08:00 ET
+// ─────────────────────────────────────────────
+model IpoEvent {
+  id         String    @id @default(cuid())
+  source_id  String    @unique
+  symbol     String?   // ticker (may be empty before pricing)
+  company    String
+  date       DateTime  // expected or confirmed IPO date
+  exchange   String?   // "NASDAQ", "NYSE"
+  status     IpoStatus @default(expected)
+
+  // Pricing (populated after priced)
+  price             Float?  // per-share IPO price
+  number_of_shares  BigInt?
+  total_shares_value Float?  // deal size in USD
+
+  // NASDAQ Fast Entry Rule flag
+  nasdaq_fast_entry Boolean @default(false)
+  // estimated forced-buy volume by passive ETFs (USD)
+  etf_inflow_estimate Float?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([date])
+  @@map("ipo_events")
+}
+
+// ─────────────────────────────────────────────
+// 4. BREAKING EVENTS
+//    Source: Finnhub /news + Fed RSS + SEC EDGAR 8-K RSS
+//    Batch: every 30 minutes via Vercel Cron / GitHub Actions
+//    Only rows with ai_classification = HIGH are surfaced in the UI
+// ─────────────────────────────────────────────
+model BreakingEvent {
+  id        String   @id @default(cuid())
+  source_id String   @unique // Finnhub news ID or SEC accession number
+
+  headline  String
+  summary   String?  @db.Text
+  url       String
+  image_url String?
+  source    String   // "Finnhub", "Federal Reserve", "SEC EDGAR"
+  published_at DateTime
+
+  // AI classification by Claude Haiku
+  ai_classification AiClassification
+  ai_reason         String?  @db.Text // why Haiku gave this rating
+  ai_classified_at  DateTime?
+
+  // Display control — HIGH items auto-show; others hidden
+  is_displayed Boolean @default(false)
+
+  created_at DateTime @default(now())
+
+  @@index([published_at(sort: Desc)])
+  @@index([ai_classification])
+  @@map("breaking_events")
+}
+
+// ─────────────────────────────────────────────
+// 5. ETF QUOTES
+//    Source: Finnhub /quote
+//    Batch: hourly during market hours (ET 09:30–16:00)
+// ─────────────────────────────────────────────
+model EtfQuote {
+  id             String   @id @default(cuid())
+  symbol         String   // "QQQ", "SPY", "SCHD"
+  price          Float
+  change         Float    // absolute change
+  change_percent Float    // % change vs prev close
+  high           Float
+  low            Float
+  open           Float
+  prev_close     Float
+  quoted_at      DateTime // Finnhub's `t` field (Unix → DateTime)
+  fetched_at     DateTime @default(now())
+
+  @@index([symbol, quoted_at(sort: Desc)])
+  @@map("etf_quotes")
+}
+
+// ─────────────────────────────────────────────
+// 6. FRED INDICATOR SNAPSHOTS
+//    Source: FRED API
+//    Batch: daily 08:00 ET (history) + release-day update 09:00 ET
+//    Used for historical sparkline charts in the detail panel
+// ─────────────────────────────────────────────
+model FredSnapshot {
+  id         String   @id @default(cuid())
+  series_id  String   // "CPIAUCSL", "PAYEMS", etc.
+  date       DateTime // observation date
+  value      Float
+  fetched_at DateTime @default(now())
+
+  @@unique([series_id, date])
+  @@index([series_id, date(sort: Desc)])
+  @@map("fred_snapshots")
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+enum Category {
+  monetary_policy
+  inflation
+  employment
+  growth
+  earnings
+  ipo
+  breaking
+}
+
+enum Importance {
+  high
+  medium
+  low
+}
+
+enum EarningsHour {
+  bmo // before market open
+  amc // after market close
+  dmh // during market hours
+}
+
+enum IpoStatus {
+  expected
+  filed
+  priced
+  withdrawn
+}
+
+enum AiClassification {
+  HIGH
+  MEDIUM
+  LOW
+}
