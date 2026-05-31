@@ -1,22 +1,19 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
+import useSWR from 'swr';
+import { fetcher } from '@/lib/fetcher';
 import { CalendarEvent, EventCategory } from '@/types/events';
 import { buildMonthGrid, formatMonthTitle } from '@/lib/utils/calendar';
 import { CATEGORY_META } from '@/lib/utils/categorize';
 import EventChip from './EventChip';
 
 const ALL_CATEGORIES: EventCategory[] = [
-  'monetary_policy',
-  'inflation',
-  'employment',
-  'growth',
-  'earnings',
-  'ipo',
+  'monetary_policy', 'inflation', 'employment', 'growth', 'earnings', 'ipo',
 ];
-
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+interface CalendarResponse { events: CalendarEvent[] }
 interface Props {
   selectedEvent: CalendarEvent | null;
   onSelectEvent: (event: CalendarEvent | null) => void;
@@ -24,50 +21,36 @@ interface Props {
 
 export default function CalendarView({ selectedEvent, onSelectEvent }: Props) {
   const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
+  const [year, setYear]   = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(false);
   const [activeCategories, setActiveCategories] = useState<Set<EventCategory>>(
     new Set(ALL_CATEGORIES),
   );
 
-  const fetchEvents = useCallback(async (y: number, m: number) => {
-    setLoading(true);
-    setError(false);
-    try {
-      const res = await fetch(`/api/calendar?year=${y}&month=${m}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setEvents(data.events ?? []);
-    } catch {
-      setError(true);
-      setEvents([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const { data, isLoading, error, mutate } = useSWR<CalendarResponse>(
+    `/api/calendar?year=${year}&month=${month}`,
+    fetcher,
+    {
+      revalidateOnFocus:     false, // 캘린더는 탭 전환 시 불필요한 갱신 방지
+      revalidateOnReconnect: true,
+      dedupingInterval:      60_000,
+    },
+  );
 
-  useEffect(() => {
-    fetchEvents(year, month);
-  }, [year, month, fetchEvents]);
+  const events = data?.events ?? [];
 
   function prevMonth() {
     if (month === 1) { setYear((y) => y - 1); setMonth(12); }
     else setMonth((m) => m - 1);
   }
-
   function nextMonth() {
     if (month === 12) { setYear((y) => y + 1); setMonth(1); }
     else setMonth((m) => m + 1);
   }
-
   function goToday() {
     setYear(now.getFullYear());
     setMonth(now.getMonth() + 1);
   }
-
   function toggleCategory(cat: EventCategory) {
     setActiveCategories((prev) => {
       const next = new Set(prev);
@@ -77,7 +60,6 @@ export default function CalendarView({ selectedEvent, onSelectEvent }: Props) {
     });
   }
 
-  // Build date → events map (filtered)
   const eventMap: Record<string, CalendarEvent[]> = {};
   for (const ev of events) {
     if (!activeCategories.has(ev.category)) continue;
@@ -93,7 +75,7 @@ export default function CalendarView({ selectedEvent, onSelectEvent }: Props) {
       {/* Category filter pills */}
       <div className="flex flex-wrap gap-2 mb-3" role="group" aria-label="Filter by category">
         {ALL_CATEGORIES.map((cat) => {
-          const meta = CATEGORY_META[cat];
+          const meta   = CATEGORY_META[cat];
           const active = activeCategories.has(cat);
           return (
             <button
@@ -110,9 +92,9 @@ export default function CalendarView({ selectedEvent, onSelectEvent }: Props) {
           );
         })}
         <span className="ml-auto text-gray-600 text-xs self-center">
-          {loading ? 'Loading…' : error ? (
+          {isLoading ? 'Loading…' : error ? (
             <button
-              onClick={() => fetchEvents(year, month)}
+              onClick={() => mutate()}
               className="text-red-400 hover:text-red-300 transition-colors"
             >
               ⚠ Failed — retry
@@ -123,27 +105,19 @@ export default function CalendarView({ selectedEvent, onSelectEvent }: Props) {
 
       {/* Month navigation */}
       <div className="flex items-center gap-3 mb-3">
-        <button
-          onClick={prevMonth}
-          aria-label="Previous month"
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
-        >
+        <button onClick={prevMonth} aria-label="Previous month"
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">
           ‹
         </button>
         <h2 className="text-white font-bold text-lg flex-1 text-center">
           {formatMonthTitle(year, month)}
         </h2>
-        <button
-          onClick={nextMonth}
-          aria-label="Next month"
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
-        >
+        <button onClick={nextMonth} aria-label="Next month"
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">
           ›
         </button>
-        <button
-          onClick={goToday}
-          className="px-3 py-1 text-xs text-gray-400 border border-gray-700 rounded-lg hover:bg-gray-800 hover:text-white transition-colors"
-        >
+        <button onClick={goToday}
+          className="px-3 py-1 text-xs text-gray-400 border border-gray-700 rounded-lg hover:bg-gray-800 hover:text-white transition-colors">
           Today
         </button>
       </div>
@@ -154,30 +128,23 @@ export default function CalendarView({ selectedEvent, onSelectEvent }: Props) {
         aria-label={`${formatMonthTitle(year, month)} calendar`}
         className="flex-1 grid grid-cols-7 gap-px bg-gray-800 rounded-xl overflow-hidden border border-gray-800"
       >
-        {/* Day-of-week header */}
         {DOW.map((d, i) => (
-          <div
-            key={i}
-            role="columnheader"
+          <div key={i} role="columnheader"
             aria-label={['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][i]}
-            className={`bg-gray-900 text-center text-xs font-semibold py-2 ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-gray-500'}`}
-          >
+            className={`bg-gray-900 text-center text-xs font-semibold py-2 ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-gray-500'}`}>
             {d}
           </div>
         ))}
 
-        {/* Day cells */}
         {grid.map((day, idx) => {
-          const dayEvents = eventMap[day.dateKey] ?? [];
-          const visible = dayEvents.slice(0, 3);
-          const overflow = dayEvents.length - visible.length;
+          const dayEvents  = eventMap[day.dateKey] ?? [];
+          const visible    = dayEvents.slice(0, 3);
+          const overflow   = dayEvents.length - visible.length;
           const isSelected = selectedEvent?.date === day.dateKey;
-          const dow = day.date.getDay();
+          const dow        = day.date.getDay();
 
           return (
-            <div
-              key={idx}
-              role="gridcell"
+            <div key={idx} role="gridcell"
               aria-label={`${day.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}${dayEvents.length > 0 ? `, ${dayEvents.length} events` : ''}`}
               className={`
                 bg-gray-900 min-h-[88px] p-1.5 flex flex-col gap-0.5
@@ -186,16 +153,12 @@ export default function CalendarView({ selectedEvent, onSelectEvent }: Props) {
                 ${dayEvents.length > 0 ? 'cursor-pointer hover:bg-gray-800/60' : ''}
                 transition-colors
               `}
-              onClick={() => {
-                if (dayEvents.length === 1) onSelectEvent(dayEvents[0]);
-              }}
+              onClick={() => { if (dayEvents.length === 1) onSelectEvent(dayEvents[0]); }}
             >
-              <span
-                className={`
-                  text-xs self-end leading-none w-6 h-6 flex items-center justify-center rounded-full font-medium
-                  ${day.isToday ? 'bg-blue-500 text-white' : dow === 0 ? 'text-red-400/70' : dow === 6 ? 'text-blue-400/70' : 'text-gray-500'}
-                `}
-              >
+              <span className={`
+                text-xs self-end leading-none w-6 h-6 flex items-center justify-center rounded-full font-medium
+                ${day.isToday ? 'bg-blue-500 text-white' : dow === 0 ? 'text-red-400/70' : dow === 6 ? 'text-blue-400/70' : 'text-gray-500'}
+              `}>
                 {day.date.getDate()}
               </span>
 
@@ -206,10 +169,7 @@ export default function CalendarView({ selectedEvent, onSelectEvent }: Props) {
               {overflow > 0 && (
                 <button
                   className="text-xs text-gray-500 hover:text-gray-300 text-left pl-1.5 transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelectEvent(dayEvents[3]);
-                  }}
+                  onClick={(e) => { e.stopPropagation(); onSelectEvent(dayEvents[3]); }}
                 >
                   +{overflow} more
                 </button>

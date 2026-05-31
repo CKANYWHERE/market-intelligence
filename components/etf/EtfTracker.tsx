@@ -1,39 +1,24 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import useSWR from 'swr';
+import { fetcher } from '@/lib/fetcher';
 import { QuoteData } from '@/types/events';
 
-const SYMBOLS  = ['QQQ', 'SPY', 'SCHD'];
-const INTERVAL = 60_000; // 60초마다 갱신
+const SYMBOLS = ['QQQ', 'SPY', 'SCHD'];
 
 export default function EtfTracker() {
-  const [quotes, setQuotes]   = useState<Record<string, QuoteData>>({});
-  const [loading, setLoading] = useState(true);
-  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { data, isLoading, dataUpdatedAt } = useSWR<Record<string, QuoteData>>(
+    '/api/quote',
+    fetcher,
+    {
+      refreshInterval:    60_000,  // 60초마다 자동 갱신
+      revalidateOnFocus:  true,    // 탭 포커스 시 갱신
+      revalidateOnReconnect: true, // 네트워크 재연결 시 갱신
+      dedupingInterval:   30_000,  // 30초 내 중복 요청 방지
+    },
+  );
 
-  async function fetchQuotes() {
-    try {
-      const res  = await fetch('/api/quote');
-      const data = await res.json();
-      setQuotes(data);
-      setUpdatedAt(new Date());
-    } catch {
-      // 실패해도 이전 데이터 유지
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchQuotes();
-    timerRef.current = setInterval(fetchQuotes, INTERVAL);
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex gap-3">
         {SYMBOLS.map((s) => (
@@ -46,7 +31,7 @@ export default function EtfTracker() {
   return (
     <div className="flex items-center gap-3 flex-wrap">
       {SYMBOLS.map((symbol) => {
-        const q = quotes[symbol];
+        const q = data?.[symbol];
         if (!q) return null;
         const isPos = q.changePercent >= 0;
         return (
@@ -62,9 +47,9 @@ export default function EtfTracker() {
           </div>
         );
       })}
-      {updatedAt && (
+      {dataUpdatedAt && (
         <span className="text-gray-700 text-xs hidden sm:block">
-          {updatedAt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+          {new Date(dataUpdatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
         </span>
       )}
     </div>
