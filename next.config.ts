@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Vercel Toolbar 비활성화 (프리뷰 환경에서도 숨김)
+  devIndicators: false,
+
   // 외부 이미지 허용 도메인 (BreakingSection의 뉴스 썸네일)
   images: {
     remotePatterns: [
