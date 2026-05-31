@@ -14,7 +14,7 @@ jobs:
         run: |
           echo "▶ Calling ${{ secrets.SITE_URL }}/api/cron/fred-update"
 
-          RESPONSE=$(curl -s \
+          RESPONSE=$(curl -sL \
             -w "\n__HTTP_STATUS__%{http_code}" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             "${{ secrets.SITE_URL }}/api/cron/fred-update")

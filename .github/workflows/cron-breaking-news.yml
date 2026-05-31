@@ -15,7 +15,7 @@ jobs:
           echo "▶ Calling ${{ secrets.SITE_URL }}/api/cron/breaking-news"
 
           # -f 제거 → 4xx/5xx도 응답 본문 출력
-          RESPONSE=$(curl -s \
+          RESPONSE=$(curl -sL \
             -w "\n__HTTP_STATUS__%{http_code}" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             "${{ secrets.SITE_URL }}/api/cron/breaking-news")
