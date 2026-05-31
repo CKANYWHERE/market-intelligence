@@ -73,78 +73,71 @@ export async function GET(req: NextRequest) {
     latestDate?: string;
   }> = {};
 
-  // FRED API rate limit 방지 — 최대 3개 동시 처리
-  await pLimit(
-    SERIES_CONFIG.map(({ seriesId, titleKeyword }) => async () => {
-      log.push(`▶ ${seriesId} (${titleKeyword})...`);
-      try {
-        const observations = (await getFredSeries(seriesId, 24)) as FredObs[];
-        const valid = observations.filter((o) => o.value !== '.' && o.value !== '');
+  // ── Step 1: 최신 값만 병렬 fetch (limit=1) ──────────────────
+  // 매일 cron에서 24개월치 전부 저장할 필요 없음 — 최신 1개만으로 충분
+  // 히스토리 스냅샷은 backfill 엔드포인트에서 별도 처리
+  log.push('▶ Fetching latest observation per series (limit=1)...');
+  const fetchResults = await Promise.allSettled(
+    SERIES_CONFIG.map(({ seriesId }) => getFredSeries(seriesId, 1)),
+  );
+  log.push('  ✓ fetch done');
 
-        // ── fred_snapshots — raw SQL bulk upsert (쿼리 1개로 처리)
-        const rows = valid
-          .map((obs) => ({ date: obs.date, value: parseFloat(obs.value) }))
-          .filter(({ value }) => !isNaN(value));
+  // ── Step 2: latest 스냅샷 단일 bulk INSERT ───────────────────
+  type SnapshotRow = { seriesId: string; date: string; value: number };
+  const allRows: SnapshotRow[] = [];
 
-        const snapshotCount = rows.length;
+  for (let i = 0; i < SERIES_CONFIG.length; i++) {
+    const { seriesId } = SERIES_CONFIG[i];
+    const result = fetchResults[i];
+    if (result.status === 'rejected') {
+      log.push(`  ✗ ${seriesId}: ${String(result.reason)}`);
+      results[seriesId] = { snapshots: 0, eventUpdated: false };
+      continue;
+    }
+    const obs = result.value as FredObs[];
+    const latest = obs.find((o) => o.value !== '.' && o.value !== '');
+    if (!latest) {
+      results[seriesId] = { snapshots: 0, eventUpdated: false };
+      log.push(`  ⚠ ${seriesId}: no valid observation`);
+      continue;
+    }
+    const value = parseFloat(latest.value);
+    if (!isNaN(value)) {
+      allRows.push({ seriesId, date: latest.date, value });
+      results[seriesId] = { snapshots: 1, eventUpdated: false, latestValue: value, latestDate: latest.date };
+    }
+  }
 
-        if (rows.length > 0) {
-          // VALUES ($1,$2,$3), ($4,$5,$6), ... 형태로 한 번에 upsert
-          const placeholders = rows
-            .map((_, i) => `($${i * 3 + 1}::text, $${i * 3 + 2}::date, $${i * 3 + 3}::float8)`)
-            .join(', ');
-          const values = rows.flatMap(({ date, value }) => [seriesId, date, value]);
+  if (allRows.length > 0) {
+    await db.fredSnapshot.createMany({
+      data: allRows.map(({ seriesId, date, value }) => ({
+        series_id: seriesId,
+        date:      new Date(`${date}T00:00:00Z`),
+        value,
+      })),
+      skipDuplicates: true, // @@unique([series_id, date]) 기준으로 중복 skip
+    });
+    log.push(`  ✓ ${allRows.length} snapshots upserted (1 query)`);
+  }
 
-          await db.$executeRawUnsafe(
-            `INSERT INTO fred_snapshots (series_id, date, value)
-             VALUES ${placeholders}
-             ON CONFLICT (series_id, date) DO UPDATE SET value = EXCLUDED.value`,
-            ...values,
-          );
-        }
-
-        // ── economic_events.actual 업데이트 ───────────────────
-        let eventUpdated = false;
-        if (valid.length > 0) {
-          const latest      = valid[0];
-          const latestValue = parseFloat(latest.value);
-          const latestDate  = new Date(`${latest.date}T00:00:00Z`);
-
-          if (!isNaN(latestValue)) {
-            const updated = await db.economicEvent.updateMany({
-              where: {
-                date:   latestDate,
-                title:  { contains: titleKeyword, mode: 'insensitive' },
-                actual: null,
-              },
-              data: { actual: latestValue },
-            });
-            eventUpdated = updated.count > 0;
-            if (eventUpdated) log.push(`  ✓ actual updated for "${titleKeyword}" on ${latest.date}`);
-          }
-
-          results[seriesId] = {
-            snapshots: snapshotCount,
-            eventUpdated,
-            latestValue: parseFloat(latest.value),
-            latestDate:  latest.date,
-          };
-          log.push(`  ✓ ${snapshotCount} snapshots, latest ${latest.value} (${latest.date})`);
-        } else {
-          results[seriesId] = { snapshots: 0, eventUpdated: false };
-          log.push(`  ⚠ no valid observations`);
-        }
-      } catch (err) {
-        console.error(`[cron/fred-update] ${seriesId}:`, err);
-        results[seriesId] = { snapshots: 0, eventUpdated: false };
-        log.push(`  ✗ ${String(err)}`);
+  // ── Step 3: economic_events.actual 업데이트 ──────────────────
+  let updatedEvents = 0;
+  await Promise.all(
+    allRows.map(async ({ seriesId, date, value }) => {
+      const { titleKeyword } = SERIES_CONFIG.find((s) => s.seriesId === seriesId)!;
+      const r = await db.economicEvent.updateMany({
+        where: { date: new Date(`${date}T00:00:00Z`), title: { contains: titleKeyword, mode: 'insensitive' }, actual: null },
+        data:  { actual: value },
+      });
+      if (r.count > 0) {
+        updatedEvents++;
+        log.push(`  ✓ actual updated: "${titleKeyword}" on ${date}`);
+        results[seriesId].eventUpdated = true;
       }
     }),
-    3, // 동시 3개
   );
 
-  const totalSnapshots   = Object.values(results).reduce((s, r) => s + r.snapshots, 0);
-  const updatedEvents    = Object.values(results).filter((r) => r.eventUpdated).length;
+  const totalSnapshots = allRows.length;
   log.push(`▶ Done — ${totalSnapshots} snapshots, ${updatedEvents} events updated`);
 
   return NextResponse.json({ ok: true, results, log, durationMs: Date.now() - startedAt });
