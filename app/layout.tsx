@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
-import { allSchemas } from "@/lib/seo/json-ld";
 import "./globals.css";
 
 const ADSENSE_CLIENT_ID = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
@@ -18,7 +17,7 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://market-intel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://market-intelligence-87mm.vercel.app";
 const SITE_NAME = "US Market Intelligence Dashboard";
 
 export const viewport: Viewport = {
@@ -36,27 +35,41 @@ export const metadata: Metadata = {
   },
 
   description:
-    "Free US stock market calendar: FOMC dates, CPI/PCE releases, NFP, S&P 500 earnings, upcoming IPOs, and breaking market news — all in one real-time dashboard.",
+    "Free US stock market calendar: FOMC dates, CPI/PCE/NFP releases, AAPL MSFT NVDA GOOGL AMZN META TSLA earnings, upcoming IPOs (SpaceX, Anthropic, OpenAI), and AI-filtered breaking market news — all in one real-time dashboard.",
 
   keywords: [
-    "economic calendar",
-    "earnings calendar",
-    "IPO calendar",
-    "FOMC calendar",
+    "economic calendar 2026",
+    "US earnings calendar",
+    "IPO calendar 2026",
+    "FOMC meeting dates 2026",
     "CPI release date",
-    "PCE release",
-    "nonfarm payrolls",
+    "PCE release schedule",
+    "nonfarm payrolls date",
+    "Fed interest rate decision",
+    "AAPL earnings date",
+    "NVDA earnings calendar",
+    "MSFT GOOGL AMZN META earnings",
+    "SpaceX IPO date",
+    "Anthropic IPO",
+    "OpenAI IPO 2026",
+    "NASDAQ-100 rebalancing",
+    "QQQ SPY tracker",
     "stock market events",
-    "Fed meeting dates",
-    "S&P 500 earnings",
-    "NASDAQ IPO",
-    "market intelligence",
-    "financial calendar 2026",
+    "breaking market news",
+    "financial calendar",
+    "market intelligence dashboard",
   ],
 
+  applicationName: SITE_NAME,
+
   alternates: {
-    canonical: "/",
+    canonical: SITE_URL,
+    languages: {
+      "en-US": SITE_URL,
+      "x-default": SITE_URL,
+    },
   },
+
   robots: {
     index: true,
     follow: true,
@@ -75,7 +88,7 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: "US Market Intelligence Dashboard — Economic Calendar, Earnings & IPO Tracker",
     description:
-      "Free US stock market calendar: FOMC dates, CPI/PCE releases, NFP, S&P 500 earnings, upcoming IPOs, and breaking market news — all in one real-time dashboard.",
+      "Free US stock market calendar: FOMC, CPI, PCE, NFP, earnings (AAPL NVDA MSFT), IPOs (SpaceX, Anthropic), and breaking news — one real-time dashboard.",
     images: [
       {
         url: "/og-image.png",
@@ -91,9 +104,9 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "US Market Intelligence Dashboard",
     description:
-      "Free economic calendar: FOMC, CPI, earnings, IPO, and breaking news — one dashboard.",
+      "Free economic calendar: FOMC, CPI, earnings (AAPL, NVDA, MSFT), IPO (SpaceX, Anthropic), and breaking news — one dashboard.",
     images: ["/og-image.png"],
-    creator: "@marketintelapp",
+    // creator: "@handle" — 실제 계정 생성 후 추가
   },
 
   icons: {
@@ -105,9 +118,9 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
 
-  // Google Search Console 등록 후 주석 해제
+  // Google Search Console 소유권 확인 후 주석 해제:
   // verification: {
-  //   google: "REPLACE_WITH_GSC_TOKEN",
+  //   google: "REPLACE_WITH_GSC_VERIFICATION_TOKEN",
   // },
 };
 
@@ -122,11 +135,11 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
-        {/* JSON-LD — <head> 안에 있어야 Google이 가장 안정적으로 파싱 */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(allSchemas()) }}
-        />
+        {/* 미국 타겟 geo 메타태그 — Bing/Yahoo 지역 타겟팅 */}
+        <meta name="geo.region"      content="US" />
+        <meta name="geo.placename"   content="United States" />
+        <meta name="language"        content="en-US" />
+        <meta httpEquiv="content-language" content="en-us" />
         {/* Google AdSense — NEXT_PUBLIC_ADSENSE_CLIENT_ID 설정 시 활성화 */}
         {ADSENSE_CLIENT_ID && (
           <Script
