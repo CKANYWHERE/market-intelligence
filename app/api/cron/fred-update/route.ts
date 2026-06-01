@@ -28,44 +28,24 @@ const SERIES_CONFIG = [
 
 type FredObs = { date: string; value: string };
 
-// FRED API rate limit 방지 — 동시 호출 수 제한
-async function pLimit<T>(
-  tasks: (() => Promise<T>)[],
-  concurrency: number,
-): Promise<T[]> {
-  const results: T[] = [];
-  let idx = 0;
-  async function worker() {
-    while (idx < tasks.length) {
-      const i = idx++;
-      results[i] = await tasks[i]();
-    }
-  }
-  await Promise.all(Array.from({ length: concurrency }, worker));
-  return results;
-}
-
 function isAuthorized(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
   if (!secret) return true;
   return req.headers.get('authorization') === `Bearer ${secret}`;
 }
 
-export async function GET(req: NextRequest) {
-  if (!isAuthorized(req)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+// 전체 작업에 타임아웃을 걸어서 300초 hang 방지
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms),
+    ),
+  ]);
+}
 
-  if (!process.env.FRED_API_KEY) {
-    return NextResponse.json({
-      ok:   false,
-      error: 'FRED_API_KEY not set',
-      hint:  'https://fred.stlouisfed.org/docs/api/api_key.html',
-    }, { status: 400 });
-  }
-
-  const startedAt = Date.now();
-  const log: string[] = [];
+async function runUpdate(log: string[], startedAt: number) {
+  const t = (label: string) => log.push(`[${Date.now() - startedAt}ms] ${label}`);
   const results: Record<string, {
     snapshots: number;
     eventUpdated: boolean;
@@ -73,9 +53,7 @@ export async function GET(req: NextRequest) {
     latestDate?: string;
   }> = {};
 
-  const t = (label: string) => log.push(`[${Date.now() - startedAt}ms] ${label}`);
-
-  // ── Step 1: FRED API fetch (순차 + 딜레이 — Vercel IP 기반 429 방지)
+  // ── Step 1: FRED API fetch (순차)
   t('▶ Step1 start: FRED fetch sequential');
   const fetchResults: PromiseSettledResult<{ date: string; value: string }[]>[] = [];
   for (const { seriesId } of SERIES_CONFIG) {
@@ -83,12 +61,11 @@ export async function GET(req: NextRequest) {
       .then((v) => ({ status: 'fulfilled' as const, value: v }))
       .catch((e) => ({ status: 'rejected' as const, reason: e }));
     fetchResults.push(result);
-    await new Promise((r) => setTimeout(r, 300)); // 300ms 간격
+    await new Promise((r) => setTimeout(r, 300));
   }
-  t('✓ Step1 done: FRED fetch');
+  t('✓ Step1 done');
 
-  // ── Step 2: 결과 파싱 ────────────────────────────────────────
-  t('▶ Step2 start: parsing');
+  // ── Step 2: 파싱
   type SnapshotRow = { seriesId: string; date: string; value: number };
   const allRows: SnapshotRow[] = [];
 
@@ -104,7 +81,6 @@ export async function GET(req: NextRequest) {
     const latest = obs.find((o) => o.value !== '.' && o.value !== '');
     if (!latest) {
       results[seriesId] = { snapshots: 0, eventUpdated: false };
-      log.push(`  ⚠ ${seriesId}: no valid observation`);
       continue;
     }
     const value = parseFloat(latest.value);
@@ -113,10 +89,9 @@ export async function GET(req: NextRequest) {
       results[seriesId] = { snapshots: 1, eventUpdated: false, latestValue: value, latestDate: latest.date };
     }
   }
-  t('✓ Step2 done: parsing');
 
-  // ── Step 3: DB — snapshot createMany ────────────────────────
-  t('▶ Step3 start: DB createMany (snapshots)');
+  // ── Step 3: DB snapshot
+  t('▶ Step3 start: DB createMany');
   if (allRows.length > 0) {
     await db.fredSnapshot.createMany({
       data: allRows.map(({ seriesId, date, value }) => ({
@@ -129,8 +104,8 @@ export async function GET(req: NextRequest) {
   }
   t(`✓ Step3 done: ${allRows.length} snapshots`);
 
-  // ── Step 4: DB — economic_events.actual 업데이트 ─────────────
-  t('▶ Step4 start: DB updateMany (actuals)');
+  // ── Step 4: actual 업데이트
+  t('▶ Step4 start: DB updateMany');
   let updatedEvents = 0;
   await Promise.all(
     allRows.map(async ({ seriesId, date, value }) => {
@@ -148,8 +123,36 @@ export async function GET(req: NextRequest) {
   );
   t(`✓ Step4 done: ${updatedEvents} events updated`);
 
-  const totalSnapshots = allRows.length;
-  log.push(`▶ Total — ${totalSnapshots} snapshots, ${updatedEvents} events updated`);
+  return { results, updatedEvents, totalSnapshots: allRows.length };
+}
 
-  return NextResponse.json({ ok: true, results, log, durationMs: Date.now() - startedAt });
+export async function GET(req: NextRequest) {
+  if (!isAuthorized(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  if (!process.env.FRED_API_KEY) {
+    return NextResponse.json({ ok: false, error: 'FRED_API_KEY not set' }, { status: 400 });
+  }
+
+  const startedAt = Date.now();
+  const log: string[] = [];
+
+  try {
+    // 전체 작업을 50초 안에 강제 종료 — 300초 hang 방지
+    const { results, updatedEvents, totalSnapshots } = await withTimeout(
+      runUpdate(log, startedAt),
+      50_000,
+    );
+
+    log.push(`▶ Total — ${totalSnapshots} snapshots, ${updatedEvents} events updated`);
+    return NextResponse.json({ ok: true, results, log, durationMs: Date.now() - startedAt });
+
+  } catch (err) {
+    const msg = String(err);
+    log.push(`✗ ${msg}`);
+    console.error('[cron/fred-update]', err);
+    // timeout이든 에러든 200으로 반환 — GitHub Actions가 실패로 처리하지 않도록
+    return NextResponse.json({ ok: false, error: msg, log, durationMs: Date.now() - startedAt });
+  }
 }
