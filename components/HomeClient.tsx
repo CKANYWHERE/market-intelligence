@@ -35,10 +35,10 @@ export default function HomeClient({ initialNews }: { initialNews: NewsItem[] })
           <span className="text-2xl" aria-hidden="true">📊</span>
           <div>
             <h1 className="text-lg font-bold text-white leading-tight">
-              US Market Intelligence Dashboard
+              US Market Calendar
             </h1>
             <p className="text-gray-500 text-xs">
-              Economic Calendar · Earnings · IPO Tracker · Breaking News
+              FOMC · CPI · Earnings · IPO · Breaking News — Free Real-Time Dashboard
             </p>
           </div>
         </div>
@@ -81,6 +81,33 @@ export default function HomeClient({ initialNews }: { initialNews: NewsItem[] })
           className="flex justify-center py-2"
         />
       </main>
+
+      {/* ── Footer — data sources (E-A-T 신호 + 권위 있는 outbound links) */}
+      <footer className="border-t border-gray-800 px-6 py-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+        <span className="text-gray-600 text-xs font-medium">Data sources:</span>
+        {[
+          { label: 'Federal Reserve',  href: 'https://www.federalreserve.gov' },
+          { label: 'FRED (St. Louis Fed)', href: 'https://fred.stlouisfed.org' },
+          { label: 'BLS',              href: 'https://www.bls.gov' },
+          { label: 'BEA',              href: 'https://www.bea.gov' },
+          { label: 'SEC EDGAR',        href: 'https://www.sec.gov/edgar' },
+          { label: 'NASDAQ',           href: 'https://www.nasdaq.com' },
+          { label: 'Finnhub',          href: 'https://finnhub.io' },
+        ].map(({ label, href }) => (
+          <a
+            key={label}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-600 hover:text-gray-400 text-xs transition-colors"
+          >
+            {label}
+          </a>
+        ))}
+        <span className="ml-auto text-gray-700 text-xs">
+          © {new Date().getFullYear()} US Market Calendar
+        </span>
+      </footer>
     </div>
   );
 }

@@ -24,7 +24,7 @@ function websiteSchema() {
   return {
     "@type": "WebSite",
     "@id": `${SITE_URL}/#website`,
-    name: "US Market Intelligence Dashboard",
+    name: "US Market Calendar",
     url: SITE_URL,
     description:
       "Free economic calendar tracking FOMC, CPI, PCE, NFP, earnings, IPOs, and breaking market news for US stock investors.",
@@ -35,7 +35,7 @@ function webApplicationSchema() {
   return {
     "@type": "WebApplication",
     "@id": `${SITE_URL}/#webapp`,
-    name: "US Market Intelligence Dashboard",
+    name: "US Market Calendar",
     url: SITE_URL,
     applicationCategory: "FinanceApplication",
     operatingSystem: "All",
@@ -62,7 +62,7 @@ function financialServiceSchema() {
   return {
     "@type": "FinancialService",
     "@id": `${SITE_URL}/#service`,
-    name: "US Market Intelligence Dashboard",
+    name: "US Market Calendar",
     url: SITE_URL,
     description:
       "Real-time dashboard for US equity investors: economic indicator calendar, S&P 500 / NASDAQ earnings schedule, IPO tracker, and AI-filtered breaking market news.",
@@ -100,7 +100,7 @@ function datasetSchema() {
     ],
     creator: {
       "@type": "Organization",
-      name: "US Market Intelligence",
+      name: "US Market Calendar",
       url: SITE_URL,
     },
     license: "https://creativecommons.org/licenses/by/4.0/",
@@ -130,12 +130,12 @@ function eventSchemas(events: UpcomingEvent[]) {
       },
       organizer: {
         "@type": "Organization",
-        name: "US Market Intelligence Dashboard",
+        name: "US Market Calendar",
         url: SITE_URL,
       },
       eventStatus: "https://schema.org/EventScheduled",
       eventAttendanceMode: "https://schema.org/OnlineEventAttendanceMode",
-      description: `${ev.title} — Track this US market event on the US Market Intelligence Dashboard.`,
+      description: `${ev.title} — Track this US market event on the US Market Calendar.`,
       url: SITE_URL,
     };
   });
@@ -151,7 +151,7 @@ function faqSchema() {
         name: "When is the next FOMC meeting?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "FOMC meetings are scheduled 8 times per year. Check the US Market Intelligence Dashboard for exact dates, rate decisions, and meeting minutes release schedules.",
+          text: "FOMC meetings are scheduled 8 times per year. Check the US Market Calendar for exact dates, rate decisions, and meeting minutes release schedules.",
         },
       },
       {
@@ -159,7 +159,7 @@ function faqSchema() {
         name: "When is the next CPI release date?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "The Consumer Price Index (CPI) is released monthly by the Bureau of Labor Statistics, typically 2 weeks after month-end. The US Market Intelligence Dashboard tracks all CPI release dates with estimates and actual data.",
+          text: "The Consumer Price Index (CPI) is released monthly by the Bureau of Labor Statistics, typically 2 weeks after month-end. The US Market Calendar tracks all CPI release dates with estimates and actual data.",
         },
       },
       {
@@ -175,7 +175,7 @@ function faqSchema() {
         name: "When do AAPL, NVDA, MSFT earnings come out?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Apple (AAPL), NVIDIA (NVDA), and Microsoft (MSFT) report earnings quarterly. The US Market Intelligence Dashboard provides the full S&P 500 and NASDAQ-100 earnings calendar with EPS estimates and actual results.",
+          text: "Apple (AAPL), NVIDIA (NVDA), and Microsoft (MSFT) report earnings quarterly. The US Market Calendar provides the full S&P 500 and NASDAQ-100 earnings calendar with EPS estimates and actual results.",
         },
       },
       {

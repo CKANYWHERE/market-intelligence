@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://market-intelligence-87mm.vercel.app";
-const SITE_NAME = "US Market Intelligence Dashboard";
+const SITE_NAME = "US Market Calendar";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -30,8 +30,8 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
 
   title: {
-    default: "US Market Intelligence Dashboard — Economic Calendar, Earnings & IPO Tracker",
-    template: "%s | US Market Intelligence",
+    default: "US Market Calendar — FOMC, CPI, Earnings & IPO Dates 2026",
+    template: "%s | US Market Calendar",
   },
 
   description:
@@ -86,7 +86,7 @@ export const metadata: Metadata = {
     type: "website",
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: "US Market Intelligence Dashboard — Economic Calendar, Earnings & IPO Tracker",
+    title: "US Market Calendar — Economic Calendar, Earnings & IPO Tracker",
     description:
       "Free US stock market calendar: FOMC, CPI, PCE, NFP, earnings (AAPL NVDA MSFT), IPOs (SpaceX, Anthropic), and breaking news — one real-time dashboard.",
     images: [
@@ -94,7 +94,7 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "US Market Intelligence Dashboard — Economic Calendar, Earnings & IPO Tracker",
+        alt: "US Market Calendar — Economic Calendar, Earnings & IPO Tracker",
       },
     ],
     locale: "en_US",
@@ -102,7 +102,7 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "US Market Intelligence Dashboard",
+    title: "US Market Calendar",
     description:
       "Free economic calendar: FOMC, CPI, earnings (AAPL, NVDA, MSFT), IPO (SpaceX, Anthropic), and breaking news — one dashboard.",
     images: ["/og-image.png"],
