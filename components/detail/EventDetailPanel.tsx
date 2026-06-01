@@ -4,8 +4,10 @@ import { CalendarEvent } from '@/types/events';
 import { CATEGORY_META, IMPORTANCE_STARS } from '@/lib/utils/categorize';
 
 interface Props {
-  event: CalendarEvent | null;
-  onClose: () => void;
+  event:           CalendarEvent | null;
+  dayEvents?:      CalendarEvent[] | null;
+  onSelectEvent?:  (event: CalendarEvent) => void;
+  onClose:         () => void;
 }
 
 function numOrDash(v: number | null | undefined, decimals = 2): string {
@@ -19,7 +21,61 @@ function formatRevenue(v: number | null | undefined): string {
   return `$${v.toLocaleString()}`;
 }
 
-export default function EventDetailPanel({ event, onClose }: Props) {
+export default function EventDetailPanel({ event, dayEvents, onSelectEvent, onClose }: Props) {
+  // 날짜 리스트 모드 — 하루에 이벤트가 여러 개일 때 목록 표시
+  if (!event && dayEvents && dayEvents.length > 0) {
+    const dateLabel = (() => {
+      const [y, m, d] = dayEvents[0].date.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString('en-US', {
+        weekday: 'short', month: 'long', day: 'numeric',
+      });
+    })();
+
+    return (
+      <aside
+        aria-label={`Events on ${dateLabel}`}
+        className="w-[380px] flex-shrink-0 bg-gray-900 border border-gray-800 rounded-xl flex flex-col overflow-hidden"
+      >
+        <div className="flex items-center justify-between p-4 border-b border-gray-800">
+          <div>
+            <p className="text-gray-400 text-xs mb-0.5">All events</p>
+            <h3 className="text-white font-bold text-base">{dateLabel}</h3>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close detail panel"
+            className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-white hover:bg-gray-700 rounded-lg transition-colors text-base flex-shrink-0"
+          >
+            ✕
+          </button>
+        </div>
+        <ul className="flex-1 overflow-y-auto divide-y divide-gray-800">
+          {dayEvents.map((ev) => {
+            const meta = CATEGORY_META[ev.category];
+            const stars = IMPORTANCE_STARS[ev.importance ?? 'low'];
+            return (
+              <li key={ev.id}>
+                <button
+                  className="w-full text-left px-4 py-3 hover:bg-gray-800/60 transition-colors flex items-start gap-3"
+                  onClick={() => onSelectEvent?.(ev)}
+                >
+                  <span className={`mt-0.5 px-2 py-0.5 rounded text-xs font-semibold border flex-shrink-0 ${meta.chipClass}`}>
+                    {meta.label}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-sm font-medium leading-snug truncate">{ev.title}</p>
+                    {ev.time && <p className="text-gray-500 text-xs mt-0.5">{ev.time} ET</p>}
+                  </div>
+                  <span className="text-yellow-500 text-xs flex-shrink-0 self-center">{stars}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </aside>
+    );
+  }
+
   if (!event) return null;
 
   const meta = CATEGORY_META[event.category];

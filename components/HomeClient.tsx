@@ -9,7 +9,23 @@ import EventDetailPanel from '@/components/detail/EventDetailPanel';
 import AdBanner from '@/components/ads/AdBanner';
 
 export default function HomeClient({ initialNews }: { initialNews: NewsItem[] }) {
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [selectedEvent, setSelectedEvent]         = useState<CalendarEvent | null>(null);
+  const [selectedDayEvents, setSelectedDayEvents] = useState<CalendarEvent[] | null>(null);
+
+  function handleSelectEvent(event: CalendarEvent | null) {
+    setSelectedEvent(event);
+    if (event) setSelectedDayEvents(null);
+  }
+
+  function handleSelectDay(events: CalendarEvent[]) {
+    setSelectedDayEvents(events);
+    setSelectedEvent(null);
+  }
+
+  function handleClose() {
+    setSelectedEvent(null);
+    setSelectedDayEvents(null);
+  }
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
@@ -45,8 +61,17 @@ export default function HomeClient({ initialNews }: { initialNews: NewsItem[] })
 
         {/* Calendar + side panel */}
         <div className="flex-1 flex gap-4 min-h-0">
-          <CalendarView selectedEvent={selectedEvent} onSelectEvent={setSelectedEvent} />
-          <EventDetailPanel event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+          <CalendarView
+            selectedEvent={selectedEvent}
+            onSelectEvent={handleSelectEvent}
+            onSelectDay={handleSelectDay}
+          />
+          <EventDetailPanel
+            event={selectedEvent}
+            dayEvents={selectedDayEvents}
+            onSelectEvent={handleSelectEvent}
+            onClose={handleClose}
+          />
         </div>
 
         {/* ── Ad — 캘린더 하단 (Rectangle 336×280) ─────────────── */}

@@ -17,9 +17,10 @@ interface CalendarResponse { events: CalendarEvent[] }
 interface Props {
   selectedEvent: CalendarEvent | null;
   onSelectEvent: (event: CalendarEvent | null) => void;
+  onSelectDay:   (events: CalendarEvent[]) => void;
 }
 
-export default function CalendarView({ selectedEvent, onSelectEvent }: Props) {
+export default function CalendarView({ selectedEvent, onSelectEvent, onSelectDay }: Props) {
   const now = new Date();
   const [year, setYear]   = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -153,7 +154,10 @@ export default function CalendarView({ selectedEvent, onSelectEvent }: Props) {
                 ${dayEvents.length > 0 ? 'cursor-pointer hover:bg-gray-800/60' : ''}
                 transition-colors
               `}
-              onClick={() => { if (dayEvents.length === 1) onSelectEvent(dayEvents[0]); }}
+              onClick={() => {
+                if (dayEvents.length === 1) onSelectEvent(dayEvents[0]);
+                else if (dayEvents.length > 1) onSelectDay(dayEvents);
+              }}
             >
               <span className={`
                 text-xs self-end leading-none w-6 h-6 flex items-center justify-center rounded-full font-medium
@@ -169,7 +173,7 @@ export default function CalendarView({ selectedEvent, onSelectEvent }: Props) {
               {overflow > 0 && (
                 <button
                   className="text-xs text-gray-500 hover:text-gray-300 text-left pl-1.5 transition-colors"
-                  onClick={(e) => { e.stopPropagation(); onSelectEvent(dayEvents[3]); }}
+                  onClick={(e) => { e.stopPropagation(); onSelectDay(dayEvents); }}
                 >
                   +{overflow} more
                 </button>
