@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
 
   const t = (label: string) => log.push(`[${Date.now() - startedAt}ms] ${label}`);
 
-  // ── Step 1: FRED API fetch (순차 처리 — 동시 호출 시 429 rate limit)
+  // ── Step 1: FRED API fetch (순차 + 딜레이 — Vercel IP 기반 429 방지)
   t('▶ Step1 start: FRED fetch sequential');
   const fetchResults: PromiseSettledResult<{ date: string; value: string }[]>[] = [];
   for (const { seriesId } of SERIES_CONFIG) {
@@ -83,6 +83,7 @@ export async function GET(req: NextRequest) {
       .then((v) => ({ status: 'fulfilled' as const, value: v }))
       .catch((e) => ({ status: 'rejected' as const, reason: e }));
     fetchResults.push(result);
+    await new Promise((r) => setTimeout(r, 300)); // 300ms 간격
   }
   t('✓ Step1 done: FRED fetch');
 
