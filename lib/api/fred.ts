@@ -12,9 +12,14 @@ function getApiKey(): string {
   return key;
 }
 
+async function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
 export async function getFredSeries(
   seriesId: string,
   limit = 24,
+  maxRetries = 4,
 ): Promise<Array<{ date: string; value: string }>> {
   const url = new URL(BASE_URL);
   url.searchParams.set('series_id', seriesId);
@@ -23,26 +28,40 @@ export async function getFredSeries(
   url.searchParams.set('sort_order', 'desc');
   url.searchParams.set('limit', String(limit));
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 10_000); // 10s per series
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10_000);
 
-  let res: Response;
-  try {
-    res = await fetch(url.toString(), {
-      signal: controller.signal,
-      cache: 'no-store', // cron에서 Next.js 캐시 개입 금지
-    });
-  } catch (err) {
-    if ((err as Error).name === 'AbortError') {
-      throw new Error(`FRED ${seriesId} → timeout (10s)`);
+    let res: Response;
+    try {
+      res = await fetch(url.toString(), {
+        signal: controller.signal,
+        cache: 'no-store',
+      });
+    } catch (err) {
+      clearTimeout(timer);
+      if ((err as Error).name === 'AbortError') {
+        throw new Error(`FRED ${seriesId} → timeout (10s)`);
+      }
+      throw err;
     }
-    throw err;
-  } finally {
     clearTimeout(timer);
+
+    // 429 → 지수 백오프 후 재시도 (2s → 4s → 8s → 16s)
+    if (res.status === 429) {
+      if (attempt === maxRetries) {
+        throw new Error(`FRED ${seriesId} → HTTP 429 (exhausted ${maxRetries} retries)`);
+      }
+      const waitMs = 2000 * Math.pow(2, attempt); // 2s, 4s, 8s, 16s
+      await sleep(waitMs);
+      continue;
+    }
+
+    if (!res.ok) throw new Error(`FRED ${seriesId} → HTTP ${res.status}`);
+
+    const data = await res.json() as { observations: Array<{ date: string; value: string }> };
+    return data.observations ?? [];
   }
 
-  if (!res.ok) throw new Error(`FRED ${seriesId} → HTTP ${res.status}`);
-
-  const data = await res.json() as { observations: Array<{ date: string; value: string }> };
-  return data.observations ?? [];
+  throw new Error(`FRED ${seriesId} → unexpected retry exit`);
 }
