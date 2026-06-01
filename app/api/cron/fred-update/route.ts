@@ -73,16 +73,17 @@ export async function GET(req: NextRequest) {
     latestDate?: string;
   }> = {};
 
-  // ── Step 1: 최신 값만 병렬 fetch (limit=1) ──────────────────
-  // 매일 cron에서 24개월치 전부 저장할 필요 없음 — 최신 1개만으로 충분
-  // 히스토리 스냅샷은 backfill 엔드포인트에서 별도 처리
-  log.push('▶ Fetching latest observation per series (limit=1)...');
+  const t = (label: string) => log.push(`[${Date.now() - startedAt}ms] ${label}`);
+
+  // ── Step 1: FRED API fetch ───────────────────────────────────
+  t('▶ Step1 start: FRED fetch (limit=1, all parallel)');
   const fetchResults = await Promise.allSettled(
     SERIES_CONFIG.map(({ seriesId }) => getFredSeries(seriesId, 1)),
   );
-  log.push('  ✓ fetch done');
+  t('✓ Step1 done: FRED fetch');
 
-  // ── Step 2: latest 스냅샷 단일 bulk INSERT ───────────────────
+  // ── Step 2: 결과 파싱 ────────────────────────────────────────
+  t('▶ Step2 start: parsing');
   type SnapshotRow = { seriesId: string; date: string; value: number };
   const allRows: SnapshotRow[] = [];
 
@@ -107,7 +108,10 @@ export async function GET(req: NextRequest) {
       results[seriesId] = { snapshots: 1, eventUpdated: false, latestValue: value, latestDate: latest.date };
     }
   }
+  t('✓ Step2 done: parsing');
 
+  // ── Step 3: DB — snapshot createMany ────────────────────────
+  t('▶ Step3 start: DB createMany (snapshots)');
   if (allRows.length > 0) {
     await db.fredSnapshot.createMany({
       data: allRows.map(({ seriesId, date, value }) => ({
@@ -115,12 +119,13 @@ export async function GET(req: NextRequest) {
         date:      new Date(`${date}T00:00:00Z`),
         value,
       })),
-      skipDuplicates: true, // @@unique([series_id, date]) 기준으로 중복 skip
+      skipDuplicates: true,
     });
-    log.push(`  ✓ ${allRows.length} snapshots upserted (1 query)`);
   }
+  t(`✓ Step3 done: ${allRows.length} snapshots`);
 
-  // ── Step 3: economic_events.actual 업데이트 ──────────────────
+  // ── Step 4: DB — economic_events.actual 업데이트 ─────────────
+  t('▶ Step4 start: DB updateMany (actuals)');
   let updatedEvents = 0;
   await Promise.all(
     allRows.map(async ({ seriesId, date, value }) => {
@@ -136,9 +141,10 @@ export async function GET(req: NextRequest) {
       }
     }),
   );
+  t(`✓ Step4 done: ${updatedEvents} events updated`);
 
   const totalSnapshots = allRows.length;
-  log.push(`▶ Done — ${totalSnapshots} snapshots, ${updatedEvents} events updated`);
+  log.push(`▶ Total — ${totalSnapshots} snapshots, ${updatedEvents} events updated`);
 
   return NextResponse.json({ ok: true, results, log, durationMs: Date.now() - startedAt });
 }

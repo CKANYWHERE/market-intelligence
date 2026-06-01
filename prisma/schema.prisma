@@ -9,13 +9,14 @@
 //  - `breaking_events` has an `ai_classification` field; only HIGH items reach the UI
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL") // Vercel 런타임 — Supabase Transaction Pooler (포트 6543)
-  directUrl = env("DIRECT_URL") // 마이그레이션 전용 — Supabase Direct Connection (포트 5432)
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ─────────────────────────────────────────────
