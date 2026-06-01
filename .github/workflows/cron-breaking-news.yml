@@ -2,7 +2,7 @@ name: Cron — Breaking News
 
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -16,6 +16,7 @@ jobs:
 
           # -f 제거 → 4xx/5xx도 응답 본문 출력
           RESPONSE=$(curl -sL \
+            --max-time 55 \
             -w "\n__HTTP_STATUS__%{http_code}" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             "${{ secrets.SITE_URL }}/api/cron/breaking-news")

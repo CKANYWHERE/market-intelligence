@@ -2,7 +2,7 @@ name: Cron — Quote Refresh
 
 on:
   schedule:
-    - cron: '30,0 14-20 * * 1-5'
+    - cron: '*/30 14-21 * * 1-5'
   workflow_dispatch:
 
 jobs:
@@ -15,6 +15,7 @@ jobs:
           echo "▶ Calling ${{ secrets.SITE_URL }}/api/cron/quote-refresh"
 
           RESPONSE=$(curl -sL \
+            --max-time 55 \
             -w "\n__HTTP_STATUS__%{http_code}" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             "${{ secrets.SITE_URL }}/api/cron/quote-refresh")

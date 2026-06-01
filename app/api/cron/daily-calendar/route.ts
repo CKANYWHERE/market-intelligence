@@ -6,9 +6,19 @@
 //   curl "http://localhost:3000/api/cron/daily-calendar?from=2026-04-01&to=2026-05-31"
 
 import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/batch/db';
 import { syncCalendar } from '@/lib/batch/sync-calendar';
 
 export const maxDuration = 60;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`Timeout after ${ms}ms`)), ms),
+    ),
+  ]);
+}
 
 function isAuthorized(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
@@ -31,18 +41,19 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const sp   = req.nextUrl.searchParams;
+  const def  = defaultRange(90);
+  const from = sp.get('from') ?? def.from;
+  const to   = sp.get('to')   ?? def.to;
+
   try {
-    const sp   = req.nextUrl.searchParams;
-    const def  = defaultRange(90);
-    const from = sp.get('from') ?? def.from;
-    const to   = sp.get('to')   ?? def.to;
-
-    const result = await syncCalendar(from, to);
-
+    const result = await withTimeout(syncCalendar(from, to), 50_000);
     return NextResponse.json({ ok: true, range: { from, to }, ...result });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error('[cron/daily-calendar]', err);
     return NextResponse.json({ ok: false, error: msg }, { status: 500 });
+  } finally {
+    db.$disconnect().catch(() => {});
   }
 }

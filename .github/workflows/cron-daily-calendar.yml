@@ -2,7 +2,7 @@ name: Cron — Daily Calendar
 
 on:
   schedule:
-    - cron: '0 12 * * 1-5'
+    - cron: '0 12 * * *'
   workflow_dispatch:
 
 jobs:
@@ -15,6 +15,7 @@ jobs:
           echo "▶ Calling ${{ secrets.SITE_URL }}/api/cron/daily-calendar"
 
           RESPONSE=$(curl -sL \
+            --max-time 55 \
             -w "\n__HTTP_STATUS__%{http_code}" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             "${{ secrets.SITE_URL }}/api/cron/daily-calendar")

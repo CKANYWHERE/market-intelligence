@@ -16,9 +16,25 @@ async function finnhubFetch(
   for (const [k, v] of Object.entries(params)) {
     url.searchParams.set(k, v);
   }
-  const res = await fetch(url.toString(), { next: { revalidate } });
-  if (!res.ok) throw new Error(`Finnhub ${path} → HTTP ${res.status}`);
-  return res.json();
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8_000);
+
+  try {
+    const res = await fetch(url.toString(), {
+      next: { revalidate },
+      signal: controller.signal,
+    });
+    if (!res.ok) throw new Error(`Finnhub ${path} → HTTP ${res.status}`);
+    return res.json();
+  } catch (err) {
+    if ((err as Error).name === 'AbortError') {
+      throw new Error(`Finnhub ${path} → timeout (8s)`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export const getEconomicCalendar = (from: string, to: string) =>
