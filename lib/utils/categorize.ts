@@ -4,7 +4,7 @@ export function categorizeEconomicEvent(eventName: string): EventCategory {
   const n = eventName.toLowerCase();
 
   if (
-    /fomc|federal open market|fed interest rate|interest rate decision|beige book|powell|federal reserve chair|monetary policy statement|rate hike|rate cut|fed funds|quantitative/.test(n)
+    /fomc|federal open market|fed interest rate|interest rate decision|beige book|powell|federal reserve chair|monetary policy statement|rate hike|rate cut|fed funds|quantitative|fed.*speech|fed.*statement|press conference|fed chair|fed governor|fed president|fed vice|federal reserve.*speech|central bank/.test(n)
   )
     return 'monetary_policy';
 

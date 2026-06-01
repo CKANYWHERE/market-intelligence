@@ -86,6 +86,7 @@ export async function syncCalendar(from: string, to: string): Promise<SyncResult
           prev:       item.prev     != null ? Number(item.prev)     : null,
         },
         update: {
+          category: categorizeEconomicEvent(title),
           actual:   item.actual   != null ? Number(item.actual)   : null,
           estimate: item.estimate != null ? Number(item.estimate) : null,
           prev:     item.prev     != null ? Number(item.prev)     : null,
