@@ -75,11 +75,15 @@ export async function GET(req: NextRequest) {
 
   const t = (label: string) => log.push(`[${Date.now() - startedAt}ms] ${label}`);
 
-  // ── Step 1: FRED API fetch ───────────────────────────────────
-  t('▶ Step1 start: FRED fetch (limit=1, all parallel)');
-  const fetchResults = await Promise.allSettled(
-    SERIES_CONFIG.map(({ seriesId }) => getFredSeries(seriesId, 1)),
-  );
+  // ── Step 1: FRED API fetch (순차 처리 — 동시 호출 시 429 rate limit)
+  t('▶ Step1 start: FRED fetch sequential');
+  const fetchResults: PromiseSettledResult<{ date: string; value: string }[]>[] = [];
+  for (const { seriesId } of SERIES_CONFIG) {
+    const result = await getFredSeries(seriesId, 1)
+      .then((v) => ({ status: 'fulfilled' as const, value: v }))
+      .catch((e) => ({ status: 'rejected' as const, reason: e }));
+    fetchResults.push(result);
+  }
   t('✓ Step1 done: FRED fetch');
 
   // ── Step 2: 결과 파싱 ────────────────────────────────────────
