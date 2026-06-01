@@ -9,8 +9,7 @@
 //  - `breaking_events` has an `ai_classification` field; only HIGH items reach the UI
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
