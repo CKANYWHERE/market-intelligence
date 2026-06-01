@@ -24,7 +24,7 @@ export async function getFredSeries(
   url.searchParams.set('limit', String(limit));
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 10_000);
+  const timer = setTimeout(() => controller.abort(), 5_000);
 
   let res: Response;
   try {
@@ -35,7 +35,7 @@ export async function getFredSeries(
   } catch (err) {
     clearTimeout(timer);
     if ((err as Error).name === 'AbortError') {
-      throw new Error(`FRED ${seriesId} → timeout (10s)`);
+      throw new Error(`FRED ${seriesId} → timeout (5s)`);
     }
     throw err;
   }

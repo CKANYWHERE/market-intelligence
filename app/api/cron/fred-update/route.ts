@@ -139,10 +139,10 @@ export async function GET(req: NextRequest) {
   const log: string[] = [];
 
   try {
-    // 전체 작업을 50초 안에 강제 종료 — 300초 hang 방지
+    // 전체 작업을 40초 안에 강제 종료 — Vercel 60s limit 대비 20s 버퍼 확보
     const { results, updatedEvents, totalSnapshots } = await withTimeout(
       runUpdate(log, startedAt),
-      50_000,
+      40_000,
     );
 
     log.push(`▶ Total — ${totalSnapshots} snapshots, ${updatedEvents} events updated`);
@@ -155,7 +155,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: msg, log, durationMs: Date.now() - startedAt });
 
   } finally {
-    // Prisma 커넥션을 명시적으로 닫아야 Vercel 함수가 종료됨
-    await db.$disconnect();
+    // await 하지 않음 — disconnect 대기 중 hang이 발생해 60s 초과 504를 유발했음
+    db.$disconnect().catch(() => {});
   }
 }
