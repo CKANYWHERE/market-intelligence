@@ -152,7 +152,10 @@ export async function GET(req: NextRequest) {
     const msg = String(err);
     log.push(`✗ ${msg}`);
     console.error('[cron/fred-update]', err);
-    // timeout이든 에러든 200으로 반환 — GitHub Actions가 실패로 처리하지 않도록
     return NextResponse.json({ ok: false, error: msg, log, durationMs: Date.now() - startedAt });
+
+  } finally {
+    // Prisma 커넥션을 명시적으로 닫아야 Vercel 함수가 종료됨
+    await db.$disconnect();
   }
 }
