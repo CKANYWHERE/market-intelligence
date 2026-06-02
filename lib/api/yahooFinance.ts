@@ -50,10 +50,12 @@ export async function getRealtimeQuote(symbol: string): Promise<QuoteData> {
     }))
     .filter((c) => c.close != null && !isNaN(c.close));
 
+  // ET 기준 오늘 날짜 — 오늘 부분 캔들(장 중)을 prevClose 계산에서 제외
+  const nowET = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+  const completedCandles = validCandles.filter((c) => c.date < nowET);
+
   // 마지막 완료된 정규장 세션 종가 (= 어제 종가)
-  const lastSessionClose = validCandles.at(-1)?.close ?? (meta.regularMarketPrice as number);
-  // 그 전 세션 종가 (= 그제 종가)
-  const prevSessionClose = validCandles.at(-2)?.close ?? lastSessionClose;
+  const lastSessionClose = completedCandles.at(-1)?.close ?? (meta.regularMarketPrice as number);
 
   const marketState = detectMarketState(meta.currentTradingPeriod);
 

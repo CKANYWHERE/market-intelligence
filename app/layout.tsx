@@ -18,7 +18,11 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://market-intelligence-87mm.vercel.app";
+const SITE_URL = (() => {
+  const url = process.env.NEXT_PUBLIC_SITE_URL;
+  if (url && url.startsWith('http')) return url;
+  return 'https://market-intelligence-87mm.vercel.app';
+})();
 const SITE_NAME = "US Market Calendar";
 
 export const viewport: Viewport = {
