@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { CalendarEvent } from '@/types/events';
 import { CATEGORY_META, IMPORTANCE_STARS } from '@/lib/utils/categorize';
 import { toSlug } from '@/lib/utils/slug';
+import { CATEGORY_CONTEXT, INDICATOR_CONTEXT, getSeriesIdFromTitle } from '@/lib/utils/marketContext';
 
 interface Props {
   event:           CalendarEvent | null;
@@ -36,7 +38,7 @@ export default function EventDetailPanel({ event, dayEvents, onSelectEvent, onCl
     return (
       <aside
         aria-label={`Events on ${dateLabel}`}
-        className="w-[380px] flex-shrink-0 bg-gray-900 border border-gray-800 rounded-xl flex flex-col overflow-hidden"
+        className="w-full bg-gray-900 border-0 md:border md:border-gray-800 md:rounded-xl flex flex-col overflow-hidden"
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-800">
           <div>
@@ -124,12 +126,62 @@ export default function EventDetailPanel({ event, dayEvents, onSelectEvent, onCl
     );
   }
 
+  // 시장 맥락 박스
+  function MarketContextBox({ title, category }: { title: string; category: string }) {
+    const [open, setOpen] = useState(true);
+
+    // 지표별 컨텍스트 우선 (더 구체적), 없으면 카테고리
+    const seriesId = getSeriesIdFromTitle(title);
+    const indCtx   = seriesId ? INDICATOR_CONTEXT[seriesId] : null;
+    const catCtx   = CATEGORY_CONTEXT[category];
+    if (!indCtx && !catCtx) return null;
+
+    return (
+      <div className="bg-gray-800/60 border border-gray-700/50 rounded-lg overflow-hidden">
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-gray-700/30 transition-colors"
+        >
+          <span className="text-gray-300 text-xs font-medium">What does this mean for markets?</span>
+          <span className="text-gray-500 text-xs">{open ? '▲' : '▼'}</span>
+        </button>
+
+        {open && (
+          <div className="px-3 pb-3 space-y-2.5 border-t border-gray-700/50 pt-2.5">
+            {indCtx ? (
+              <>
+                <p className="text-gray-200 text-xs font-semibold">{indCtx.what}</p>
+                <p className="text-gray-400 text-xs leading-relaxed">{indCtx.why}</p>
+                <p className="text-gray-500 text-xs leading-relaxed border-t border-gray-700 pt-2">{indCtx.signal}</p>
+              </>
+            ) : catCtx ? (
+              <>
+                <p className="text-gray-200 text-xs font-semibold">{catCtx.headline}</p>
+                <p className="text-gray-400 text-xs leading-relaxed">{catCtx.body}</p>
+                <div className="grid grid-cols-1 gap-1.5 border-t border-gray-700 pt-2">
+                  <div className="flex items-start gap-1.5">
+                    <span className="text-emerald-400 text-xs mt-0.5">▲</span>
+                    <p className="text-gray-400 text-xs leading-relaxed">{catCtx.bullish}</p>
+                  </div>
+                  <div className="flex items-start gap-1.5">
+                    <span className="text-red-400 text-xs mt-0.5">▼</span>
+                    <p className="text-gray-400 text-xs leading-relaxed">{catCtx.bearish}</p>
+                  </div>
+                </div>
+              </>
+            ) : null}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   const importanceStars = IMPORTANCE_STARS[event.importance ?? 'low'];
 
   return (
     <aside
       aria-label={`Event details: ${event.title}`}
-      className="w-[380px] flex-shrink-0 bg-gray-900 border border-gray-800 rounded-xl flex flex-col overflow-hidden"
+      className="w-full bg-gray-900 border-0 md:border md:border-gray-800 md:rounded-xl flex flex-col overflow-hidden"
     >
       {/* Header */}
       <div className="flex items-start justify-between p-4 border-b border-gray-800">
@@ -337,6 +389,9 @@ export default function EventDetailPanel({ event, dayEvents, onSelectEvent, onCl
             </div>
           </>
         )}
+
+        {/* ── Market context ── */}
+        <MarketContextBox title={event.title} category={event.category} />
 
         {/* ── Detail page link ── */}
         {event.category !== 'breaking' && (

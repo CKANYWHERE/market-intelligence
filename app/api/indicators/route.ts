@@ -6,11 +6,12 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/batch/db';
 
 const INDICATORS = [
-  { series_id: 'CPIAUCSL', name: 'CPI',          unit: '%',  type: 'yoy' },
-  { series_id: 'CPILFESL', name: 'Core CPI',      unit: '%',  type: 'yoy' },
-  { series_id: 'PCEPILFE', name: 'Core PCE',      unit: '%',  type: 'yoy' },
-  { series_id: 'PAYEMS',   name: 'Nonfarm Payrolls', unit: 'K', type: 'diff' },
-  { series_id: 'UNRATE',   name: 'Unemployment',  unit: '%',  type: 'level' },
+  { series_id: 'CPIAUCSL', name: 'CPI',             unit: '%',  type: 'yoy'   },
+  { series_id: 'CPILFESL', name: 'Core CPI',         unit: '%',  type: 'yoy'   },
+  { series_id: 'PPIACO',   name: 'PPI',              unit: '',   type: 'level' },
+  { series_id: 'PCEPILFE', name: 'Core PCE',         unit: '%',  type: 'yoy'   },
+  { series_id: 'PAYEMS',   name: 'Nonfarm Payrolls', unit: 'K',  type: 'diff'  },
+  { series_id: 'UNRATE',   name: 'Unemployment',     unit: '%',  type: 'level' },
 ] as const;
 
 function toDateStr(d: unknown): string {

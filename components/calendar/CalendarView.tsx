@@ -11,7 +11,8 @@ import EventChip from './EventChip';
 const ALL_CATEGORIES: EventCategory[] = [
   'monetary_policy', 'inflation', 'employment', 'growth', 'earnings', 'ipo',
 ];
-const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DOW_FULL  = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DOW_SHORT = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 interface CalendarResponse { events: CalendarEvent[] }
 interface Props {
@@ -74,7 +75,7 @@ export default function CalendarView({ selectedEvent, onSelectEvent, onSelectDay
   return (
     <section aria-label="Market Events Calendar" className="flex-1 flex flex-col min-h-0">
       {/* Category filter pills */}
-      <div className="flex flex-wrap gap-2 mb-3" role="group" aria-label="Filter by category">
+      <div className="flex gap-1.5 md:gap-2 mb-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }} role="group" aria-label="Filter by category">
         {ALL_CATEGORIES.map((cat) => {
           const meta   = CATEGORY_META[cat];
           const active = activeCategories.has(cat);
@@ -84,7 +85,7 @@ export default function CalendarView({ selectedEvent, onSelectEvent, onSelectDay
               onClick={() => toggleCategory(cat)}
               aria-pressed={active}
               className={`
-                px-3 py-1 rounded-full text-xs font-medium border transition-all
+                px-2 md:px-3 py-1 rounded-full text-xs font-medium border transition-all whitespace-nowrap flex-shrink-0
                 ${active ? meta.chipClass : 'bg-transparent text-gray-600 border-gray-800 hover:border-gray-600'}
               `}
             >
@@ -129,17 +130,18 @@ export default function CalendarView({ selectedEvent, onSelectEvent, onSelectDay
         aria-label={`${formatMonthTitle(year, month)} calendar`}
         className="flex-1 grid grid-cols-7 gap-px bg-gray-800 rounded-xl overflow-hidden border border-gray-800"
       >
-        {DOW.map((d, i) => (
+        {DOW_FULL.map((d, i) => (
           <div key={i} role="columnheader"
             aria-label={['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][i]}
             className={`bg-gray-900 text-center text-xs font-semibold py-2 ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-gray-500'}`}>
-            {d}
+            <span className="hidden sm:inline">{d}</span>
+            <span className="sm:hidden">{DOW_SHORT[i]}</span>
           </div>
         ))}
 
         {grid.map((day, idx) => {
           const dayEvents  = eventMap[day.dateKey] ?? [];
-          const visible    = dayEvents.slice(0, 3);
+          const visible    = dayEvents.slice(0, 2);   // 모바일 공간 고려 2개
           const overflow   = dayEvents.length - visible.length;
           const isSelected = selectedEvent?.date === day.dateKey;
           const dow        = day.date.getDay();
@@ -148,7 +150,7 @@ export default function CalendarView({ selectedEvent, onSelectEvent, onSelectDay
             <div key={idx} role="gridcell"
               aria-label={`${day.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}${dayEvents.length > 0 ? `, ${dayEvents.length} events` : ''}`}
               className={`
-                bg-gray-900 min-h-[88px] p-1.5 flex flex-col gap-0.5
+                bg-gray-900 min-h-[64px] md:min-h-[88px] p-1 md:p-1.5 flex flex-col gap-0.5
                 ${!day.isCurrentMonth ? 'opacity-25' : ''}
                 ${isSelected ? 'ring-1 ring-inset ring-blue-500/50' : ''}
                 ${dayEvents.length > 0 ? 'cursor-pointer hover:bg-gray-800/60' : ''}
