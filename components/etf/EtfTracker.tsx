@@ -40,15 +40,21 @@ export default function EtfTracker() {
         const isPos = q.changePercent >= 0;
         const pct   = `${isPos ? '+' : ''}${q.changePercent.toFixed(2)}%`;
 
+        const stateBadge = q.marketState === 'PRE'  ? <span className="text-[9px] font-bold text-yellow-400/80 leading-none">PRE</span>
+                         : q.marketState === 'POST' ? <span className="text-[9px] font-bold text-purple-400/80 leading-none">POST</span>
+                         : null;
+
         return (
           <div key={symbol}
             className="flex items-center gap-1 md:gap-2 bg-gray-900 border border-gray-800 rounded-lg px-2 md:px-3 py-1.5 md:py-2">
             <span className="text-gray-300 font-semibold text-xs md:text-sm">{symbol}</span>
-            {/* 데스크탑: 가격 표시 */}
+            {/* 데스크탑: 가격 + PRE/POST 배지 */}
             <span className="hidden md:inline text-white font-mono text-sm">${q.current.toFixed(2)}</span>
+            {stateBadge && <span className="hidden md:inline">{stateBadge}</span>}
             <span className={`text-xs font-mono font-medium ${isPos ? 'text-green-400' : 'text-red-400'}`}>
               {pct}
             </span>
+            {stateBadge && <span className="md:hidden">{stateBadge}</span>}
           </div>
         );
       })}

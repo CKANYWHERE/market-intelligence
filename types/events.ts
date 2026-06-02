@@ -58,6 +58,7 @@ export interface QuoteData {
   low: number;
   open: number;
   prevClose: number;
+  marketState?: 'PRE' | 'REGULAR' | 'POST' | 'CLOSED';
 }
 
 export interface NewsItem {

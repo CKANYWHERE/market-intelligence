@@ -11,63 +11,91 @@ export interface EodCandle {
   prevClose: number;
 }
 
+type MarketState = 'PRE' | 'REGULAR' | 'POST' | 'CLOSED';
+
+function detectMarketState(currentTradingPeriod: Record<string, { start: number; end: number }> | undefined): MarketState {
+  if (!currentTradingPeriod) return 'CLOSED';
+  const now = Date.now() / 1000;
+  const { pre, regular, post } = currentTradingPeriod as Record<string, { start: number; end: number }>;
+  if (pre     && now >= pre.start     && now < pre.end)     return 'PRE';
+  if (regular && now >= regular.start && now < regular.end) return 'REGULAR';
+  if (post    && now >= post.start    && now < post.end)    return 'POST';
+  return 'CLOSED';
+}
+
 /**
- * 실시간 현재가 (range=5d, interval=1d)
- *
- * regularMarketPrice = Yahoo Finance 실시간 현재가 (장 중에도 업데이트)
- * prevClose = 가장 최근 "완료된" 세션의 종가
- *   - 장 중: 오늘 캔들은 아직 미완 → 마지막 캔들(어제) 종가
- *   - 장 마감 후: 오늘 캔들 종료 → 어제 캔들 종가
+ * 실시간 현재가
+ * - REGULAR/CLOSED: range=5d 일봉에서 regularMarketPrice + 전일 종가
+ * - PRE/POST: 추가로 1m 캔들의 마지막 값을 현재가로 사용
  */
 export async function getRealtimeQuote(symbol: string): Promise<QuoteData> {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=5d`;
-  const res  = await fetch(url, { headers: HEADERS, cache: 'no-store' });
-  if (!res.ok) throw new Error(`Yahoo Finance ${symbol} → HTTP ${res.status}`);
+  // ── 1. 5d 일봉 조회 (prevClose + market state 판단) ──────────────
+  const url5d = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=5d`;
+  const res5d  = await fetch(url5d, { headers: HEADERS, cache: 'no-store' });
+  if (!res5d.ok) throw new Error(`Yahoo Finance ${symbol} (5d) → HTTP ${res5d.status}`);
 
-  const data   = await res.json();
-  const result = data?.chart?.result?.[0];
-  if (!result) throw new Error(`Yahoo Finance: no result for ${symbol}`);
+  const data5d   = await res5d.json();
+  const result5d = data5d?.chart?.result?.[0];
+  if (!result5d) throw new Error(`Yahoo Finance: no result for ${symbol}`);
 
-  const meta       = result.meta;
-  const timestamps: number[] = result.timestamp ?? [];
-  const closes: number[]     = result.indicators?.quote?.[0]?.close ?? [];
-  const current              = meta.regularMarketPrice as number;
+  const meta       = result5d.meta;
+  const closes5d: number[]     = result5d.indicators?.quote?.[0]?.close ?? [];
+  const timestamps5d: number[] = result5d.timestamp ?? [];
 
-  // 마지막 regularMarketTime 날짜 (ET 기준 YYYY-MM-DD)
-  const mktDate = new Date((meta.regularMarketTime as number) * 1000)
-    .toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); // "2026-06-02"
+  // 유효한 (날짜, 종가) 쌍
+  const validCandles = timestamps5d
+    .map((t: number, i: number) => ({
+      date:  new Date(t * 1000).toLocaleDateString('en-CA', { timeZone: 'America/New_York' }),
+      close: closes5d[i],
+    }))
+    .filter((c) => c.close != null && !isNaN(c.close));
 
-  // 캔들 날짜 매핑 (null 제거)
-  const candleCloses: { date: string; close: number }[] = [];
-  for (let i = 0; i < timestamps.length; i++) {
-    if (closes[i] == null || isNaN(closes[i])) continue;
-    const d = new Date(timestamps[i] * 1000)
-      .toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
-    candleCloses.push({ date: d, close: closes[i] });
+  // 마지막 완료된 정규장 세션 종가 (= 어제 종가)
+  const lastSessionClose = validCandles.at(-1)?.close ?? (meta.regularMarketPrice as number);
+  // 그 전 세션 종가 (= 그제 종가)
+  const prevSessionClose = validCandles.at(-2)?.close ?? lastSessionClose;
+
+  const marketState = detectMarketState(meta.currentTradingPeriod);
+
+  // ── 2. 현재가 결정 ────────────────────────────────────────────────
+  let current = meta.regularMarketPrice as number;
+
+  if (marketState === 'PRE' || marketState === 'POST') {
+    // 1m 캔들 (prepost 포함) → 마지막 캔들 종가 = 실제 현재가
+    try {
+      const url1m = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1m&range=1d&includePrePost=True`;
+      const res1m  = await fetch(url1m, { headers: HEADERS, cache: 'no-store' });
+      if (res1m.ok) {
+        const data1m   = await res1m.json();
+        const closes1m: number[] = data1m?.chart?.result?.[0]?.indicators?.quote?.[0]?.close ?? [];
+        const lastClose = [...closes1m].reverse().find((c) => c != null && !isNaN(c));
+        if (lastClose) current = lastClose;
+      }
+    } catch {
+      // 1m 실패 시 regularMarketPrice 유지
+    }
   }
 
-  // prevClose = mktDate 이전 마지막 완료 캔들의 종가
-  const prevCandleClose = [...candleCloses]
-    .reverse()
-    .find((c) => c.date < mktDate);
-
-  const prevClose = prevCandleClose?.close ?? current;
-  const change        = current - prevClose;
-  const changePercent = prevClose ? (change / prevClose) * 100 : 0;
+  // ── 3. prevClose 및 change 계산 ──────────────────────────────────
+  // POST 마켓은 오늘 정규장 종가 대비, 나머지는 어제 정규장 종가 대비
+  const changeBase = marketState === 'POST' ? (meta.regularMarketPrice as number) : lastSessionClose;
+  const change        = current - changeBase;
+  const changePercent = changeBase ? (change / changeBase) * 100 : 0;
 
   return {
     symbol,
     current,
     change,
     changePercent,
-    high:      (meta.regularMarketDayHigh ?? current) as number,
-    low:       (meta.regularMarketDayLow  ?? current) as number,
-    open:      (meta.regularMarketOpen    ?? current) as number,
-    prevClose,
+    high:        (meta.regularMarketDayHigh ?? current) as number,
+    low:         (meta.regularMarketDayLow  ?? current) as number,
+    open:        (meta.regularMarketOpen    ?? current) as number,
+    prevClose:   changeBase,
+    marketState,
   };
 }
 
-/** 3종목 병렬 실시간 조회 */
+/** 여러 심볼 병렬 조회 */
 export async function getRealtimeQuotes(
   symbols: string[],
 ): Promise<Record<string, QuoteData>> {
