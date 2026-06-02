@@ -1,8 +1,11 @@
-name: Cron — Quote Refresh
+name: Cron — Quote EOD Snapshot
 
 on:
   schedule:
-    - cron: '*/30 14-21 * * 1-5'
+    # 장 마감(4 PM ET = 21:00 UTC) 후 1시간마다 3회 실행
+    - cron: '0 21 * * 1-5'   # 5:00 PM ET
+    - cron: '0 22 * * 1-5'   # 6:00 PM ET
+    - cron: '0 23 * * 1-5'   # 7:00 PM ET
   workflow_dispatch:
 
 jobs:
@@ -42,4 +45,6 @@ jobs:
             print('FAILED:', d.get('error'))
             sys.exit(1)
           print(f'✓ refreshed={d.get(\"refreshed\",0)} ({d.get(\"durationMs\",0)}ms)')
+          for line in d.get('log', []):
+            print(line)
           "
