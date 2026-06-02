@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { CalendarEvent, NewsItem } from '@/types/events';
 import EtfTracker from '@/components/etf/EtfTracker';
+import NextEventCountdown from '@/components/NextEventCountdown';
 import BreakingSection from '@/components/breaking/BreakingSection';
 import CalendarView from '@/components/calendar/CalendarView';
 import EventDetailPanel from '@/components/detail/EventDetailPanel';
@@ -31,9 +32,9 @@ export default function HomeClient({ initialNews }: { initialNews: NewsItem[] })
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
       {/* ── Header ─────────────────────────────────────────────── */}
       <header className="border-b border-gray-800 px-6 py-4 flex items-center justify-between gap-4 flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl" aria-hidden="true">📊</span>
-          <div>
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="text-2xl flex-shrink-0" aria-hidden="true">📊</span>
+          <div className="min-w-0">
             <h1 className="text-lg font-bold text-white leading-tight">
               US Market Calendar
             </h1>
@@ -41,6 +42,10 @@ export default function HomeClient({ initialNews }: { initialNews: NewsItem[] })
               FOMC · CPI · Earnings · IPO · Breaking News — Free Real-Time Dashboard
             </p>
           </div>
+        </div>
+        {/* 다음 주요 이벤트 카운트다운 */}
+        <div className="flex-1 flex justify-center px-4 hidden md:flex">
+          <NextEventCountdown />
         </div>
         <div className="flex items-center gap-3">
           <EtfTracker />
