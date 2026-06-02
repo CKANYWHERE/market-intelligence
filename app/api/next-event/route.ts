@@ -51,9 +51,9 @@ export async function GET() {
         select:  { id: true, symbol: true, date: true },
       }),
       db.ipoEvent.findMany({
-        where:   { date: { gte: todayStart, lte: twoMonths } },
+        where:   { date: { gte: todayStart, lte: twoMonths }, nasdaq_fast_entry: true },
         orderBy: { date: 'asc' },
-        take:    5,
+        take:    3,
         select:  { id: true, company: true, date: true },
       }),
     ]);

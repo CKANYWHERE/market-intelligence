@@ -1,7 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import { CalendarEvent } from '@/types/events';
 import { CATEGORY_META, IMPORTANCE_STARS } from '@/lib/utils/categorize';
+import { toSlug } from '@/lib/utils/slug';
 
 interface Props {
   event:           CalendarEvent | null;
@@ -334,6 +336,16 @@ export default function EventDetailPanel({ event, dayEvents, onSelectEvent, onCl
               multiplier. QQQ and other passive ETFs are forced to buy ≈$50B+.
             </div>
           </>
+        )}
+
+        {/* ── Detail page link ── */}
+        {event.category !== 'breaking' && (
+          <Link
+            href={`/events/${toSlug(event.title, event.date)}`}
+            className="block text-center py-2 px-3 bg-gray-800 hover:bg-gray-700 rounded-lg text-blue-400 text-sm transition-colors"
+          >
+            View full details &amp; history →
+          </Link>
         )}
 
         {/* ── Breaking / news ── */}
