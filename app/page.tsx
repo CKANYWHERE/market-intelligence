@@ -14,10 +14,41 @@ export async function generateMetadata(): Promise<Metadata> {
   const now   = new Date();
   const month = now.toLocaleString('en-US', { month: 'long' });
   const year  = now.getFullYear();
+  const nextMonth = new Date(now);
+  nextMonth.setMonth(nextMonth.getMonth() + 1);
+  const nextMonthName = nextMonth.toLocaleString('en-US', { month: 'long' });
+
   return {
     title: `US Market Calendar ${month} ${year} — FOMC, CPI, Earnings & IPO Dates`,
-    description: `Track every major US market event in ${month} ${year}: FOMC meeting dates, CPI/PCE/NFP releases, AAPL MSFT NVDA GOOGL AMZN earnings, upcoming IPOs (SpaceX, Anthropic), and breaking news — free real-time dashboard.`,
+    description: `Free US stock market calendar for ${month}–${nextMonthName} ${year}: FOMC meeting dates, CPI & PCE inflation reports, NFP jobs data, AAPL MSFT NVDA GOOGL AMZN META TSLA earnings, upcoming IPOs (SpaceX, Anthropic, OpenAI), and AI-filtered breaking market news — all in one real-time dashboard.`,
+    keywords: [
+      `economic calendar ${month} ${year}`,
+      `FOMC meeting date ${year}`,
+      `CPI release date ${month} ${year}`,
+      `nonfarm payrolls ${month} ${year}`,
+      `AAPL earnings date ${year}`,
+      `NVDA earnings ${year}`,
+      `SpaceX IPO date ${year}`,
+      `Anthropic IPO ${year}`,
+      `OpenAI IPO ${year}`,
+      'US market calendar 2026',
+      'economic calendar 2026',
+      'earnings calendar 2026',
+      'IPO calendar 2026',
+      'FOMC dates 2026',
+      'Fed interest rate decision 2026',
+      'CPI inflation report 2026',
+      'nonfarm payrolls 2026',
+      'NASDAQ-100 earnings calendar',
+      'QQQ SPY market events',
+      'breaking market news',
+    ],
     alternates: { canonical: SITE_URL },
+    openGraph: {
+      title: `US Market Calendar ${month} ${year} — FOMC, CPI, Earnings & IPO Dates`,
+      description: `Free real-time dashboard: FOMC dates, CPI/PCE/NFP releases, NASDAQ-100 earnings, IPOs (SpaceX, Anthropic), and breaking news for US stock investors.`,
+      url: SITE_URL,
+    },
   };
 }
 

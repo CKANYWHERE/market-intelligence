@@ -8,6 +8,8 @@ import BreakingSection from '@/components/breaking/BreakingSection';
 import CalendarView from '@/components/calendar/CalendarView';
 import EventDetailPanel from '@/components/detail/EventDetailPanel';
 import AdBanner from '@/components/ads/AdBanner';
+import KeyIndicatorsSection from '@/components/indicators/KeyIndicatorsSection';
+import UpcomingCountdown from '@/components/calendar/UpcomingCountdown';
 
 export default function HomeClient({ initialNews }: { initialNews: NewsItem[] }) {
   const [selectedEvent, setSelectedEvent]         = useState<CalendarEvent | null>(null);
@@ -61,6 +63,12 @@ export default function HomeClient({ initialNews }: { initialNews: NewsItem[] })
 
       {/* ── Main ───────────────────────────────────────────────── */}
       <main className="flex-1 flex flex-col min-h-0 p-6 gap-4 overflow-hidden">
+        {/* Next Events countdown cards */}
+        <UpcomingCountdown />
+
+        {/* Key Economic Indicators */}
+        <KeyIndicatorsSection />
+
         {/* Breaking market news */}
         <BreakingSection initialNews={initialNews} />
 

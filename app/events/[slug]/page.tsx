@@ -6,6 +6,8 @@ import { CATEGORY_META } from '@/lib/utils/categorize';
 import { toSlug, slugToDate, slugToTitlePart } from '@/lib/utils/slug';
 import { EventCategory } from '@/types/events';
 import HistoryChart from '@/components/events/HistoryChart';
+import MarketReactionChart from '@/components/events/MarketReactionChart';
+import { getMarketReaction } from '@/lib/utils/marketReaction';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://market-intelligence-87mm.vercel.app';
 
@@ -112,6 +114,136 @@ async function getRelatedEvents(title: string, currentDate: string, category: st
   }
 }
 
+// ── SEO 헬퍼 ─────────────────────────────────────────────────────
+function monthYear(dateStr: string): string {
+  return new Date(`${dateStr}T12:00:00Z`).toLocaleDateString('en-US', {
+    month: 'long', year: 'numeric',
+  });
+}
+
+function buildEconomicMeta(row: {
+  title: string; category: string; date: Date;
+  time?: string | null; actual?: number | null;
+  estimate?: number | null; prev?: number | null; unit?: string | null;
+}, dateStr: string) {
+  const my   = monthYear(dateStr);
+  const time = row.time ? ` at ${row.time} ET` : '';
+  const u    = row.unit ?? '';
+
+  const actualStr   = row.actual   != null ? `Actual: ${row.actual}${u}. `   : '';
+  const estimateStr = row.estimate != null ? `Estimate: ${row.estimate}${u}. ` : '';
+  const prevStr     = row.prev     != null ? `Previous: ${row.prev}${u}. `   : '';
+  const numbers     = actualStr || (estimateStr + prevStr);
+
+  const cat = row.category;
+
+  if (cat === 'monetary_policy') {
+    const isFOMC    = /fomc|rate decision|federal funds/i.test(row.title);
+    const isMinutes = /minutes/i.test(row.title);
+    const isSpeech  = /speech|remarks|testimony|powell/i.test(row.title);
+    if (isFOMC) {
+      return {
+        title: `FOMC Rate Decision ${my} — Fed Interest Rate Forecast & Market Impact`,
+        description: `Federal Reserve FOMC interest rate decision scheduled for ${formatDate(dateStr)}${time}. ${numbers}Track live QQQ & SPY reaction on US Market Calendar.`,
+        keywords: [
+          `FOMC ${my}`, `Fed rate decision ${my}`, `Federal Reserve interest rate ${dateStr.slice(0,7)}`,
+          'FOMC meeting date 2026', 'Fed funds rate forecast', 'Fed rate hike cut 2026',
+          'FOMC market impact', 'QQQ SPY FOMC reaction',
+        ],
+      };
+    }
+    if (isMinutes) {
+      return {
+        title: `FOMC Meeting Minutes ${my} — Federal Reserve Policy Notes`,
+        description: `Federal Reserve FOMC meeting minutes release on ${formatDate(dateStr)}${time}. Read Fed policy signals, rate path hints, and market reaction on US Market Calendar.`,
+        keywords: [
+          `FOMC minutes ${my}`, 'Federal Reserve meeting minutes 2026', 'Fed policy signals',
+          'FOMC minutes market impact',
+        ],
+      };
+    }
+    if (isSpeech) {
+      return {
+        title: `${row.title} ${my} — Fed Speech Date & Market Impact`,
+        description: `${row.title} on ${formatDate(dateStr)}${time}. Track Federal Reserve communication, rate signals, and market reaction on US Market Calendar.`,
+        keywords: [
+          `Powell speech ${my}`, 'Federal Reserve speech 2026', 'Fed chair remarks',
+          'Fed speech market impact',
+        ],
+      };
+    }
+  }
+
+  if (cat === 'inflation') {
+    const isCPI = /\bcpi\b|consumer price/i.test(row.title);
+    const isPCE = /\bpce\b|personal consumption/i.test(row.title);
+    const isPPI = /\bppi\b|producer price/i.test(row.title);
+    if (isCPI) {
+      return {
+        title: `CPI Report ${my} — Consumer Price Index Release Date & Inflation Forecast`,
+        description: `Consumer Price Index (CPI) inflation report for ${my} scheduled for ${formatDate(dateStr)}${time}. ${numbers}Track real-time QQQ SPY reaction on US Market Calendar.`,
+        keywords: [
+          `CPI ${my}`, `consumer price index ${my}`, `CPI release date ${dateStr.slice(0,7)}`,
+          'CPI forecast 2026', 'inflation report date 2026', 'CPI actual vs estimate',
+          'CPI market impact QQQ SPY',
+        ],
+      };
+    }
+    if (isPCE) {
+      return {
+        title: `PCE Inflation ${my} — Core PCE Release Date & Fed Inflation Target`,
+        description: `Core PCE inflation index for ${my} on ${formatDate(dateStr)}${time}. ${numbers}PCE is the Fed's preferred inflation gauge. Track on US Market Calendar.`,
+        keywords: [
+          `PCE ${my}`, `core PCE ${my}`, 'PCE inflation release date 2026',
+          'Fed preferred inflation gauge', 'PCE vs CPI 2026',
+        ],
+      };
+    }
+    if (isPPI) {
+      return {
+        title: `PPI Report ${my} — Producer Price Index Release Date & Forecast`,
+        description: `Producer Price Index (PPI) for ${my} on ${formatDate(dateStr)}${time}. ${numbers}Track upstream inflation signals on US Market Calendar.`,
+        keywords: [
+          `PPI ${my}`, `producer price index ${my}`, 'PPI release date 2026', 'PPI inflation forecast',
+        ],
+      };
+    }
+  }
+
+  if (cat === 'employment') {
+    const isNFP  = /nonfarm|non-farm|\bnfp\b/i.test(row.title);
+    const isJobs = /jobless|unemployment/i.test(row.title);
+    if (isNFP) {
+      return {
+        title: `Nonfarm Payrolls ${my} — Jobs Report Date, Forecast & Market Reaction`,
+        description: `US Nonfarm Payrolls (NFP) jobs report for ${my} on ${formatDate(dateStr)}${time}. ${numbers}Track QQQ SPY reaction to jobs data on US Market Calendar.`,
+        keywords: [
+          `nonfarm payrolls ${my}`, `NFP ${my}`, `jobs report ${my}`,
+          'nonfarm payrolls 2026 forecast', 'NFP release date 2026', 'jobs report market impact',
+        ],
+      };
+    }
+    if (isJobs) {
+      return {
+        title: `${row.title} ${my} — US Labor Market Data & Release Date`,
+        description: `${row.title} for ${my} on ${formatDate(dateStr)}${time}. ${numbers}Track US labor market data on US Market Calendar.`,
+        keywords: [
+          `unemployment rate ${my}`, 'US jobless claims 2026', 'labor market data 2026',
+        ],
+      };
+    }
+  }
+
+  // growth / default
+  return {
+    title: `${row.title} ${my} — Release Date & Forecast`,
+    description: `${row.title} scheduled for ${formatDate(dateStr)}${time}. ${numbers}Track all US economic calendar events on US Market Calendar.`,
+    keywords: [
+      `${row.title} ${my}`, 'US economic calendar 2026', 'economic data release date 2026',
+    ],
+  };
+}
+
 // ── generateMetadata ─────────────────────────────────────────────
 export async function generateMetadata({
   params,
@@ -122,39 +254,64 @@ export async function generateMetadata({
   const result   = await findEvent(slug);
   if (!result) return { title: 'Event Not Found' };
 
-  let title = '';
-  let description = '';
   const date = slugToDate(slug) ?? '';
-  const formattedDate = formatDate(date);
+
+  let title       = '';
+  let description = '';
+  let keywords: string[] = [];
 
   if (result.type === 'economic') {
     const { row } = result;
-    title       = `${row.title} — ${formattedDate} | US Market Calendar`;
-    description = `${row.title} scheduled for ${formattedDate}${row.time ? ' at ' + row.time + ' ET' : ''}. `
-      + (row.estimate != null ? `Consensus estimate: ${row.estimate}${row.unit ?? ''}. ` : '')
-      + (row.prev     != null ? `Previous: ${row.prev}${row.unit ?? ''}. ` : '')
-      + 'Track all US economic calendar events on US Market Calendar.';
+    const meta     = buildEconomicMeta(row, date);
+    title          = meta.title;
+    description    = meta.description;
+    keywords       = meta.keywords;
+
   } else if (result.type === 'earnings') {
-    const { row } = result;
-    title       = `${row.symbol} Earnings — ${formattedDate} | US Market Calendar`;
-    description = `${row.symbol} (${row.company}) reports Q${row.quarter ?? ''} ${row.year ?? ''} earnings on ${formattedDate}. `
-      + (row.eps_estimate != null ? `EPS estimate: $${row.eps_estimate?.toFixed(2)}. ` : '')
-      + 'Track all NASDAQ-100 earnings on US Market Calendar.';
+    const { row }  = result;
+    const q        = row.quarter ? `Q${row.quarter}` : '';
+    const yr       = row.year ?? '';
+    const epsStr   = row.eps_estimate != null ? ` EPS estimate: $${row.eps_estimate.toFixed(2)}.` : '';
+    const revStr   = row.revenue_estimate != null ? ` Revenue estimate: $${(Number(row.revenue_estimate) / 1e9).toFixed(1)}B.` : '';
+    title       = `${row.symbol} Earnings Date ${q} ${yr} — ${row.company} EPS & Revenue Forecast`;
+    description = `${row.company} (${row.symbol}) reports ${q} ${yr} earnings on ${formatDate(date)}.${epsStr}${revStr} Track all NASDAQ-100 earnings on US Market Calendar.`;
+    keywords    = [
+      `${row.symbol} earnings date`, `${row.symbol} earnings ${q} ${yr}`,
+      `${row.company} earnings report`, `${row.symbol} EPS estimate ${yr}`,
+      `${row.symbol} revenue forecast`, 'NASDAQ-100 earnings calendar 2026',
+    ];
+
   } else {
-    const { row } = result;
-    title       = `${row.company} IPO — ${formattedDate} | US Market Calendar`;
-    description = `${row.company} IPO scheduled for ${formattedDate} on ${row.exchange ?? 'NASDAQ'}. `
-      + (row.total_shares_value != null
-        ? `Market cap: $${(Number(row.total_shares_value) / 1e9).toFixed(0)}B. `
-        : '')
-      + 'Track upcoming IPOs including SpaceX and Anthropic on US Market Calendar.';
+    const { row }  = result;
+    const valStr   = row.total_shares_value != null
+      ? ` Valuation: $${(Number(row.total_shares_value) / 1e9).toFixed(0)}B.`
+      : '';
+    const isFastEntry = (row as { nasdaq_fast_entry?: boolean }).nasdaq_fast_entry;
+    const fastStr  = isFastEntry
+      ? ' Qualifies for NASDAQ-100 Fast Entry Rule — forced ETF buying expected.'
+      : '';
+    title       = `${row.company} IPO Date ${date.slice(0, 7)} — ${row.exchange ?? 'NASDAQ'} Listing & Valuation`;
+    description = `${row.company} IPO scheduled for ${formatDate(date)} on ${row.exchange ?? 'NASDAQ'}.${valStr}${fastStr} Track upcoming IPOs on US Market Calendar.`;
+    keywords    = [
+      `${row.company} IPO date`, `${row.company} IPO ${date.slice(0, 4)}`,
+      `${row.company} IPO valuation`, `${row.company} NASDAQ listing`,
+      'upcoming IPO 2026', 'NASDAQ IPO calendar 2026',
+      ...(isFastEntry ? ['NASDAQ Fast Entry Rule 2026', 'QQQ forced buying IPO'] : []),
+    ];
   }
 
   return {
     title,
     description,
+    keywords,
     alternates: { canonical: `${SITE_URL}/events/${slug}` },
-    openGraph:  { title, description, url: `${SITE_URL}/events/${slug}` },
+    openGraph:  {
+      title,
+      description,
+      url:      `${SITE_URL}/events/${slug}`,
+      type:     'article',
+    },
+    twitter: { card: 'summary', title, description },
   };
 }
 
@@ -263,6 +420,9 @@ export default async function EventPage({
   // FRED 히스토리 조회
   const fredHistory = fredSeriesId ? await getFredHistory(fredSeriesId) : [];
 
+  // 시장 반응 차트 데이터
+  const marketReaction = await getMarketReaction(date);
+
   // 관련 이벤트 조회
   const related = result.type === 'economic'
     ? await getRelatedEvents(eventTitle, date, category)
@@ -348,6 +508,16 @@ export default async function EventPage({
 
           {/* Extra fields (earnings/IPO) */}
           {extraFields}
+
+          {/* Market Reaction Chart */}
+          {marketReaction && marketReaction.length >= 3 && (
+            <div className="bg-gray-900 rounded-xl p-6 mb-8 mt-8">
+              <h2 className="text-white font-semibold mb-1">Market Reaction</h2>
+              <p className="text-gray-500 text-xs mb-4">QQQ &amp; SPY price change ±5 trading days around this event</p>
+              <MarketReactionChart data={marketReaction} />
+              <p className="text-gray-600 text-xs mt-3">Source: Yahoo Finance</p>
+            </div>
+          )}
 
           {/* FRED Historical Chart */}
           {fredHistory.length >= 2 && (
