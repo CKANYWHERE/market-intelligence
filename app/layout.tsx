@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 
 const ADSENSE_CLIENT_ID = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
+const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -140,6 +141,23 @@ export default function RootLayout({
         <meta name="geo.placename"   content="United States" />
         <meta name="language"        content="en-US" />
         <meta httpEquiv="content-language" content="en-us" />
+        {/* Google Analytics 4 */}
+        {GA_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga4-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${GA_ID}', { page_path: window.location.pathname });
+              `}
+            </Script>
+          </>
+        )}
         {/* Google AdSense — NEXT_PUBLIC_ADSENSE_CLIENT_ID 설정 시 활성화 */}
         {ADSENSE_CLIENT_ID && (
           <Script
