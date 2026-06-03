@@ -217,66 +217,99 @@ export default function EventDetailPanel({ event, dayEvents, onSelectEvent, onCl
         {/* ── Economic / macro ── */}
         {['monetary_policy', 'inflation', 'employment', 'growth'].includes(event.category) && (
           <>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { label: 'Actual', value: event.actual, highlight: true },
-                { label: 'Estimate', value: event.estimate, highlight: false },
-                { label: 'Previous', value: event.prev, highlight: false },
-              ].map(({ label, value, highlight }) => (
-                <div
-                  key={label}
-                  className={`rounded-lg p-3 text-center ${highlight ? 'bg-gray-800' : 'bg-gray-800/40'}`}
-                >
-                  <p className="text-gray-500 text-xs mb-1">{label}</p>
-                  <p
-                    className={`font-mono font-semibold ${highlight ? 'text-white text-lg' : 'text-gray-300 text-base'}`}
-                  >
-                    {value != null ? `${numOrDash(value)}${event.unit ?? ''}` : '-'}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <DeltaBadge actual={event.actual} estimate={event.estimate} unit={event.unit} />
-
-            {/* HOT / COOL badge */}
-            {(() => {
-              const heat = getHeatBadge(event.title, event.actual, event.estimate);
-              if (!heat) return null;
-              return (
-                <div
-                  className={`flex items-center gap-2 rounded-lg px-3 py-2.5 ${
-                    heat === 'HOT'
-                      ? 'bg-red-500/10 border border-red-500/20'
-                      : 'bg-blue-500/10 border border-blue-500/20'
-                  }`}
-                >
-                  <span
-                    className={`text-lg font-black tracking-tight ${
-                      heat === 'HOT' ? 'text-red-400' : 'text-blue-400'
-                    }`}
-                  >
-                    {heat === 'HOT' ? 'HOT' : 'COOL'}
-                  </span>
-                  <span
-                    className={`text-sm ${
-                      heat === 'HOT' ? 'text-red-300' : 'text-blue-300'
-                    }`}
-                  >
-                    {heat === 'HOT'
-                      ? 'Stronger than expected — potential upward pressure on rates'
-                      : 'Weaker than expected — potential dovish signal for markets'}
-                  </span>
-                </div>
-              );
-            })()}
-
+            {/* PRE-EVENT: Consensus 먼저, 그 다음 Scenario */}
             {event.actual == null && (
               <>
+                {/* Consensus card */}
+                {(event.estimate != null || event.prev != null) && (
+                  <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-3">
+                    <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-2">
+                      Market Expects
+                    </p>
+                    <div className="flex items-end gap-4">
+                      {event.estimate != null && (
+                        <div>
+                          <p className="text-white font-mono font-bold text-2xl leading-none">
+                            {numOrDash(event.estimate)}{event.unit ?? ''}
+                          </p>
+                          <p className="text-gray-500 text-xs mt-0.5">Consensus estimate</p>
+                        </div>
+                      )}
+                      {event.prev != null && (
+                        <div>
+                          <p className="text-gray-400 font-mono font-semibold text-lg leading-none">
+                            {numOrDash(event.prev)}{event.unit ?? ''}
+                          </p>
+                          <p className="text-gray-600 text-xs mt-0.5">Previous</p>
+                        </div>
+                      )}
+                    </div>
+                    {event.estimate != null && event.prev != null && (() => {
+                      const diff = event.estimate - event.prev;
+                      const pct  = Math.abs((diff / Math.abs(event.prev)) * 100).toFixed(1);
+                      const up   = diff > 0;
+                      if (Math.abs(diff) < 0.001) return null;
+                      return (
+                        <p className={`text-xs mt-2 ${up ? 'text-orange-400' : 'text-emerald-400'}`}>
+                          {up ? '↑' : '↓'} Estimate {up ? 'above' : 'below'} previous by {pct}%
+                        </p>
+                      );
+                    })()}
+                  </div>
+                )}
+
+                {/* Scenario — what to do */}
                 <ScenarioBar title={event.title} />
-                <div className="bg-blue-500/10 border border-blue-500/20 text-blue-300 text-sm px-3 py-2 rounded-lg">
-                  Results not yet announced
+
+                <div className="bg-gray-800/40 border border-gray-700/40 text-gray-400 text-xs px-3 py-2 rounded-lg text-center">
+                  Results not yet announced — check back after release
                 </div>
+              </>
+            )}
+
+            {/* POST-EVENT: actual 있을 때 기존 그리드 + delta + HOT/COOL */}
+            {event.actual != null && (
+              <>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { label: 'Actual',   value: event.actual,   highlight: true  },
+                    { label: 'Estimate', value: event.estimate, highlight: false },
+                    { label: 'Previous', value: event.prev,     highlight: false },
+                  ].map(({ label, value, highlight }) => (
+                    <div
+                      key={label}
+                      className={`rounded-lg p-3 text-center ${highlight ? 'bg-gray-800' : 'bg-gray-800/40'}`}
+                    >
+                      <p className="text-gray-500 text-xs mb-1">{label}</p>
+                      <p className={`font-mono font-semibold ${highlight ? 'text-white text-lg' : 'text-gray-300 text-base'}`}>
+                        {value != null ? `${numOrDash(value)}${event.unit ?? ''}` : '-'}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <DeltaBadge actual={event.actual} estimate={event.estimate} unit={event.unit} />
+
+                {(() => {
+                  const heat = getHeatBadge(event.title, event.actual, event.estimate);
+                  if (!heat) return null;
+                  return (
+                    <div className={`flex items-center gap-2 rounded-lg px-3 py-2.5 ${
+                      heat === 'HOT'
+                        ? 'bg-red-500/10 border border-red-500/20'
+                        : 'bg-blue-500/10 border border-blue-500/20'
+                    }`}>
+                      <span className={`text-lg font-black tracking-tight ${heat === 'HOT' ? 'text-red-400' : 'text-blue-400'}`}>
+                        {heat}
+                      </span>
+                      <span className={`text-sm ${heat === 'HOT' ? 'text-red-300' : 'text-blue-300'}`}>
+                        {heat === 'HOT'
+                          ? 'Stronger than expected — upward pressure on rates'
+                          : 'Weaker than expected — dovish signal for markets'}
+                      </span>
+                    </div>
+                  );
+                })()}
               </>
             )}
           </>

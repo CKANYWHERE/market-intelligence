@@ -27,6 +27,13 @@ export default function EventChip({ event, onClick }: Props) {
         className={`inline-block w-1.5 h-1.5 rounded-full ${meta.dotClass} flex-shrink-0`}
       />
       <span className="truncate flex-1">{event.title}</span>
+      {/* 발표 전: estimate 표시 */}
+      {event.actual == null && event.estimate != null && !heat && (
+        <span className="flex-shrink-0 text-[9px] font-mono text-gray-500 leading-none">
+          {event.estimate}{event.unit ?? ''}
+        </span>
+      )}
+      {/* 발표 후: HOT/COOL 배지 */}
       {heat && (
         <span
           className={`flex-shrink-0 text-[9px] font-bold px-1 py-px rounded leading-none ${
