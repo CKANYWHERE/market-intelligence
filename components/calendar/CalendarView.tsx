@@ -73,7 +73,7 @@ export default function CalendarView({ selectedEvent, onSelectEvent, onSelectDay
   const totalFiltered = events.filter((e) => activeCategories.has(e.category)).length;
 
   return (
-    <section aria-label="Market Events Calendar" className="flex flex-col">
+    <section aria-label="Market Events Calendar" className="flex-1 flex flex-col min-h-0">
       {/* Category filter pills */}
       <div className="flex gap-1.5 md:gap-2 mb-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }} role="group" aria-label="Filter by category">
         {ALL_CATEGORIES.map((cat) => {
@@ -128,7 +128,7 @@ export default function CalendarView({ selectedEvent, onSelectEvent, onSelectDay
       <div
         role="grid"
         aria-label={`${formatMonthTitle(year, month)} calendar`}
-        className="grid grid-cols-7 gap-px bg-gray-800 rounded-xl overflow-hidden border border-gray-800"
+        className="flex-1 grid grid-cols-7 gap-px bg-gray-800 rounded-xl overflow-hidden border border-gray-800"
       >
         {DOW_FULL.map((d, i) => (
           <div key={i} role="columnheader"

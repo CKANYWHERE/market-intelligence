@@ -165,41 +165,40 @@ export default function HomeClient() {
         />
       </div>
 
-      {/* 데스크탑 (md 이상): 자연 높이 스크롤 레이아웃 */}
-      <main className="hidden md:block flex-1 p-6 overflow-y-auto">
-        <div className="flex flex-col gap-4">
-          <UpcomingCountdown />
-          <TodayEventsBar />
-          <KeyIndicatorsSection />
-          <div className="flex gap-4 items-start">
-            <div className="flex-1 min-w-0">
-              <CalendarView
-                selectedEvent={selectedEvent}
-                onSelectEvent={handleSelectEvent}
-                onSelectDay={handleSelectDay}
-              />
-            </div>
-            {/* 사이드바: 이벤트 선택 시 상세패널, 미선택 시 Weekly Digest */}
-            <div className="w-[380px] flex-shrink-0">
-              {hasPanel ? (
-                <EventDetailPanel
-                  event={selectedEvent}
-                  dayEvents={selectedDayEvents}
-                  onSelectEvent={handleSelectEvent}
-                  onClose={handleClose}
-                />
-              ) : (
-                <WeeklyDigestSection />
-              )}
-            </div>
+      {/* 데스크탑 (md 이상): 스크롤 레이아웃, 캘린더 row 고정 높이 */}
+      <main className="hidden md:flex flex-1 flex-col p-6 gap-4 overflow-y-auto">
+        <UpcomingCountdown />
+        <TodayEventsBar />
+        <KeyIndicatorsSection />
+        {/* 고정 높이 row — 주변 영향 없이 캘린더 안정화 */}
+        <div className="flex gap-4 h-[660px]">
+          <div className="flex-1 min-w-0 flex flex-col min-h-0">
+            <CalendarView
+              selectedEvent={selectedEvent}
+              onSelectEvent={handleSelectEvent}
+              onSelectDay={handleSelectDay}
+            />
           </div>
-          <BreakingSection />
-          <AdBanner
-            slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM ?? ''}
-            format="rectangle"
-            className="flex justify-center py-2"
-          />
+          {/* 사이드바: 내부 스크롤 */}
+          <div className="w-[380px] flex-shrink-0 flex flex-col min-h-0 overflow-y-auto">
+            {hasPanel ? (
+              <EventDetailPanel
+                event={selectedEvent}
+                dayEvents={selectedDayEvents}
+                onSelectEvent={handleSelectEvent}
+                onClose={handleClose}
+              />
+            ) : (
+              <WeeklyDigestSection />
+            )}
+          </div>
         </div>
+        <BreakingSection />
+        <AdBanner
+          slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM ?? ''}
+          format="rectangle"
+          className="flex justify-center py-2"
+        />
       </main>
 
       {/* ── 모바일 바텀 시트 ──────────────────────────────────── */}
