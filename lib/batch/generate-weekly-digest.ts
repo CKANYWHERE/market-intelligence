@@ -91,6 +91,67 @@ async function fetchWeekEvents(weekStart: Date): Promise<RawEvent[]> {
   return events;
 }
 
+// ── 카테고리별 우선순위 (fallback 정렬용) ─────────────────────
+const CATEGORY_PRIORITY: Record<string, number> = {
+  monetary_policy: 1,
+  inflation:       2,
+  employment:      3,
+  growth:          4,
+  earnings:        5,
+  ipo:             6,
+};
+
+// ── 카테고리별 fallback 텍스트 템플릿 ────────────────────────
+const FALLBACK_TEMPLATES: Record<string, { why: string; watch: string }> = {
+  monetary_policy: {
+    why:   'Fed rate decisions directly set the cost of capital for equities and bonds. Any surprise in tone or language moves markets immediately.',
+    watch: 'Watch the policy statement language — "patient", "data-dependent", or any shift in forward guidance.',
+  },
+  inflation: {
+    why:   'Inflation data is the primary input for Fed rate decisions. A surprise print can shift rate-cut expectations sharply.',
+    watch: 'Core month-over-month reading vs. consensus — even a 0.1% miss or beat matters.',
+  },
+  employment: {
+    why:   'Employment is the Fed\'s second mandate. Strong jobs data delays rate cuts; weak data accelerates them.',
+    watch: 'Headline number vs. consensus and any revision to the prior month.',
+  },
+  growth: {
+    why:   'Growth data shapes the macro backdrop for corporate earnings and consumer spending.',
+    watch: 'Whether the actual reading confirms, beats, or misses consensus expectations.',
+  },
+  earnings: {
+    why:   'Earnings results drive individual stock moves and can shift sector sentiment.',
+    watch: 'EPS vs. estimate and management guidance for the next quarter.',
+  },
+  ipo: {
+    why:   'High-profile IPOs signal risk appetite and can trigger passive ETF rebalancing under the NASDAQ Fast Entry Rule.',
+    watch: 'Opening price vs. IPO price and first-day trading volume.',
+  },
+};
+
+// ── Fallback: Claude 없을 때 알고리즘으로 Top 5 선별 ─────────
+function fallbackDigest(events: RawEvent[]): DigestItem[] {
+  const sorted = [...events].sort((a, b) => {
+    const pa = CATEGORY_PRIORITY[a.category] ?? 9;
+    const pb = CATEGORY_PRIORITY[b.category] ?? 9;
+    if (pa !== pb) return pa - pb;
+    return a.date.getTime() - b.date.getTime();
+  });
+
+  return sorted.slice(0, 5).map((e, i) => {
+    const tpl = FALLBACK_TEMPLATES[e.category] ?? FALLBACK_TEMPLATES.growth;
+    return {
+      rank:           i + 1,
+      title:          e.title,
+      date:           e.date.toISOString().slice(0, 10),
+      category:       e.category,
+      why_it_matters: tpl.why,
+      watch_for:      tpl.watch,
+      event_id:       e.id,
+    };
+  });
+}
+
 const SYSTEM_PROMPT = `You are a senior macro strategist writing a weekly market briefing for US equity investors.
 
 Given a list of scheduled market events for the week, select the TOP 5 most market-moving events and explain each one briefly.
@@ -118,8 +179,12 @@ JSON format:
 export async function generateWeeklyDigest(weekStart: Date): Promise<DigestItem[]> {
   const events = await fetchWeekEvents(weekStart);
 
-  if (events.length === 0) {
-    return [];
+  if (events.length === 0) return [];
+
+  // ANTHROPIC_API_KEY 없으면 rule-based fallback 사용
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.log('[weekly-digest] No ANTHROPIC_API_KEY — using fallback');
+    return fallbackDigest(events);
   }
 
   const { default: Anthropic } = await import('@anthropic-ai/sdk');
@@ -155,16 +220,7 @@ export async function generateWeeklyDigest(weekStart: Date): Promise<DigestItem[
     parsed = JSON.parse(raw);
   } catch {
     console.error('[weekly-digest] JSON parse failed:', raw.slice(0, 300));
-    // Fallback: top 5 by importance heuristic (eco first, then earnings)
-    parsed = events.slice(0, 5).map((e, i) => ({
-      rank:           i + 1,
-      title:          e.title,
-      date:           e.date.toISOString().slice(0, 10),
-      category:       e.category,
-      why_it_matters: 'Key scheduled market event this week.',
-      watch_for:      'Actual vs consensus estimate.',
-      event_id:       e.id,
-    }));
+    parsed = fallbackDigest(events);
   }
 
   return parsed;
