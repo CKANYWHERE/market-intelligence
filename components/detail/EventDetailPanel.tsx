@@ -271,15 +271,13 @@ export default function EventDetailPanel({ event, dayEvents, onSelectEvent, onCl
               );
             })()}
 
-            {/* Market Scenario — 미발표 이벤트에만 표시 */}
             {event.actual == null && (
-              <ScenarioBar title={event.title} />
-            )}
-
-            {event.actual == null && (
-              <div className="bg-blue-500/10 border border-blue-500/20 text-blue-300 text-sm px-3 py-2 rounded-lg">
-                Results not yet announced
-              </div>
+              <>
+                <ScenarioBar title={event.title} />
+                <div className="bg-blue-500/10 border border-blue-500/20 text-blue-300 text-sm px-3 py-2 rounded-lg">
+                  Results not yet announced
+                </div>
+              </>
             )}
           </>
         )}
@@ -351,9 +349,12 @@ export default function EventDetailPanel({ event, dayEvents, onSelectEvent, onCl
             )}
 
             {event.epsActual == null && event.revenueActual == null && (
-              <div className="bg-blue-500/10 border border-blue-500/20 text-blue-300 text-sm px-3 py-2 rounded-lg">
-                Results not yet released
-              </div>
+              <>
+                <ScenarioBar title={event.symbol ? `${event.symbol} Earnings` : 'Earnings'} />
+                <div className="bg-blue-500/10 border border-blue-500/20 text-blue-300 text-sm px-3 py-2 rounded-lg">
+                  Results not yet released
+                </div>
+              </>
             )}
           </>
         )}
