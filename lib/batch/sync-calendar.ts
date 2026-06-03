@@ -6,7 +6,6 @@
 import { db } from '@/lib/batch/db';
 import {
   getEconomicCalendar,
-  getEarningsCalendar,
   getIpoCalendar,
 } from '@/lib/api/finnhub';
 import { categorizeEconomicEvent, mapImpact } from '@/lib/utils/categorize';
@@ -140,9 +139,8 @@ export async function syncCalendar(from: string, to: string): Promise<SyncResult
 
   log.push(`▶ Fetching calendars for ${from} → ${to}`);
 
-  const [ecoResult, earnResult, ipoResult] = await Promise.allSettled([
+  const [ecoResult, ipoResult] = await Promise.allSettled([
     getEconomicCalendar(from, to),
-    getEarningsCalendar(from, to),
     getIpoCalendar(from, to),
   ]);
 
@@ -193,51 +191,8 @@ export async function syncCalendar(from: string, to: string): Promise<SyncResult
     log.push(`  ✗ economic: ${String(ecoResult.reason)}`);
   }
 
-  // ── 2. Earnings Events ─────────────────────────────────────
-  log.push('▶ Processing earnings events...');
-  if (earnResult.status === 'fulfilled') {
-    const items: RawRecord[] =
-      ((earnResult.value as RawRecord)?.earningsCalendar as RawRecord[]) ?? [];
-
-    const earnOps = [];
-    for (const item of items) {
-      const symbol = String(item.symbol ?? '');
-      if (!TRACKED_SYMBOLS.has(symbol)) continue;
-
-      const date = toDate(item.date);
-      if (!date) continue;
-
-      const sourceId = String(item.id ?? `earn_${symbol}_${date.toISOString().slice(0, 10)}`);
-      const hourRaw  = String(item.hour ?? '');
-      const hour     = (['bmo', 'amc', 'dmh'] as const).find((h) => h === hourRaw) ?? null;
-
-      earnOps.push(db.earningsEvent.upsert({
-        where:  { source_id: sourceId },
-        create: {
-          source_id:        sourceId,
-          symbol,
-          company:          String(item.company ?? symbol),
-          date,
-          hour,
-          quarter:          item.quarter != null ? Number(item.quarter) : null,
-          year:             item.year    != null ? Number(item.year)    : null,
-          eps_estimate:     item.epsEstimate     != null ? Number(item.epsEstimate)     : null,
-          eps_actual:       item.epsActual       != null ? Number(item.epsActual)       : null,
-          revenue_estimate: item.revenueEstimate != null ? Number(item.revenueEstimate) : null,
-          revenue_actual:   item.revenueActual   != null ? Number(item.revenueActual)   : null,
-        },
-        update: {
-          eps_actual:     item.epsActual     != null ? Number(item.epsActual)     : null,
-          revenue_actual: item.revenueActual != null ? Number(item.revenueActual) : null,
-        },
-      }));
-      counts.earnings++;
-    }
-    if (earnOps.length > 0) await Promise.all(earnOps);
-    log.push(`  ✓ ${counts.earnings} upserted`);
-  } else {
-    log.push(`  ✗ earnings: ${String(earnResult.reason)}`);
-  }
+  // ── 2. Earnings Events — Alpha Vantage 전용 (syncAlphaVantageEarnings 사용)
+  log.push('▶ Earnings: handled by Alpha Vantage (skipping Finnhub)');
 
   // ── 3. IPO Events ──────────────────────────────────────────
   log.push('▶ Processing IPO events...');
