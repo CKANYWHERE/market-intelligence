@@ -14,9 +14,25 @@ import { categorizeEconomicEvent, mapImpact } from '@/lib/utils/categorize';
 type RawRecord = Record<string, unknown>;
 
 const TRACKED_SYMBOLS = new Set([
+  // ── Magnificent 7 ──────────────────────────────────────────
   'AAPL', 'MSFT', 'NVDA', 'GOOGL', 'GOOG', 'AMZN', 'META', 'TSLA',
-  'AVGO', 'COST', 'AMD', 'NFLX', 'ADBE', 'INTC', 'QCOM', 'TXN',
-  'PANW', 'ASML', 'MU', 'LRCX', 'KLAC', 'AMAT', 'SNPS', 'CDNS',
+
+  // ── QQQ Top Holdings (Semiconductors) ──────────────────────
+  'AVGO', 'AMD', 'MU', 'QCOM', 'TXN', 'INTC', 'AMAT', 'LRCX', 'KLAC',
+  'ASML', 'SNPS', 'CDNS', 'ON', 'MRVL', 'ARM',
+
+  // ── QQQ Top Holdings (Software/Cloud) ──────────────────────
+  'ADBE', 'PANW', 'CRM', 'NOW', 'INTU', 'TEAM', 'WDAY', 'SNOW',
+  'ZS', 'CRWD', 'DDOG', 'HUBS', 'TTD',
+
+  // ── QQQ Top Holdings (Consumer/Retail) ─────────────────────
+  'COST', 'NFLX', 'ABNB', 'BOOKING', 'BKNG', 'PYPL', 'EBAY',
+
+  // ── QQQ Top Holdings (Biotech/Healthcare) ──────────────────
+  'AMGN', 'GILD', 'BIIB', 'REGN', 'VRTX', 'MRNA', 'ISRG',
+
+  // ── High-profile / AI / macro-sensitive ────────────────────
+  'ORCL', 'UBER', 'LYFT', 'PLTR', 'RBLX', 'HOOD', 'COIN',
 ]);
 
 function toDate(val: unknown): Date | null {
