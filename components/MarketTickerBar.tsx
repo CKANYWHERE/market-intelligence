@@ -21,7 +21,7 @@ function SectionDivider() {
 
 function Skeleton() {
   return (
-    <div className="flex items-center gap-3 px-4 py-1.5">
+    <div className="border-b border-gray-800 bg-gray-900 flex items-center gap-3 px-4 py-1.5">
       {[80, 64, 64, 56, 56, 72].map((w, i) => (
         <div
           key={i}
@@ -52,7 +52,7 @@ export default function MarketTickerBar() {
     { refreshInterval: 600_000, dedupingInterval: 300_000, revalidateOnFocus: false },
   );
 
-  if (qLoading) return <Skeleton />;
+  if (qLoading || (!quotes && !pulse && !fed)) return <Skeleton />;
 
   const items: React.ReactNode[] = [];
 
@@ -95,8 +95,7 @@ export default function MarketTickerBar() {
 
   if (vix) {
     const isPos = vix.change >= 0;
-    // VIX: 상승 = 위험 → red
-    const color = isPos ? 'text-red-400' : 'text-green-400';
+    const color = isPos ? 'text-green-400' : 'text-red-400';
     const pct   = `${isPos ? '+' : ''}${vix.changePercent.toFixed(1)}%`;
     items.push(
       <span key="vix" className="flex items-center gap-1 flex-shrink-0">
@@ -141,7 +140,7 @@ export default function MarketTickerBar() {
       <span
         key="fed"
         className="flex items-center gap-1 flex-shrink-0"
-        title={`Hold ${fedData.holdProb}%  Hike ${fedData.hikeProb}%`}
+        title={`Hold ${fedData.holdProb}%  Implied ${fedData.impliedRate}%`}
       >
         <span className="text-gray-400 font-semibold">FOMC</span>
         <span className="text-gray-500">{dateLabel}</span>
@@ -152,11 +151,11 @@ export default function MarketTickerBar() {
     );
   }
 
-  if (items.length === 0) return null;
+  if (items.length === 0) return <Skeleton />;
 
   return (
     <div
-      className="border-b border-gray-800/70 bg-gray-950 px-4 py-1.5 text-xs overflow-x-auto"
+      className="border-b border-gray-800 bg-gray-900 px-4 py-1.5 text-xs overflow-x-auto"
       style={{ scrollbarWidth: 'none' }}
     >
       <div className="flex items-center min-w-max">

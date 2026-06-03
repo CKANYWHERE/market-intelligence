@@ -1,91 +1,83 @@
 // GET /api/fed-watch
-// Returns next-FOMC rate cut probability from CME FedWatch
+// 30-Day Fed Funds Futures (ZQ, Yahoo Finance) + FRED 현재 금리로 cut 확률 계산
+// 방법: FOMC 개최월 다음 달 ZQ 선물가격으로 포스트-미팅 내재금리 추출
+//   implied_rate  = 100 - futures_price
+//   prob_cut      = (current_rate - implied_rate) / 0.25  (25bp 단위 기준)
+
 import { NextResponse } from 'next/server';
+import { db } from '@/lib/batch/db';
+import { getIndexQuote } from '@/lib/api/yahooFinance';
 
 export const dynamic = 'force-dynamic';
 
 export interface FedWatchData {
   meetingDate: string; // YYYY-MM-DD
-  cutProb:     number; // 0–100 (any cut: 25bp+)
+  cutProb:     number; // 0–100
   holdProb:    number;
-  hikeProb:    number;
-  currentRate: number; // upper bound of target range
+  currentRate: number; // FOMC 현재 상단 타깃
+  impliedRate: number; // ZQ 내재금리
 }
 
-/** CME FedWatch public endpoint */
-const CME_URL =
-  'https://www.cmegroup.com/CmeWS/mvc/MarketData/v1/GetCmeFedWatchToolData.json';
+// ZQ 월 코드 (CME/Yahoo Finance 표기)
+const MONTH_LETTER = ['F','G','H','J','K','M','N','Q','U','V','X','Z'];
 
-const HEADERS = {
-  'User-Agent':
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124 Safari/537.36',
-  Accept: 'application/json',
-  Referer: 'https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html',
-};
+async function getCurrentRate(): Promise<number> {
+  const key = process.env.FRED_API_KEY;
+  if (!key) return 0;
+  const url =
+    `https://api.stlouisfed.org/fred/series/observations` +
+    `?series_id=DFEDTARU&api_key=${key}&file_type=json&sort_order=desc&limit=1`;
+  const res = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(5000) });
+  if (!res.ok) return 0;
+  const json = await res.json();
+  return parseFloat(json?.observations?.[0]?.value ?? '0');
+}
+
+async function getNextFomcDate(): Promise<Date | null> {
+  const now = new Date();
+  const event = await db.economicEvent.findFirst({
+    where: {
+      category: 'monetary_policy',
+      title:    { contains: 'Fed Interest Rate' },
+      date:     { gte: now },
+    },
+    orderBy: { date: 'asc' },
+  });
+  return event?.date ?? null;
+}
 
 export async function GET() {
   try {
-    const res = await fetch(CME_URL, {
-      headers: HEADERS,
-      cache: 'no-store',
-      signal: AbortSignal.timeout(8000),
-    });
+    const [currentRate, fomcDate] = await Promise.all([
+      getCurrentRate(),
+      getNextFomcDate(),
+    ]);
 
-    if (!res.ok) {
-      return NextResponse.json({ data: null, error: `CME HTTP ${res.status}` });
+    if (!fomcDate || currentRate === 0) {
+      return NextResponse.json({ data: null, error: 'Missing rate or FOMC date' });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const json: any = await res.json();
+    // FOMC 다음 달 ZQ 계약 → 포스트-미팅 금리를 가장 깔끔하게 반영
+    const afterMonth = new Date(fomcDate);
+    afterMonth.setMonth(afterMonth.getMonth() + 1);
+    const m   = afterMonth.getMonth();       // 0-indexed
+    const y2  = afterMonth.getFullYear() % 100; // 2-digit year
+    const zqSymbol = `ZQ${MONTH_LETTER[m]}${y2 < 10 ? '0' + y2 : y2}.CBT`;
 
-    // CME response shape: { nMonths: number, meetings: [ { month, probabilities: [...] } ] }
-    const meetings = json?.meetings ?? json?.marketData ?? [];
-    if (!Array.isArray(meetings) || meetings.length === 0) {
-      return NextResponse.json({ data: null, error: 'No meetings in response' });
-    }
+    const quote = await getIndexQuote(zqSymbol);
+    const impliedRate = parseFloat((100 - quote.value).toFixed(4));
 
-    // First upcoming meeting
-    const next = meetings[0];
-
-    // Probabilities array: each item has { probDown25, probUnchanged, probUp25, ... } or similar
-    // CME uses "probabilities" as an object keyed by rate level or as an array
-    const probs: Record<string, number> =
-      Array.isArray(next.probabilities)
-        ? // Array form: [{ label: 'UNCH', probability: 15.5 }, ...]
-          Object.fromEntries(
-            (next.probabilities as Array<{ label: string; probability: number }>).map(
-              (p) => [p.label, p.probability],
-            ),
-          )
-        : (next.probabilities ?? {});
-
-    // Keys used by CME: UNCH = no change, various negative labels = cut
-    const holdProb = probs['UNCH'] ?? probs['unchanged'] ?? 0;
-    // Sum all cut probabilities (negative = cut)
-    const cutProb = Object.entries(probs)
-      .filter(([k]) => k !== 'UNCH' && k !== 'unchanged' && parseFloat(k) < 0)
-      .reduce((s, [, v]) => s + v, 0);
-    const hikeProb = Object.entries(probs)
-      .filter(([k]) => parseFloat(k) > 0)
-      .reduce((s, [, v]) => s + v, 0);
-
-    // Meeting date
-    const rawDate: string = next.month ?? next.date ?? '';
-    const meetingDate =
-      rawDate.length === 7
-        ? `${rawDate}-01` // YYYY-MM → first of month (approximate)
-        : rawDate;
-
-    // Current target rate — CME provides as topOfRange or similar
-    const currentRate: number =
-      (next.topOfTargetRange ?? json.topOfTargetRange ?? next.currentTarget ?? 0) as number;
+    // 25bp 단위 cut 확률 (0~100%)
+    const raw     = (currentRate - impliedRate) / 0.25;
+    const cutProb = Math.round(Math.max(0, Math.min(1, raw)) * 1000) / 10;
+    const holdProb = Math.round((100 - cutProb) * 10) / 10;
 
     const data: FedWatchData = {
-      meetingDate,
-      cutProb:     Math.round(cutProb * 10) / 10,
-      holdProb:    Math.round(holdProb * 10) / 10,
-      hikeProb:    Math.round(hikeProb * 10) / 10,
+      meetingDate: fomcDate.toISOString().slice(0, 10),
+      cutProb,
+      holdProb,
       currentRate,
+      impliedRate,
     };
 
     return NextResponse.json(
@@ -95,5 +87,7 @@ export async function GET() {
   } catch (err) {
     console.error('[fed-watch]', err);
     return NextResponse.json({ data: null, error: String(err) });
+  } finally {
+    db.$disconnect().catch(() => {});
   }
 }
