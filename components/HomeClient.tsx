@@ -13,7 +13,6 @@ import KeyIndicatorsSection from '@/components/indicators/KeyIndicatorsSection';
 import UpcomingCountdown from '@/components/calendar/UpcomingCountdown';
 import BreakingSection from '@/components/breaking/BreakingSection';
 import TodayEventsBar from '@/components/today/TodayEventsBar';
-import SubscribeForm from '@/components/email/SubscribeForm';
 
 function MobileDrawer({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   const [visible, setVisible]       = useState(false);
@@ -208,17 +207,6 @@ export default function HomeClient() {
           />
         </MobileDrawer>
       )}
-
-      {/* ── Email Subscribe ──────────────────────────────────── */}
-      <div className="border-t border-gray-800 bg-gray-900/50 px-4 md:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 flex-shrink-0">
-        <div className="min-w-0">
-          <p className="text-white text-sm font-semibold">Get the Weekly Market Digest</p>
-          <p className="text-gray-500 text-xs">Every Monday: top 5 market events, explained.</p>
-        </div>
-        <div className="flex-shrink-0">
-          <SubscribeForm />
-        </div>
-      </div>
 
       {/* ── Footer ───────────────────────────────────────────── */}
       <footer className="border-t border-gray-800 px-4 md:px-6 py-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 flex-shrink-0">

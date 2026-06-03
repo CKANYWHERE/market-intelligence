@@ -1,6 +1,7 @@
-import { Metadata } from 'next';
 import Link from 'next/link';
-import SubscribeForm from '@/components/email/SubscribeForm';
+import { Metadata } from 'next';
+
+
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://market-intelligence-87mm.vercel.app';
 
@@ -157,14 +158,6 @@ export default function SpaceXIpoPage() {
           </div>
         </section>
 
-        {/* Subscribe CTA */}
-        <section className="bg-gradient-to-br from-blue-950/50 to-gray-900 border border-blue-800/30 rounded-xl p-6">
-          <h2 className="text-lg font-bold text-white mb-2">Get Notified Before the IPO</h2>
-          <p className="text-gray-400 text-sm mb-4">
-            Weekly market digest every Monday — FOMC, CPI, earnings, and IPO updates in one email.
-          </p>
-          <SubscribeForm />
-        </section>
 
         {/* Related */}
         <section>
