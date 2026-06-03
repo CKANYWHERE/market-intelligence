@@ -171,13 +171,15 @@ export default function HomeClient() {
         <TodayEventsBar />
         <KeyIndicatorsSection />
         <div className="flex-1 flex gap-4 min-h-0">
-          <CalendarView
-            selectedEvent={selectedEvent}
-            onSelectEvent={handleSelectEvent}
-            onSelectDay={handleSelectDay}
-          />
+          <div className="flex-1 min-w-0">
+            <CalendarView
+              selectedEvent={selectedEvent}
+              onSelectEvent={handleSelectEvent}
+              onSelectDay={handleSelectDay}
+            />
+          </div>
           {/* 사이드바: 이벤트 선택 시 상세패널, 미선택 시 Weekly Digest */}
-          <div className="w-[380px] flex-shrink-0 flex flex-col min-h-0">
+          <div className="w-[380px] flex-shrink-0 flex flex-col min-h-0 overflow-hidden">
             {hasPanel ? (
               <EventDetailPanel
                 event={selectedEvent}
