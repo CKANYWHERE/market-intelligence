@@ -6,6 +6,7 @@ import { CalendarEvent } from '@/types/events';
 import { CATEGORY_META, IMPORTANCE_STARS, getHeatBadge } from '@/lib/utils/categorize';
 import { toSlug } from '@/lib/utils/slug';
 import { CATEGORY_CONTEXT, INDICATOR_CONTEXT, getSeriesIdFromTitle } from '@/lib/utils/marketContext';
+import ScenarioBar from '@/components/weekly/ScenarioBar';
 
 interface Props {
   event:           CalendarEvent | null;
@@ -269,6 +270,11 @@ export default function EventDetailPanel({ event, dayEvents, onSelectEvent, onCl
                 </div>
               );
             })()}
+
+            {/* Market Scenario — 미발표 이벤트에만 표시 */}
+            {event.actual == null && (
+              <ScenarioBar title={event.title} />
+            )}
 
             {event.actual == null && (
               <div className="bg-blue-500/10 border border-blue-500/20 text-blue-300 text-sm px-3 py-2 rounded-lg">

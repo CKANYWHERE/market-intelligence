@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { fetcher } from '@/lib/fetcher';
 import { CATEGORY_META } from '@/lib/utils/categorize';
 import type { DigestItem } from '@/lib/batch/generate-weekly-digest';
+import ScenarioBar from '@/components/weekly/ScenarioBar';
+
+interface FedWatchResponse { cutProb: number | null; }
 
 interface DigestResponse {
   weekStart: string;
@@ -60,6 +63,12 @@ export default function WeeklyDigestSection() {
       revalidateOnFocus: false,
     },
   );
+
+  const { data: fedData } = useSWR<FedWatchResponse>('/api/fed-watch', fetcher, {
+    refreshInterval:   30 * 60_000,
+    revalidateOnFocus: false,
+  });
+  const cutProb = fedData?.cutProb ?? null;
 
   const items = data?.items ?? [];
 
@@ -139,6 +148,9 @@ export default function WeeklyDigestSection() {
                         {item.watch_for}
                       </p>
                     </div>
+
+                    {/* Market Scenario */}
+                    <ScenarioBar title={item.title} cutProb={cutProb} />
                   </div>
 
                   {/* 캘린더 링크 */}
