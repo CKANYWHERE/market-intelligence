@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { CalendarEvent, NewsItem } from '@/types/events';
 import EtfTracker from '@/components/etf/EtfTracker';
+import MarketPulse from '@/components/etf/MarketPulse';
 import NextEventCountdown from '@/components/NextEventCountdown';
 import BreakingSection from '@/components/breaking/BreakingSection';
 import CalendarView from '@/components/calendar/CalendarView';
@@ -113,7 +114,9 @@ export default function HomeClient({ initialNews }: { initialNews: NewsItem[] })
         <div className="hidden md:flex flex-1 justify-center px-4">
           <NextEventCountdown />
         </div>
-        <div className="hidden md:block flex-shrink-0">
+        <div className="hidden md:flex items-center gap-2 flex-shrink-0">
+          <MarketPulse />
+          <div className="w-px h-6 bg-gray-800" />
           <EtfTracker />
         </div>
       </header>
@@ -123,9 +126,11 @@ export default function HomeClient({ initialNews }: { initialNews: NewsItem[] })
         <NextEventCountdown />
       </div>
 
-      {/* ── 모바일 ETF 트래커 ─────────────────────────────────── */}
-      <div className="md:hidden border-b border-gray-800 px-4 py-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+      {/* ── 모바일 ETF + MarketPulse ─────────────────────────── */}
+      <div className="md:hidden border-b border-gray-800 px-4 py-2 flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
         <EtfTracker />
+        <div className="w-px h-6 self-center bg-gray-800 flex-shrink-0" />
+        <MarketPulse />
       </div>
 
       {/* ── Ad ─────────────────────────────────────────────────── */}
