@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const result = await withTimeout(syncStockPrices(undefined, 7), 50_000);
+    const result = await withTimeout(syncStockPrices(undefined, 3), 50_000);
     return NextResponse.json({ ok: true, ...result });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

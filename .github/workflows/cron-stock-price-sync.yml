@@ -2,8 +2,8 @@ name: Cron — Stock Price Sync
 
 on:
   schedule:
-    # 17:30 ET = 21:30 UTC weekdays (after US market close)
-    - cron: '30 21 * * 1-5'
+    # 매시 정각 실행 — upsert이므로 중복 호출 안전
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 jobs:
