@@ -5,7 +5,23 @@ import { allSchemas, UpcomingEvent } from '@/lib/seo/json-ld';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://market-intelligence-87mm.vercel.app';
 
-// 페이지별 동적 메타데이터 — 현재 달을 타이틀에 포함시켜 날짜별 검색 노출 강화
+function getWeekRange(): { label: string; start: string; end: string } {
+  const now  = new Date();
+  const day  = now.getUTCDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const mon  = new Date(now);
+  mon.setUTCDate(now.getUTCDate() + diff);
+  mon.setUTCHours(0, 0, 0, 0);
+  const fri = new Date(mon);
+  fri.setUTCDate(mon.getUTCDate() + 4);
+  const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', timeZone: 'UTC' };
+  return {
+    label: `${mon.toLocaleDateString('en-US', opts)}–${fri.toLocaleDateString('en-US', opts)}`,
+    start: mon.toISOString().slice(0, 10),
+    end:   fri.toISOString().slice(0, 10),
+  };
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const now   = new Date();
   const month = now.toLocaleString('en-US', { month: 'long' });
@@ -13,11 +29,17 @@ export async function generateMetadata(): Promise<Metadata> {
   const nextMonth = new Date(now);
   nextMonth.setMonth(nextMonth.getMonth() + 1);
   const nextMonthName = nextMonth.toLocaleString('en-US', { month: 'long' });
+  const week = getWeekRange();
 
   return {
     title: `US Market Calendar ${month} ${year} — FOMC, CPI, Earnings & IPO Dates`,
-    description: `Free US stock market calendar for ${month}–${nextMonthName} ${year}: FOMC meeting dates, CPI & PCE inflation reports, NFP jobs data, AAPL MSFT NVDA GOOGL AMZN META TSLA earnings, upcoming IPOs (SpaceX, Anthropic, OpenAI), and AI-filtered breaking market news — all in one real-time dashboard.`,
+    description: `Economic calendar week of ${week.label}: FOMC dates, CPI & PCE reports, NFP jobs data, AAPL MSFT NVDA GOOGL AMZN META TSLA earnings, upcoming IPOs (SpaceX, Anthropic, OpenAI). Free real-time dashboard for US stock investors.`,
     keywords: [
+      `economic calendar this week`,
+      `earnings this week`,
+      `what economic data this week`,
+      `market events this week`,
+      `economic calendar week of ${week.label}`,
       `economic calendar ${month} ${year}`,
       `FOMC meeting date ${year}`,
       `CPI release date ${month} ${year}`,
@@ -37,12 +59,11 @@ export async function generateMetadata(): Promise<Metadata> {
       'nonfarm payrolls 2026',
       'NASDAQ-100 earnings calendar',
       'QQQ SPY market events',
-      'breaking market news',
     ],
     alternates: { canonical: SITE_URL },
     openGraph: {
       title: `US Market Calendar ${month} ${year} — FOMC, CPI, Earnings & IPO Dates`,
-      description: `Free real-time dashboard: FOMC dates, CPI/PCE/NFP releases, NASDAQ-100 earnings, IPOs (SpaceX, Anthropic), and breaking news for US stock investors.`,
+      description: `Economic calendar week of ${week.label}: FOMC, CPI/PCE/NFP, NASDAQ-100 earnings, IPOs (SpaceX, Anthropic). Free real-time dashboard.`,
       url: SITE_URL,
     },
   };

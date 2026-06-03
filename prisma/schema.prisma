@@ -235,3 +235,12 @@ enum AiClassification {
   MEDIUM
   LOW
 }
+
+model EmailSubscriber {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  token        String    @unique  // unsubscribe token
+  created_at   DateTime  @default(now())
+
+  @@map("email_subscribers")
+}
