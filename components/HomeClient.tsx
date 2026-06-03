@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { CalendarEvent, NewsItem } from '@/types/events';
+import { CalendarEvent } from '@/types/events';
 import NextEventCountdown from '@/components/NextEventCountdown';
 import MarketTickerBar from '@/components/MarketTickerBar';
 import FedWatchBanner from '@/components/FedWatchBanner';
-import BreakingSection from '@/components/breaking/BreakingSection';
+import WeeklyDigestSection from '@/components/weekly/WeeklyDigestSection';
 import CalendarView from '@/components/calendar/CalendarView';
 import EventDetailPanel from '@/components/detail/EventDetailPanel';
 import AdBanner from '@/components/ads/AdBanner';
@@ -80,7 +80,7 @@ function MobileDrawer({ children, onClose }: { children: React.ReactNode; onClos
   );
 }
 
-export default function HomeClient({ initialNews }: { initialNews: NewsItem[] }) {
+export default function HomeClient() {
   const [selectedEvent, setSelectedEvent]         = useState<CalendarEvent | null>(null);
   const [selectedDayEvents, setSelectedDayEvents] = useState<CalendarEvent[] | null>(null);
 
@@ -144,7 +144,7 @@ export default function HomeClient({ initialNews }: { initialNews: NewsItem[] })
       <div className="md:hidden flex flex-col gap-3 p-3 pb-6">
         <UpcomingCountdown />
         <KeyIndicatorsSection />
-        <BreakingSection initialNews={initialNews} />
+        <WeeklyDigestSection />
         <CalendarView
           selectedEvent={selectedEvent}
           onSelectEvent={handleSelectEvent}
@@ -161,7 +161,7 @@ export default function HomeClient({ initialNews }: { initialNews: NewsItem[] })
       <main className="hidden md:flex flex-1 flex-col min-h-0 p-6 gap-4 overflow-hidden">
         <UpcomingCountdown />
         <KeyIndicatorsSection />
-        <BreakingSection initialNews={initialNews} />
+        <WeeklyDigestSection />
         <div className="flex-1 flex gap-4 min-h-0">
           <CalendarView
             selectedEvent={selectedEvent}

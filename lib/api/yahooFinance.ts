@@ -97,6 +97,30 @@ export async function getRealtimeQuote(symbol: string): Promise<QuoteData> {
   };
 }
 
+/** VIX / ^TNX 등 인덱스 단순 조회 (pre/post market 로직 불필요) */
+export async function getIndexQuote(
+  symbol: string,
+): Promise<{ value: number; change: number; changePercent: number }> {
+  const encoded = encodeURIComponent(symbol);
+  const url     = `https://query1.finance.yahoo.com/v8/finance/chart/${encoded}?interval=1d&range=2d`;
+  const res     = await fetch(url, { headers: HEADERS, cache: 'no-store' });
+  if (!res.ok) throw new Error(`Yahoo ${symbol} → HTTP ${res.status}`);
+
+  const data   = await res.json();
+  const meta   = data?.chart?.result?.[0]?.meta;
+  if (!meta) throw new Error(`Yahoo: no meta for ${symbol}`);
+
+  const value     = meta.regularMarketPrice as number;
+  const prevClose = (meta.chartPreviousClose ?? meta.previousClose ?? value) as number;
+  const change    = value - prevClose;
+
+  return {
+    value,
+    change,
+    changePercent: prevClose ? (change / prevClose) * 100 : 0,
+  };
+}
+
 /** 여러 심볼 병렬 조회 */
 export async function getRealtimeQuotes(
   symbols: string[],

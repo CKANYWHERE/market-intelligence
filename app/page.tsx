@@ -1,11 +1,7 @@
 import { Metadata } from 'next';
-import { getMarketNews } from '@/lib/api/finnhub';
 import { db } from '@/lib/batch/db';
-import { NewsItem } from '@/types/events';
 import HomeClient from '@/components/HomeClient';
 import { allSchemas, UpcomingEvent } from '@/lib/seo/json-ld';
-
-type RawNews = Record<string, unknown>;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://market-intelligence-87mm.vercel.app';
 
@@ -108,24 +104,7 @@ async function getUpcomingEvents(): Promise<UpcomingEvent[]> {
 }
 
 export default async function Home() {
-  const [initialNews, upcomingEvents] = await Promise.all([
-    getMarketNews()
-      .then((data) =>
-        ((data as RawNews[]) ?? []).slice(0, 20).map((item) => ({
-          id:       Number(item.id),
-          datetime: Number(item.datetime),
-          headline: String(item.headline ?? ''),
-          summary:  String(item.summary ?? ''),
-          source:   String(item.source ?? ''),
-          url:      String(item.url ?? ''),
-          image:    item.image ? String(item.image) : undefined,
-          category: String(item.category ?? ''),
-          related:  item.related ? String(item.related) : undefined,
-        })) as NewsItem[]
-      )
-      .catch(() => [] as NewsItem[]),
-    getUpcomingEvents(),
-  ]);
+  const upcomingEvents = await getUpcomingEvents();
 
   // 크롤러가 읽을 수 있는 서버사이드 이벤트 요약 (upcoming events)
   const now   = new Date();
@@ -158,7 +137,7 @@ export default async function Home() {
         </section>
       )}
 
-      <HomeClient initialNews={initialNews} />
+      <HomeClient />
     </>
   );
 }

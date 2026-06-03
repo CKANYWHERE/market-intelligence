@@ -184,6 +184,21 @@ model FredSnapshot {
 }
 
 // ─────────────────────────────────────────────
+// 7. WEEKLY DIGEST
+//    Source: AI-curated from our own calendar DB
+//    Batch: every Monday 06:00 ET
+//    Generated on-demand if missing for the current week
+// ─────────────────────────────────────────────
+model WeeklyDigest {
+  id           String   @id @default(cuid())
+  week_start   DateTime @unique // Monday 00:00 UTC of the week
+  items        Json     // DigestItem[]
+  generated_at DateTime @default(now())
+
+  @@map("weekly_digests")
+}
+
+// ─────────────────────────────────────────────
 // ENUMS
 // ─────────────────────────────────────────────
 enum Category {
