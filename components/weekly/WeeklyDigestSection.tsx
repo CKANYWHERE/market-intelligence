@@ -150,7 +150,7 @@ export default function WeeklyDigestSection() {
                     </div>
 
                     {/* Market Scenario */}
-                    <ScenarioBar title={item.title} cutProb={cutProb} />
+                    <ScenarioBar title={item.title} cutProb={cutProb} compact />
                   </div>
 
                   {/* 캘린더 링크 */}
