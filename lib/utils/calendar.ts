@@ -55,7 +55,7 @@ export function buildMonthGrid(year: number, month: number): GridDay[] {
 }
 
 export function formatMonthTitle(year: number, month: number): string {
-  return new Date(year, month - 1, 1).toLocaleDateString('ko-KR', {
+  return new Date(year, month - 1, 1).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
   });
