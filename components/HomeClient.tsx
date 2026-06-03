@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { CalendarEvent, NewsItem } from '@/types/events';
 import NextEventCountdown from '@/components/NextEventCountdown';
 import MarketTickerBar from '@/components/MarketTickerBar';
+import FedWatchBanner from '@/components/FedWatchBanner';
 import BreakingSection from '@/components/breaking/BreakingSection';
 import CalendarView from '@/components/calendar/CalendarView';
 import EventDetailPanel from '@/components/detail/EventDetailPanel';
@@ -123,6 +124,9 @@ export default function HomeClient({ initialNews }: { initialNews: NewsItem[] })
 
       {/* ── 통합 마켓 티커 바 (데스크탑 + 모바일 공통) ─────────── */}
       <MarketTickerBar />
+
+      {/* ── Fed Rate Cut Odds 배너 ─────────────────────────────── */}
+      <FedWatchBanner />
 
       {/* ── Ad ─────────────────────────────────────────────────── */}
       <AdBanner

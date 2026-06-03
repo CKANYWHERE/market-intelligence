@@ -120,36 +120,6 @@ export default function MarketTickerBar() {
     );
   }
 
-  // ── FedWatch 섹션 ────────────────────────────────────────────
-  const fedData = fed?.data;
-  if (fedData) {
-    items.push(<SectionDivider key="sep-fed" />);
-
-    const dateLabel = (() => {
-      if (!fedData.meetingDate) return 'FOMC';
-      const [y, m, d] = fedData.meetingDate.split('-').map(Number);
-      return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    })();
-
-    const cutColor =
-      fedData.cutProb >= 60 ? 'text-green-400'
-      : fedData.cutProb >= 30 ? 'text-yellow-400'
-      : 'text-gray-400';
-
-    items.push(
-      <span
-        key="fed"
-        className="flex items-center gap-1 flex-shrink-0"
-        title={`Hold ${fedData.holdProb}%  Implied ${fedData.impliedRate}%`}
-      >
-        <span className="text-gray-400 font-semibold">FOMC</span>
-        <span className="text-gray-500">{dateLabel}</span>
-        <span className={`font-mono font-medium ${cutColor}`}>
-          {fedData.cutProb.toFixed(0)}% cut
-        </span>
-      </span>,
-    );
-  }
 
   if (items.length === 0) return <Skeleton />;
 
