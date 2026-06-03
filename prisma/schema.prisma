@@ -199,6 +199,51 @@ model WeeklyDigest {
 }
 
 // ─────────────────────────────────────────────
+// 8. STOCK DAILY PRICES
+//    Source: Finnhub /stock/candle
+//    Batch: daily after market close (ET 17:00)
+//    Used for computing indicator reaction statistics
+// ─────────────────────────────────────────────
+model StockDailyPrice {
+  id      String   @id @default(cuid())
+  symbol  String
+  date    DateTime // trading day (UTC midnight)
+  open    Float
+  close   Float
+  // next-day pct change: (close - prev_close) / prev_close * 100
+  // null until computed by the reaction batch
+  day_pct Float?
+
+  @@unique([symbol, date])
+  @@index([date])
+  @@index([symbol])
+  @@map("stock_daily_prices")
+}
+
+// ─────────────────────────────────────────────
+// 9. INDICATOR REACTION STATISTICS
+//    Source: computed by compute-reactions batch
+//    Cross-references economic surprises with stock price moves
+//    Updated weekly or after new data arrives
+// ─────────────────────────────────────────────
+model IndicatorReaction {
+  id           String   @id @default(cuid())
+  indicator    String   // "CPI", "NFP", "PCE", "FOMC", "PPI", "GDP"
+  symbol       String   // "NVDA", "AAPL", "QQQ", "SPY" …
+  surprise_dir String   // "hot" | "cool"
+  avg_return   Float    // average % move on day of / day after surprise
+  p25_return   Float    // 25th percentile
+  p75_return   Float    // 75th percentile
+  sample_count Int      // number of events used in calculation
+  updated_at   DateTime @updatedAt
+
+  @@unique([indicator, symbol, surprise_dir])
+  @@index([indicator])
+  @@index([symbol])
+  @@map("indicator_reactions")
+}
+
+// ─────────────────────────────────────────────
 // ENUMS
 // ─────────────────────────────────────────────
 enum Category {
