@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { CalendarEvent } from '@/types/events';
-import { CATEGORY_META, IMPORTANCE_STARS } from '@/lib/utils/categorize';
+import { CATEGORY_META, IMPORTANCE_STARS, getHeatBadge } from '@/lib/utils/categorize';
 import { toSlug } from '@/lib/utils/slug';
 import { CATEGORY_CONTEXT, INDICATOR_CONTEXT, getSeriesIdFromTitle } from '@/lib/utils/marketContext';
 
@@ -237,6 +237,38 @@ export default function EventDetailPanel({ event, dayEvents, onSelectEvent, onCl
             </div>
 
             <DeltaBadge actual={event.actual} estimate={event.estimate} unit={event.unit} />
+
+            {/* HOT / COOL badge */}
+            {(() => {
+              const heat = getHeatBadge(event.title, event.actual, event.estimate);
+              if (!heat) return null;
+              return (
+                <div
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2.5 ${
+                    heat === 'HOT'
+                      ? 'bg-red-500/10 border border-red-500/20'
+                      : 'bg-blue-500/10 border border-blue-500/20'
+                  }`}
+                >
+                  <span
+                    className={`text-lg font-black tracking-tight ${
+                      heat === 'HOT' ? 'text-red-400' : 'text-blue-400'
+                    }`}
+                  >
+                    {heat === 'HOT' ? 'HOT' : 'COOL'}
+                  </span>
+                  <span
+                    className={`text-sm ${
+                      heat === 'HOT' ? 'text-red-300' : 'text-blue-300'
+                    }`}
+                  >
+                    {heat === 'HOT'
+                      ? 'Stronger than expected — potential upward pressure on rates'
+                      : 'Weaker than expected — potential dovish signal for markets'}
+                  </span>
+                </div>
+              );
+            })()}
 
             {event.actual == null && (
               <div className="bg-blue-500/10 border border-blue-500/20 text-blue-300 text-sm px-3 py-2 rounded-lg">

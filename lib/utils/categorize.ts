@@ -85,3 +85,28 @@ export const IMPORTANCE_STARS: Record<Importance, string> = {
   medium: '★★☆',
   low: '★☆☆',
 };
+
+/**
+ * HOT/COOL badge for economic releases.
+ * HOT = actual beat estimate (stronger than expected).
+ * COOL = actual missed estimate (weaker than expected).
+ * For unemployment & initial jobless claims: inverted (higher = COOL).
+ */
+export function getHeatBadge(
+  title: string,
+  actual: number | null | undefined,
+  estimate: number | null | undefined,
+): 'HOT' | 'COOL' | null {
+  if (actual == null || estimate == null) return null;
+  const diff = actual - estimate;
+  if (diff === 0) return null;
+
+  // Inverted indicators: higher = worse
+  const inverted = /unemployment|jobless claims|initial claims|continuing claims/.test(
+    title.toLowerCase(),
+  );
+
+  const rawBeat = diff > 0;
+  const beat = inverted ? !rawBeat : rawBeat;
+  return beat ? 'HOT' : 'COOL';
+}
