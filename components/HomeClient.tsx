@@ -165,41 +165,41 @@ export default function HomeClient() {
         />
       </div>
 
-      {/* 데스크탑 (md 이상): 뷰포트 고정 레이아웃 */}
-      <main className="hidden md:flex flex-1 flex-col min-h-0 p-6 gap-4 overflow-hidden">
-        <UpcomingCountdown />
-        <TodayEventsBar />
-        <KeyIndicatorsSection />
-        <div className="flex-1 flex gap-4 min-h-0">
-          <div className="flex-1 min-w-0 flex flex-col min-h-0">
-            <CalendarView
-              selectedEvent={selectedEvent}
-              onSelectEvent={handleSelectEvent}
-              onSelectDay={handleSelectDay}
-            />
-          </div>
-          {/* 사이드바: 이벤트 선택 시 상세패널, 미선택 시 Weekly Digest */}
-          <div className="w-[380px] flex-shrink-0 flex flex-col min-h-0 overflow-hidden">
-            {hasPanel ? (
-              <EventDetailPanel
-                event={selectedEvent}
-                dayEvents={selectedDayEvents}
+      {/* 데스크탑 (md 이상): 자연 높이 스크롤 레이아웃 */}
+      <main className="hidden md:block flex-1 p-6 overflow-y-auto">
+        <div className="flex flex-col gap-4">
+          <UpcomingCountdown />
+          <TodayEventsBar />
+          <KeyIndicatorsSection />
+          <div className="flex gap-4 items-start">
+            <div className="flex-1 min-w-0">
+              <CalendarView
+                selectedEvent={selectedEvent}
                 onSelectEvent={handleSelectEvent}
-                onClose={handleClose}
+                onSelectDay={handleSelectDay}
               />
-            ) : (
-              <div className="flex-1 min-h-0 overflow-y-auto">
+            </div>
+            {/* 사이드바: 이벤트 선택 시 상세패널, 미선택 시 Weekly Digest */}
+            <div className="w-[380px] flex-shrink-0">
+              {hasPanel ? (
+                <EventDetailPanel
+                  event={selectedEvent}
+                  dayEvents={selectedDayEvents}
+                  onSelectEvent={handleSelectEvent}
+                  onClose={handleClose}
+                />
+              ) : (
                 <WeeklyDigestSection />
-              </div>
-            )}
+              )}
+            </div>
           </div>
+          <BreakingSection />
+          <AdBanner
+            slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM ?? ''}
+            format="rectangle"
+            className="flex justify-center py-2"
+          />
         </div>
-        <BreakingSection />
-        <AdBanner
-          slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM ?? ''}
-          format="rectangle"
-          className="flex justify-center py-2"
-        />
       </main>
 
       {/* ── 모바일 바텀 시트 ──────────────────────────────────── */}
