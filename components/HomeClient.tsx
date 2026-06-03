@@ -11,6 +11,7 @@ import EventDetailPanel from '@/components/detail/EventDetailPanel';
 import AdBanner from '@/components/ads/AdBanner';
 import KeyIndicatorsSection from '@/components/indicators/KeyIndicatorsSection';
 import UpcomingCountdown from '@/components/calendar/UpcomingCountdown';
+import BreakingSection from '@/components/breaking/BreakingSection';
 
 function MobileDrawer({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   const [visible, setVisible]       = useState(false);
@@ -150,6 +151,7 @@ export default function HomeClient() {
           onSelectEvent={handleSelectEvent}
           onSelectDay={handleSelectDay}
         />
+        <BreakingSection />
         <AdBanner
           slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM ?? ''}
           format="rectangle"
@@ -161,22 +163,29 @@ export default function HomeClient() {
       <main className="hidden md:flex flex-1 flex-col min-h-0 p-6 gap-4 overflow-hidden">
         <UpcomingCountdown />
         <KeyIndicatorsSection />
-        <WeeklyDigestSection />
         <div className="flex-1 flex gap-4 min-h-0">
           <CalendarView
             selectedEvent={selectedEvent}
             onSelectEvent={handleSelectEvent}
             onSelectDay={handleSelectDay}
           />
-          <div className="w-[380px] flex-shrink-0">
-            <EventDetailPanel
-              event={selectedEvent}
-              dayEvents={selectedDayEvents}
-              onSelectEvent={handleSelectEvent}
-              onClose={handleClose}
-            />
+          {/* 사이드바: 이벤트 선택 시 상세패널, 미선택 시 Weekly Digest */}
+          <div className="w-[380px] flex-shrink-0 flex flex-col min-h-0">
+            {hasPanel ? (
+              <EventDetailPanel
+                event={selectedEvent}
+                dayEvents={selectedDayEvents}
+                onSelectEvent={handleSelectEvent}
+                onClose={handleClose}
+              />
+            ) : (
+              <div className="flex-1 overflow-y-auto">
+                <WeeklyDigestSection />
+              </div>
+            )}
           </div>
         </div>
+        <BreakingSection />
         <AdBanner
           slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM ?? ''}
           format="rectangle"
