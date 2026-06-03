@@ -2,10 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { CalendarEvent, NewsItem } from '@/types/events';
-import EtfTracker from '@/components/etf/EtfTracker';
-import MarketPulse from '@/components/etf/MarketPulse';
-import FedWatchBadge from '@/components/etf/FedWatchBadge';
 import NextEventCountdown from '@/components/NextEventCountdown';
+import MarketTickerBar from '@/components/MarketTickerBar';
 import BreakingSection from '@/components/breaking/BreakingSection';
 import CalendarView from '@/components/calendar/CalendarView';
 import EventDetailPanel from '@/components/detail/EventDetailPanel';
@@ -104,7 +102,7 @@ export default function HomeClient({ initialNews }: { initialNews: NewsItem[] })
     <div className="bg-gray-950 text-white flex flex-col min-h-screen">
 
       {/* ── Header ───────────────────────────────────────────── */}
-      <header className="border-b border-gray-800 px-4 md:px-6 py-3 flex items-center justify-between gap-2 flex-shrink-0">
+      <header className="border-b border-gray-800 px-4 md:px-6 py-3 flex items-center justify-between gap-4 flex-shrink-0">
         <div className="flex items-center gap-2 min-w-0 flex-shrink-0">
           <span className="text-xl" aria-hidden="true">📊</span>
           <div>
@@ -112,15 +110,9 @@ export default function HomeClient({ initialNews }: { initialNews: NewsItem[] })
             <p className="text-gray-500 text-[10px] hidden sm:block">FOMC · CPI · Earnings · IPO · Breaking News</p>
           </div>
         </div>
-        <div className="hidden md:flex flex-1 justify-center px-4">
+        {/* 데스크탑: 카운트다운 오른쪽 정렬 */}
+        <div className="hidden md:block flex-shrink-0">
           <NextEventCountdown />
-        </div>
-        <div className="hidden md:flex items-center gap-2 flex-shrink-0">
-          <FedWatchBadge />
-          <div className="w-px h-6 bg-gray-800" />
-          <MarketPulse />
-          <div className="w-px h-6 bg-gray-800" />
-          <EtfTracker />
         </div>
       </header>
 
@@ -129,14 +121,8 @@ export default function HomeClient({ initialNews }: { initialNews: NewsItem[] })
         <NextEventCountdown />
       </div>
 
-      {/* ── 모바일 ETF + MarketPulse + FedWatch ─────────────── */}
-      <div className="md:hidden border-b border-gray-800 px-4 py-2 flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-        <EtfTracker />
-        <div className="w-px h-6 self-center bg-gray-800 flex-shrink-0" />
-        <MarketPulse />
-        <div className="w-px h-6 self-center bg-gray-800 flex-shrink-0" />
-        <FedWatchBadge />
-      </div>
+      {/* ── 통합 마켓 티커 바 (데스크탑 + 모바일 공통) ─────────── */}
+      <MarketTickerBar />
 
       {/* ── Ad ─────────────────────────────────────────────────── */}
       <AdBanner
