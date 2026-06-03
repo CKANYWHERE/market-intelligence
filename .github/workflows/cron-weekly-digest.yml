@@ -2,8 +2,8 @@ name: Cron — Weekly Market Digest
 
 on:
   schedule:
-    # 매주 월요일 10:00 UTC (06:00 ET)
-    - cron: '0 10 * * 1'
+    # 매일 10:00 UTC (06:00 ET) 실행 — 이미 데이터 있으면 skip
+    - cron: '0 10 * * *'
   workflow_dispatch:
 
 jobs:
@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Generate weekly digest
+      - name: Generate weekly digest (skip if exists)
         run: |
           echo "▶ Calling ${{ secrets.SITE_URL }}/api/cron/weekly-digest"
 
@@ -42,5 +42,8 @@ jobs:
           if not d.get('ok'):
             print('FAILED:', d.get('error'))
             sys.exit(1)
-          print(f'✓ items={d.get(\"itemCount\",0)} weekStart={d.get(\"weekStart\",\"?\")} ({d.get(\"durationMs\",0)}ms)')
+          if d.get('skipped'):
+            print(f'⏭ skipped (already exists) weekStart={d.get(\"weekStart\",\"?\")} items={d.get(\"itemCount\",0)} ({d.get(\"durationMs\",0)}ms)')
+          else:
+            print(f'✓ generated weekStart={d.get(\"weekStart\",\"?\")} items={d.get(\"itemCount\",0)} ({d.get(\"durationMs\",0)}ms)')
           "

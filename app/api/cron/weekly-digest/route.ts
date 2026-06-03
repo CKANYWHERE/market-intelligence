@@ -1,5 +1,5 @@
 // GET /api/cron/weekly-digest
-// 매주 월요일 06:00 ET 실행 — 이번 주 Weekly Market Digest 생성 후 DB 저장
+// 매일 실행 — 이번 주 데이터가 없을 때만 생성 (idempotent)
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getWeekStart, generateWeeklyDigest } from '@/lib/batch/generate-weekly-digest';
@@ -23,6 +23,21 @@ export async function GET(req: NextRequest) {
   try {
     const weekStart = getWeekStart();
 
+    // 이미 이번 주 데이터가 있으면 skip
+    const existing = await db.weeklyDigest.findUnique({
+      where: { week_start: weekStart },
+    });
+
+    if (existing) {
+      return NextResponse.json({
+        ok:         true,
+        skipped:    true,
+        weekStart:  weekStart.toISOString().slice(0, 10),
+        itemCount:  (existing.items as unknown[]).length,
+        durationMs: Date.now() - startedAt,
+      });
+    }
+
     const items = await generateWeeklyDigest(weekStart);
 
     await db.weeklyDigest.upsert({
@@ -33,6 +48,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       ok:         true,
+      skipped:    false,
       weekStart:  weekStart.toISOString().slice(0, 10),
       itemCount:  items.length,
       durationMs: Date.now() - startedAt,
