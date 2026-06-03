@@ -171,7 +171,7 @@ export default function HomeClient() {
         <TodayEventsBar />
         <KeyIndicatorsSection />
         <div className="flex-1 flex gap-4 min-h-0">
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 flex flex-col min-h-0">
             <CalendarView
               selectedEvent={selectedEvent}
               onSelectEvent={handleSelectEvent}
