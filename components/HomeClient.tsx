@@ -170,7 +170,7 @@ export default function HomeClient() {
         <UpcomingCountdown />
         <TodayEventsBar />
         <KeyIndicatorsSection />
-        {/* 고정 높이 row — 주변 영향 없이 캘린더 안정화 */}
+        {/* 캘린더 row — 이벤트 선택 시에만 사이드 패널 */}
         <div className="flex gap-4 h-[660px]">
           <div className="flex-1 min-w-0 flex flex-col min-h-0">
             <CalendarView
@@ -179,20 +179,19 @@ export default function HomeClient() {
               onSelectDay={handleSelectDay}
             />
           </div>
-          {/* 사이드바: 내부 스크롤 */}
-          <div className="w-[380px] flex-shrink-0 flex flex-col min-h-0 overflow-y-auto">
-            {hasPanel ? (
+          {hasPanel && (
+            <div className="w-[380px] flex-shrink-0 flex flex-col min-h-0 overflow-y-auto">
               <EventDetailPanel
                 event={selectedEvent}
                 dayEvents={selectedDayEvents}
                 onSelectEvent={handleSelectEvent}
                 onClose={handleClose}
               />
-            ) : (
-              <WeeklyDigestSection />
-            )}
-          </div>
+            </div>
+          )}
         </div>
+        {/* Weekly Digest — 이벤트 미선택 시 전체 너비로 표시 */}
+        {!hasPanel && <WeeklyDigestSection />}
         <BreakingSection />
         <AdBanner
           slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM ?? ''}
