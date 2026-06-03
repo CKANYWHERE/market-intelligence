@@ -13,6 +13,7 @@ import KeyIndicatorsSection from '@/components/indicators/KeyIndicatorsSection';
 import UpcomingCountdown from '@/components/calendar/UpcomingCountdown';
 import BreakingSection from '@/components/breaking/BreakingSection';
 import TodayEventsBar from '@/components/today/TodayEventsBar';
+import SpaceXIpoBanner from '@/components/banners/SpaceXIpoBanner';
 
 function MobileDrawer({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   const [visible, setVisible]       = useState(false);
@@ -129,6 +130,9 @@ export default function HomeClient() {
 
       {/* ── Fed Rate Cut Odds 배너 ─────────────────────────────── */}
       <FedWatchBanner />
+
+      {/* ── SpaceX IPO 배너 (6/12 IPO ~ 7/12 자동 종료) ────────── */}
+      <SpaceXIpoBanner />
 
       {/* ── Ad ─────────────────────────────────────────────────── */}
       <AdBanner
