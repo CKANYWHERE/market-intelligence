@@ -75,7 +75,7 @@ export default function WeeklyDigestSection() {
   return (
     <section
       aria-label="This Week's Market Focus"
-      className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden flex-shrink-0"
+      className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden"
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
