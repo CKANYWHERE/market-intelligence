@@ -2,8 +2,8 @@ name: Cron — Weekly Market Digest
 
 on:
   schedule:
-    # 매일 10:00 UTC (06:00 ET) 실행 — 이미 데이터 있으면 skip
-    - cron: '0 10 * * *'
+    # 매시간 실행 — 이미 데이터 있으면 즉시 skip
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 jobs:
