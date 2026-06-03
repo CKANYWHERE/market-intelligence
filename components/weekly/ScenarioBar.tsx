@@ -54,10 +54,10 @@ function ScenarioHalf({
       {/* Index + Bond row */}
       <div className="px-3 pb-2 flex flex-wrap gap-x-4 gap-y-0.5 text-xs">
         <span className="text-gray-500">
-          QQQ <strong className={moveColor(side.qqq)}>{side.qqq}</strong>
+          {side.qqqLabel ?? 'QQQ'} <strong className={moveColor(side.qqq)}>{side.qqq}</strong>
         </span>
         <span className="text-gray-500">
-          SPY <strong className={moveColor(side.spy)}>{side.spy}</strong>
+          {side.spyLabel ?? 'SPY'} <strong className={moveColor(side.spy)}>{side.spy}</strong>
         </span>
         <span className="text-gray-600 text-[11px]">{side.bonds}</span>
       </div>
@@ -95,15 +95,17 @@ export default function ScenarioBar({ title, cutProb, compact }: Props) {
 
   // ── Compact mode: one-line for WeeklyDigest ──────────────────
   if (compact) {
+    const hotLabel  = scenario.hot.qqqLabel  ?? 'QQQ';
+    const coolLabel = scenario.cool.qqqLabel ?? 'QQQ';
     return (
       <div className="flex items-center gap-3 text-[11px] mt-1.5 flex-wrap">
         <span className="text-gray-600 font-medium uppercase tracking-wide text-[10px]">Impact</span>
         <span className="text-red-400">
-          ↑ Hot: QQQ <strong>{scenario.hot.qqq}</strong>
+          ↑ Hot: {hotLabel} <strong>{scenario.hot.qqq}</strong>
         </span>
         <span className="text-gray-700">·</span>
         <span className="text-blue-400">
-          ↓ Cool: QQQ <strong>{scenario.cool.qqq}</strong>
+          ↓ Cool: {coolLabel} <strong>{scenario.cool.qqq}</strong>
         </span>
       </div>
     );
