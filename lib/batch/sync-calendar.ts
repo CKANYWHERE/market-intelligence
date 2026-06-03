@@ -11,6 +11,83 @@ import {
 } from '@/lib/api/finnhub';
 import { categorizeEconomicEvent, mapImpact } from '@/lib/utils/categorize';
 
+// ── Alpha Vantage EARNINGS_CALENDAR ───────────────────────────
+async function fetchAlphaVantageEarnings(): Promise<
+  { symbol: string; name: string; reportDate: string; estimate: string | null; timeOfTheDay: string }[]
+> {
+  const key = process.env.ALPHA_VANTAGE_API_KEY;
+  if (!key) return [];
+
+  const res = await fetch(
+    `https://www.alphavantage.co/query?function=EARNINGS_CALENDAR&horizon=3month&apikey=${key}`,
+    { next: { revalidate: 0 } },
+  );
+  if (!res.ok) throw new Error(`Alpha Vantage ${res.status}`);
+
+  const csv  = await res.text();
+  const rows = csv.trim().split('\n').slice(1); // skip header
+  return rows.map((row) => {
+    const [symbol, name, reportDate, , estimate, , timeOfTheDay] = row.split(',');
+    return {
+      symbol:       symbol?.trim() ?? '',
+      name:         name?.trim() ?? '',
+      reportDate:   reportDate?.trim() ?? '',
+      estimate:     estimate?.trim() || null,
+      timeOfTheDay: timeOfTheDay?.trim() ?? '',
+    };
+  }).filter((r) => r.symbol && r.reportDate);
+}
+
+function toEarningsHour(timeOfTheDay: string): 'bmo' | 'amc' | 'dmh' | null {
+  const t = timeOfTheDay.toLowerCase();
+  if (/pre.market|before.open|before.market/.test(t)) return 'bmo';
+  if (/post.market|after.close|after.market/.test(t)) return 'amc';
+  if (t) return 'dmh';
+  return null;
+}
+
+export async function syncAlphaVantageEarnings(): Promise<{ count: number; log: string[] }> {
+  const log: string[] = [];
+  let count = 0;
+
+  log.push('▶ Fetching Alpha Vantage earnings calendar (3 months)...');
+  const rows    = await fetchAlphaVantageEarnings();
+  const tracked = rows.filter((r) => TRACKED_SYMBOLS.has(r.symbol));
+  log.push(`  ${rows.length} total rows, ${tracked.length} tracked symbols`);
+
+  const ops = tracked.map((r) => {
+    const date     = new Date(`${r.reportDate}T00:00:00Z`);
+    const sourceId = `av_${r.symbol}_${r.reportDate}`;
+    const hour     = toEarningsHour(r.timeOfTheDay);
+    const eps      = r.estimate !== null ? Number(r.estimate) : null;
+
+    return db.earningsEvent.upsert({
+      where:  { source_id: sourceId },
+      create: {
+        source_id:    sourceId,
+        symbol:       r.symbol,
+        company:      r.name || r.symbol,
+        date,
+        hour,
+        eps_estimate: isNaN(eps as number) ? null : eps,
+      },
+      update: {
+        company:      r.name || r.symbol,
+        hour,
+        eps_estimate: isNaN(eps as number) ? null : eps,
+      },
+    });
+  });
+
+  if (ops.length > 0) await Promise.all(ops);
+  count = ops.length;
+  log.push(`  ✓ ${count} upserted`);
+
+  return { count, log };
+}
+
+
+
 type RawRecord = Record<string, unknown>;
 
 const TRACKED_SYMBOLS = new Set([

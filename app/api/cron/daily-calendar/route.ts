@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/batch/db';
-import { syncCalendar } from '@/lib/batch/sync-calendar';
+import { syncCalendar, syncAlphaVantageEarnings } from '@/lib/batch/sync-calendar';
 
 export const maxDuration = 60;
 
@@ -47,8 +47,16 @@ export async function GET(req: NextRequest) {
   const to   = sp.get('to')   ?? def.to;
 
   try {
-    const result = await withTimeout(syncCalendar(from, to), 50_000);
-    return NextResponse.json({ ok: true, range: { from, to }, ...result });
+    const [result, avResult] = await Promise.all([
+      withTimeout(syncCalendar(from, to), 45_000),
+      syncAlphaVantageEarnings().catch((e) => ({ count: 0, log: [`AV error: ${e}`] })),
+    ]);
+    return NextResponse.json({
+      ok: true,
+      range: { from, to },
+      ...result,
+      av_earnings: { count: avResult.count, log: avResult.log },
+    });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error('[cron/daily-calendar]', err);
