@@ -30,12 +30,13 @@ export function getWeekStart(date = new Date()): Date {
 }
 
 interface RawEvent {
-  id:       string;
-  title:    string;
-  date:     Date;
-  category: string;
-  symbol?:  string | null;
-  company?: string | null;
+  id:          string;
+  title:       string;
+  date:        Date;
+  category:    string;
+  importance?: string;
+  symbol?:     string | null;
+  company?:    string | null;
 }
 
 async function fetchWeekEvents(weekStart: Date): Promise<RawEvent[]> {
@@ -66,25 +67,28 @@ async function fetchWeekEvents(weekStart: Date): Promise<RawEvent[]> {
 
   const events: RawEvent[] = [
     ...ecoEvents.map((e) => ({
-      id:       e.id,
-      title:    e.title,
-      date:     e.date,
-      category: e.category,
+      id:         e.id,
+      title:      e.title,
+      date:       e.date,
+      category:   e.category,
+      importance: e.importance,
     })),
     ...earnEvents.map((e) => ({
-      id:       e.id,
-      title:    `${e.symbol} Earnings`,
-      date:     e.date,
-      category: 'earnings',
-      symbol:   e.symbol,
-      company:  e.company,
+      id:         e.id,
+      title:      `${e.symbol} Earnings`,
+      date:       e.date,
+      category:   'earnings',
+      importance: 'high',
+      symbol:     e.symbol,
+      company:    e.company,
     })),
     ...ipoEvents.map((e) => ({
-      id:       e.id,
-      title:    `${e.company} IPO`,
-      date:     e.date,
-      category: 'ipo',
-      symbol:   e.symbol,
+      id:         e.id,
+      title:      `${e.company} IPO`,
+      date:       e.date,
+      category:   'ipo',
+      importance: 'medium',
+      symbol:     e.symbol,
     })),
   ];
 
@@ -130,15 +134,40 @@ const FALLBACK_TEMPLATES: Record<string, { why: string; watch: string }> = {
 };
 
 // ── Fallback: Claude 없을 때 알고리즘으로 Top 5 선별 ─────────
+// 규칙: 카테고리 우선순위 → importance(high 우선) → 날짜 순
+// 카테고리당 최대 1개 (다양성 보장 — Fed 연설 5개 방지)
 function fallbackDigest(events: RawEvent[]): DigestItem[] {
+  const IMPORTANCE_SCORE: Record<string, number> = { high: 0, medium: 1, low: 2 };
+
+  // 연설/일반 발언보다 주요 이벤트 우선 (monetary_policy 내부 정렬)
+  const isSpeech = (title: string) =>
+    /speech|remark|comment|interview|testimony/i.test(title);
+
   const sorted = [...events].sort((a, b) => {
     const pa = CATEGORY_PRIORITY[a.category] ?? 9;
     const pb = CATEGORY_PRIORITY[b.category] ?? 9;
     if (pa !== pb) return pa - pb;
+
+    // 같은 카테고리면: 연설 > non-speech, 그리고 high > medium
+    const sa = (isSpeech(a.title) ? 1 : 0) * 10 + (IMPORTANCE_SCORE[a.importance ?? 'medium'] ?? 1);
+    const sb = (isSpeech(b.title) ? 1 : 0) * 10 + (IMPORTANCE_SCORE[b.importance ?? 'medium'] ?? 1);
+    if (sa !== sb) return sa - sb;
+
     return a.date.getTime() - b.date.getTime();
   });
 
-  return sorted.slice(0, 5).map((e, i) => {
+  // 카테고리당 1개만 선택
+  const seen = new Set<string>();
+  const selected: RawEvent[] = [];
+  for (const e of sorted) {
+    if (!seen.has(e.category)) {
+      seen.add(e.category);
+      selected.push(e);
+    }
+    if (selected.length >= 5) break;
+  }
+
+  return selected.map((e, i) => {
     const tpl = FALLBACK_TEMPLATES[e.category] ?? FALLBACK_TEMPLATES.growth;
     return {
       rank:           i + 1,
