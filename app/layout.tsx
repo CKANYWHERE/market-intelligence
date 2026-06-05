@@ -115,7 +115,9 @@ export const metadata: Metadata = {
   },
 
   icons: {
-    apple: "/apple-touch-icon.png",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
   },
 
   // Google Search Console 소유권 확인 후 주석 해제:
