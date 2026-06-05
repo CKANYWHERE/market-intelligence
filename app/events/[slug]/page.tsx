@@ -9,7 +9,52 @@ import HistoryChart from '@/components/events/HistoryChart';
 import MarketReactionChart from '@/components/events/MarketReactionChart';
 import { getMarketReaction } from '@/lib/utils/marketReaction';
 
+export const revalidate = 3600; // 1시간 ISR
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://marketclock.net';
+
+function toDateStrStatic(d: unknown): string {
+  if (d instanceof Date) return d.toISOString().slice(0, 10);
+  return String(d).slice(0, 10);
+}
+
+export async function generateStaticParams() {
+  try {
+    const now = new Date();
+    const sixMonthsOut = new Date(now);
+    sixMonthsOut.setMonth(sixMonthsOut.getMonth() + 6);
+
+    const [ecoRows, earnRows, ipoRows] = await Promise.all([
+      db.economicEvent.findMany({
+        where:   { date: { gte: now, lte: sixMonthsOut } },
+        select:  { title: true, date: true },
+        orderBy: { date: 'asc' },
+      }),
+      db.earningsEvent.findMany({
+        where:   { date: { gte: now, lte: sixMonthsOut } },
+        select:  { symbol: true, date: true },
+        orderBy: { date: 'asc' },
+      }),
+      db.ipoEvent.findMany({
+        where:   { date: { gte: now, lte: sixMonthsOut } },
+        select:  { company: true, date: true },
+        orderBy: { date: 'asc' },
+      }),
+    ]);
+
+    const slugs = [
+      ...ecoRows.map((r) => ({ slug: toSlug(r.title, toDateStrStatic(r.date)) })),
+      ...earnRows.map((r) => ({ slug: toSlug(`${r.symbol} Earnings`, toDateStrStatic(r.date)) })),
+      ...ipoRows.map((r) => ({ slug: toSlug(`${r.company} IPO`, toDateStrStatic(r.date)) })),
+    ];
+
+    return slugs;
+  } catch {
+    return [];
+  } finally {
+    db.$disconnect().catch(() => {});
+  }
+}
 
 // ── 헬퍼 ────────────────────────────────────────────────────────
 function toDateStr(d: unknown): string {

@@ -12,32 +12,27 @@ function toDateStr(d: unknown): string {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const now   = new Date();
+  const now = new Date();
+  const sixMonthsOut = new Date(now);
+  sixMonthsOut.setMonth(sixMonthsOut.getMonth() + 6);
 
-  // 이벤트 상세 페이지 URLs — high importance 이벤트만
   let eventEntries: MetadataRoute.Sitemap = [];
   try {
-    const twoMonthsOut = new Date(now);
-    twoMonthsOut.setMonth(twoMonthsOut.getMonth() + 2);
-
     const [ecoRows, earnRows, ipoRows] = await Promise.all([
       db.economicEvent.findMany({
-        where:   { date: { gte: now, lte: twoMonthsOut }, importance: "high" },
+        where:   { date: { gte: now, lte: sixMonthsOut } },
         select:  { title: true, date: true },
         orderBy: { date: "asc" },
-        take:    50,
       }),
       db.earningsEvent.findMany({
-        where:   { date: { gte: now, lte: twoMonthsOut } },
+        where:   { date: { gte: now, lte: sixMonthsOut } },
         select:  { symbol: true, date: true },
         orderBy: { date: "asc" },
-        take:    30,
       }),
       db.ipoEvent.findMany({
-        where:   { date: { gte: now, lte: twoMonthsOut } },
+        where:   { date: { gte: now, lte: sixMonthsOut } },
         select:  { company: true, date: true },
         orderBy: { date: "asc" },
-        take:    20,
       }),
     ]);
 
@@ -73,6 +68,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified:    now,
       changeFrequency: "hourly",
       priority:        1,
+    },
+    {
+      url:             `${SITE_URL}/spacex-ipo`,
+      lastModified:    now,
+      changeFrequency: "weekly",
+      priority:        0.9,
     },
     ...eventEntries,
   ];
