@@ -45,6 +45,96 @@ function toEarningsHour(timeOfTheDay: string): 'bmo' | 'amc' | 'dmh' | null {
   return null;
 }
 
+// ── Alpha Vantage EARNINGS (actual 업데이트) ───────────────────
+// 발표일이 지났지만 eps_actual이 없는 종목에 대해 실제 실적을 가져옴
+// AV 무료 티어: 25req/day → 하루 최대 10개 심볼만 처리
+export async function syncActualEarnings(): Promise<{ count: number; log: string[] }> {
+  const log: string[] = [];
+  let updated = 0;
+
+  const key = process.env.ALPHA_VANTAGE_API_KEY;
+  if (!key) {
+    log.push('⚠ ALPHA_VANTAGE_API_KEY not set, skipping');
+    return { count: 0, log };
+  }
+
+  // 최근 60일 이내 발표됐지만 actual이 없는 이벤트
+  const since = new Date();
+  since.setDate(since.getDate() - 60);
+  const now = new Date();
+
+  const pending = await db.earningsEvent.findMany({
+    where: {
+      date:       { gte: since, lt: now },
+      eps_actual: null,
+    },
+    select:  { id: true, symbol: true, date: true },
+    orderBy: { date: 'desc' },
+    take:    10, // rate limit 보호
+  });
+
+  if (pending.length === 0) {
+    log.push('✓ No pending actual earnings to update');
+    return { count: 0, log };
+  }
+
+  // 심볼별로 중복 제거 후 처리
+  const symbolMap = new Map<string, { id: string; date: Date }[]>();
+  for (const row of pending) {
+    if (!symbolMap.has(row.symbol)) symbolMap.set(row.symbol, []);
+    symbolMap.get(row.symbol)!.push({ id: row.id, date: row.date });
+  }
+
+  log.push(`▶ Fetching actual EPS for ${symbolMap.size} symbols...`);
+
+  for (const [symbol, events] of symbolMap) {
+    try {
+      const res = await fetch(
+        `https://www.alphavantage.co/query?function=EARNINGS&symbol=${symbol}&apikey=${key}`,
+        { next: { revalidate: 0 } },
+      );
+      if (!res.ok) { log.push(`  ✗ ${symbol}: HTTP ${res.status}`); continue; }
+
+      const json = await res.json() as {
+        quarterlyEarnings?: { reportedDate: string; reportedEPS: string; estimatedEPS: string }[];
+      };
+
+      const quarterly = json.quarterlyEarnings ?? [];
+
+      for (const event of events) {
+        const eventDate = event.date.toISOString().slice(0, 10);
+        // reportedDate 기준으로 ±1일 범위에서 매칭 (날짜 오차 허용)
+        const match = quarterly.find((q) => {
+          const diff = Math.abs(
+            new Date(q.reportedDate).getTime() - new Date(eventDate).getTime()
+          );
+          return diff <= 86400_000; // 1일 이내
+        });
+
+        if (!match) { log.push(`  - ${symbol} ${eventDate}: no match`); continue; }
+
+        const actual = match.reportedEPS !== 'None' ? Number(match.reportedEPS) : null;
+        if (actual === null || isNaN(actual)) { log.push(`  - ${symbol}: reportedEPS=None`); continue; }
+
+        await db.earningsEvent.update({
+          where: { id: event.id },
+          data:  { eps_actual: actual },
+        });
+        log.push(`  ✓ ${symbol} ${eventDate}: actual=${actual}`);
+        updated++;
+      }
+
+      // AV rate limit 보호 (1.2초 간격)
+      await new Promise((r) => setTimeout(r, 1200));
+    } catch (e) {
+      log.push(`  ✗ ${symbol}: ${String(e)}`);
+    }
+  }
+
+  log.push(`✓ Updated ${updated} earnings with actual EPS`);
+  return { count: updated, log };
+}
+
 export async function syncAlphaVantageEarnings(): Promise<{ count: number; log: string[] }> {
   const log: string[] = [];
   let count = 0;

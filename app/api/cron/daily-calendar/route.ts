@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/batch/db';
-import { syncCalendar, syncAlphaVantageEarnings } from '@/lib/batch/sync-calendar';
+import { syncCalendar, syncAlphaVantageEarnings, syncActualEarnings } from '@/lib/batch/sync-calendar';
 
 export const maxDuration = 60;
 
@@ -47,15 +47,17 @@ export async function GET(req: NextRequest) {
   const to   = sp.get('to')   ?? def.to;
 
   try {
-    const [result, avResult] = await Promise.all([
+    const [result, avResult, actualResult] = await Promise.all([
       withTimeout(syncCalendar(from, to), 45_000),
       syncAlphaVantageEarnings().catch((e) => ({ count: 0, log: [`AV error: ${e}`] })),
+      syncActualEarnings().catch((e) => ({ count: 0, log: [`actual error: ${e}`] })),
     ]);
     return NextResponse.json({
       ok: true,
       range: { from, to },
       ...result,
-      av_earnings: { count: avResult.count, log: avResult.log },
+      av_earnings:     { count: avResult.count,    log: avResult.log },
+      actual_earnings: { count: actualResult.count, log: actualResult.log },
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
