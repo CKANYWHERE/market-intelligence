@@ -28,8 +28,6 @@ export interface CalendarEvent {
   symbol?: string;
   epsActual?: number | null;
   epsEstimate?: number | null;
-  revenueActual?: number | null;
-  revenueEstimate?: number | null;
   hour?: string; // 'bmo' | 'amc' | 'dmh'
   quarter?: number;
   year?: number;

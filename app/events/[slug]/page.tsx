@@ -317,9 +317,8 @@ export async function generateMetadata({
     const q        = row.quarter ? `Q${row.quarter}` : '';
     const yr       = row.year ?? '';
     const epsStr   = row.eps_estimate != null ? ` EPS estimate: $${row.eps_estimate.toFixed(2)}.` : '';
-    const revStr   = row.revenue_estimate != null ? ` Revenue estimate: $${(Number(row.revenue_estimate) / 1e9).toFixed(1)}B.` : '';
-    title       = `${row.symbol} Earnings Date ${q} ${yr} — ${row.company} EPS & Revenue Forecast`;
-    description = `${row.company} (${row.symbol}) reports ${q} ${yr} earnings on ${formatDate(date)}.${epsStr}${revStr} Track all NASDAQ-100 earnings on US Market Calendar.`;
+    title       = `${row.symbol} Earnings Date ${q} ${yr} — ${row.company} EPS Forecast`;
+    description = `${row.company} (${row.symbol}) reports ${q} ${yr} earnings on ${formatDate(date)}.${epsStr} Track all NASDAQ-100 earnings on US Market Calendar.`;
     keywords    = [
       `${row.symbol} earnings date`, `${row.symbol} earnings ${q} ${yr}`,
       `${row.company} earnings report`, `${row.symbol} EPS estimate ${yr}`,
@@ -401,26 +400,7 @@ export default async function EventPage({
     actual       = toNum(r.eps_actual);
     estimate     = toNum(r.eps_estimate);
     unit         = 'EPS $';
-    extraFields  = (
-      <div className="grid grid-cols-2 gap-4 mt-4">
-        <div className="bg-gray-900 rounded-lg p-4">
-          <div className="text-gray-400 text-xs mb-1">Revenue Estimate</div>
-          <div className="text-white font-mono text-lg">
-            {r.revenue_estimate != null
-              ? `$${(Number(r.revenue_estimate) / 1e9).toFixed(2)}B`
-              : '—'}
-          </div>
-        </div>
-        <div className="bg-gray-900 rounded-lg p-4">
-          <div className="text-gray-400 text-xs mb-1">Revenue Actual</div>
-          <div className="text-white font-mono text-lg">
-            {r.revenue_actual != null
-              ? `$${(Number(r.revenue_actual) / 1e9).toFixed(2)}B`
-              : '—'}
-          </div>
-        </div>
-      </div>
-    );
+    extraFields  = null;
   } else {
     const r     = result.row;
     eventTitle  = `${r.company} IPO`;

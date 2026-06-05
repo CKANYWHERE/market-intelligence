@@ -19,12 +19,6 @@ function numOrDash(v: number | null | undefined, decimals = 2): string {
   return v != null ? v.toFixed(decimals) : '-';
 }
 
-function formatRevenue(v: number | null | undefined): string {
-  if (v == null) return '-';
-  if (v >= 1e9) return `$${(v / 1e9).toFixed(2)}B`;
-  if (v >= 1e6) return `$${(v / 1e6).toFixed(1)}M`;
-  return `$${v.toLocaleString()}`;
-}
 
 export default function EventDetailPanel({ event, dayEvents, onSelectEvent, onClose }: Props) {
   // 날짜 리스트 모드 — 하루에 이벤트가 여러 개일 때 목록 표시
@@ -354,34 +348,13 @@ export default function EventDetailPanel({ event, dayEvents, onSelectEvent, onCl
               </div>
             </div>
 
-            {/* Revenue */}
-            <div className="bg-gray-800 rounded-lg p-3">
-              <p className="text-gray-500 text-xs mb-2 font-semibold uppercase tracking-wide">
-                Revenue
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-gray-500 text-xs">Actual</p>
-                  <p className="text-white font-mono font-bold text-lg">
-                    {formatRevenue(event.revenueActual)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-500 text-xs">Estimate</p>
-                  <p className="text-gray-300 font-mono text-lg">
-                    {formatRevenue(event.revenueEstimate)}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {event.quarter && event.year && (
+{event.quarter && event.year && (
               <p className="text-gray-500 text-sm">
                 Q{event.quarter} {event.year} Earnings
               </p>
             )}
 
-            {event.epsActual == null && event.revenueActual == null && (
+            {event.epsActual == null && (
               <>
                 <ScenarioBar title={event.symbol ? `${event.symbol} Earnings` : 'Earnings'} />
                 <div className="bg-blue-500/10 border border-blue-500/20 text-blue-300 text-sm px-3 py-2 rounded-lg">

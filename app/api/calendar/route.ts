@@ -70,8 +70,6 @@ export async function GET(req: NextRequest) {
       symbol:          row.symbol,
       epsActual:       toNum(row.eps_actual),
       epsEstimate:     toNum(row.eps_estimate),
-      revenueActual:   toNum(row.revenue_actual),
-      revenueEstimate: toNum(row.revenue_estimate),
       hour:            row.hour ?? undefined,
       quarter:         row.quarter ?? undefined,
       year:            row.year ?? undefined,
