@@ -159,13 +159,13 @@ export default function RootLayout({
             </Script>
           </>
         )}
-        {/* Google AdSense — NEXT_PUBLIC_ADSENSE_CLIENT_ID 설정 시 활성화 */}
+        {/* Google AdSense — 정적 HTML에 삽입되어 크롤러가 인식 */}
         {ADSENSE_CLIENT_ID && (
-          <Script
+          // eslint-disable-next-line @next/next/no-sync-scripts
+          <script
             async
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}
             crossOrigin="anonymous"
-            strategy="afterInteractive"
           />
         )}
       </head>
