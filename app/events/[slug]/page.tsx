@@ -256,7 +256,7 @@ function buildEconomicMeta(row: {
   }
 
   if (cat === 'employment') {
-    const isNFP  = /nonfarm|non-farm|\bnfp\b/i.test(row.title);
+    const isNFP  = /nonfarm|non.farm|\bnfp\b/i.test(row.title);
     const isJobs = /jobless|unemployment/i.test(row.title);
     if (isNFP) {
       return {
@@ -556,8 +556,8 @@ export default async function EventPage({
 
           {/* Market Reaction Chart */}
           {marketReaction && marketReaction.length >= 3 && (
-            <div className="bg-gray-900 rounded-xl p-6 mb-8 mt-8">
-              <h2 className="text-white font-semibold mb-1">Market Reaction</h2>
+            <div className="bg-gray-900 rounded-xl p-6 mb-8 mt-8 border-l-2 border-blue-500">
+              <h2 className="text-xl font-bold text-white mb-1">Market Reaction</h2>
               <p className="text-gray-500 text-xs mb-4">QQQ &amp; SPY price change ±5 trading days around this event</p>
               <MarketReactionChart data={marketReaction} />
               <p className="text-gray-600 text-xs mt-3">Source: Yahoo Finance</p>

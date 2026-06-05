@@ -57,7 +57,7 @@ export default function MarketReactionChart({ data }: Props) {
   const shownLabels = xLabels.filter((_, i) => i === 0 || i === n - 1 || data[i].dayOffset === 0);
 
   return (
-    <div className="w-full">
+    <div className="w-full min-h-[200px]">
       {/* Legend */}
       <div className="flex items-center gap-4 mb-3 text-xs text-gray-400">
         <span className="flex items-center gap-1.5">
