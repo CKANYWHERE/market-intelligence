@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 
 
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://market-intelligence-87mm.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://marketclock.net';
 
 export const metadata: Metadata = {
   title: 'SpaceX IPO Date 2026 — NASDAQ Impact & QQQ Analysis',

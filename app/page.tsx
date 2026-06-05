@@ -3,7 +3,7 @@ import { db } from '@/lib/batch/db';
 import HomeClient from '@/components/HomeClient';
 import { allSchemas, UpcomingEvent } from '@/lib/seo/json-ld';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://market-intelligence-87mm.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://marketclock.net';
 
 function getWeekRange(): { label: string; start: string; end: string } {
   const now  = new Date();

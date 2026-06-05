@@ -9,7 +9,7 @@ import HistoryChart from '@/components/events/HistoryChart';
 import MarketReactionChart from '@/components/events/MarketReactionChart';
 import { getMarketReaction } from '@/lib/utils/marketReaction';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://market-intelligence-87mm.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://marketclock.net';
 
 // ── 헬퍼 ────────────────────────────────────────────────────────
 function toDateStr(d: unknown): string {

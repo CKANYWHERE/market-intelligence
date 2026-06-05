@@ -11,7 +11,7 @@
  *  - Event (optional) → 서버에서 수집한 이번 달 주요 이벤트 → Event rich results
  */
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://market-intelligence-87mm.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://marketclock.net";
 
 export interface UpcomingEvent {
   title:     string;

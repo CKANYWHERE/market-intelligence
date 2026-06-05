@@ -1,6 +1,6 @@
 import { MetadataRoute } from "next";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://market-intel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://marketclock.net";
 
 export default function robots(): MetadataRoute.Robots {
   return {
