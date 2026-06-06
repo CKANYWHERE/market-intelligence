@@ -110,22 +110,47 @@ export async function getRealtimeQuote(symbol: string): Promise<QuoteData> {
   };
 }
 
-/** VIX / ^TNX 등 인덱스 단순 조회 (pre/post market 로직 불필요) */
+/** VIX / ^TNX 등 인덱스 단순 조회 (pre/post market 로직 불필요)
+ *  range=5d 사용 — range=2d는 주말에 chartPreviousClose가 수요일을 가리켜
+ *  3일치 변화가 하루치처럼 표시되는 버그 있음
+ */
 export async function getIndexQuote(
   symbol: string,
 ): Promise<{ value: number; change: number; changePercent: number }> {
   const encoded = encodeURIComponent(symbol);
-  const url     = `https://query1.finance.yahoo.com/v8/finance/chart/${encoded}?interval=1d&range=2d`;
+  const url     = `https://query1.finance.yahoo.com/v8/finance/chart/${encoded}?interval=1d&range=5d`;
   const res     = await fetch(url, { headers: HEADERS, cache: 'no-store' });
   if (!res.ok) throw new Error(`Yahoo ${symbol} → HTTP ${res.status}`);
 
   const data   = await res.json();
-  const meta   = data?.chart?.result?.[0]?.meta;
-  if (!meta) throw new Error(`Yahoo: no meta for ${symbol}`);
+  const result = data?.chart?.result?.[0];
+  if (!result) throw new Error(`Yahoo: no result for ${symbol}`);
 
-  const value     = meta.regularMarketPrice as number;
-  const prevClose = (meta.chartPreviousClose ?? meta.previousClose ?? value) as number;
-  const change    = value - prevClose;
+  const meta       = result.meta;
+  const closes: number[]     = result.indicators?.quote?.[0]?.close ?? [];
+  const timestamps: number[] = result.timestamp ?? [];
+
+  // 유효한 (날짜, 종가) 쌍
+  const nowET = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+  const validCandles = timestamps
+    .map((t: number, i: number) => ({
+      date:  new Date(t * 1000).toLocaleDateString('en-CA', { timeZone: 'America/New_York' }),
+      close: closes[i],
+    }))
+    .filter((c) => c.close != null && !isNaN(c.close));
+
+  const completedCandles = validCandles.filter((c) => c.date < nowET);
+
+  const value = meta.regularMarketPrice as number;
+
+  // 주말이면 금→목 비교, 평일이면 오늘→전일 비교
+  const dayOfWeekET = new Date(nowET + 'T12:00:00').getDay(); // 0=일, 6=토
+  const isWeekend   = dayOfWeekET === 0 || dayOfWeekET === 6;
+  const prevClose   = isWeekend && completedCandles.length >= 2
+    ? completedCandles.at(-2)!.close
+    : (completedCandles.at(-1)?.close ?? (meta.chartPreviousClose ?? value) as number);
+
+  const change = value - prevClose;
 
   return {
     value,
