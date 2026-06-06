@@ -79,8 +79,21 @@ export async function getRealtimeQuote(symbol: string): Promise<QuoteData> {
   }
 
   // ── 3. prevClose 및 change 계산 ──────────────────────────────────
-  // POST 마켓은 오늘 정규장 종가 대비, 나머지는 어제 정규장 종가 대비
-  const changeBase = marketState === 'POST' ? (meta.regularMarketPrice as number) : lastSessionClose;
+  // POST: 오늘 정규장 종가 대비
+  // 주말(토/일): current = 금요일 종가, changeBase = 목요일 종가 (0% 방지)
+  // 그 외: 전일 정규장 종가 대비
+  const dayOfWeekET = new Date(nowET + 'T12:00:00').getDay(); // 0=일, 6=토
+  const isWeekend   = dayOfWeekET === 0 || dayOfWeekET === 6;
+
+  let changeBase: number;
+  if (marketState === 'POST') {
+    changeBase = meta.regularMarketPrice as number;
+  } else if (isWeekend && completedCandles.length >= 2) {
+    changeBase = completedCandles.at(-2)!.close; // 금요일 기준 → 목요일 대비
+  } else {
+    changeBase = lastSessionClose;
+  }
+
   const change        = current - changeBase;
   const changePercent = changeBase ? (change / changeBase) * 100 : 0;
 
