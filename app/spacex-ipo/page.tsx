@@ -54,11 +54,50 @@ const QQQ_STATS = [
   { label: 'Comparable Entry',        value: 'Meta 2012', note: 'Similar scale disruption' },
 ];
 
+const jsonLdGraphs = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: 'SpaceX IPO Date 2026 — NASDAQ Fast Entry & QQQ Impact Analysis',
+    description: 'SpaceX IPO confirmed June 12, 2026. $1.75T valuation. NASDAQ Fast Entry Rule forces $50B+ in QQQ passive ETF buying within 15 trading days.',
+    url: `${SITE_URL}/spacex-ipo`,
+    datePublished: '2026-05-01',
+    dateModified: new Date().toISOString().slice(0, 10),
+    publisher: { '@type': 'Organization', name: 'US Market Calendar', url: SITE_URL },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'US Market Calendar', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'SpaceX IPO', item: `${SITE_URL}/spacex-ipo` },
+    ],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      { '@type': 'Question', name: 'When is the SpaceX IPO date?', acceptedAnswer: { '@type': 'Answer', text: 'SpaceX is scheduled to begin trading on NASDAQ on June 12, 2026 under the ticker SPCE. The IPO was priced at $180/share, valuing the company at approximately $1.75 trillion.' } },
+      { '@type': 'Question', name: 'What is the SpaceX stock ticker?', acceptedAnswer: { '@type': 'Answer', text: 'SpaceX will trade on NASDAQ under the ticker symbol SPCE.' } },
+      { '@type': 'Question', name: 'How much will QQQ have to buy when SpaceX joins NASDAQ-100?', acceptedAnswer: { '@type': 'Answer', text: 'Under the NASDAQ Fast Entry Rule, SpaceX would be added to the NASDAQ-100 within 15 trading days of its IPO. QQQ ($280B AUM) alone would need to purchase $22–28B in SPCE shares. Combined with all NASDAQ-100 tracking ETFs, total forced buying is estimated at $50B+.' } },
+      { '@type': 'Question', name: 'What is SpaceX\'s valuation?', acceptedAnswer: { '@type': 'Answer', text: 'SpaceX was valued at approximately $1.75 trillion at its IPO price of $180/share, making it the most valuable company ever to go public and potentially a top-5 NASDAQ-100 component by market cap.' } },
+    ],
+  },
+];
+
 export default function SpaceXIpoPage() {
   const days = daysUntilIPO();
   const isPast = days === 0;
 
   return (
+    <>
+      {jsonLdGraphs.map((schema, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+      ))}
     <div className="bg-gray-950 text-white min-h-screen">
 
       {/* Nav */}
@@ -159,6 +198,20 @@ export default function SpaceXIpoPage() {
         </section>
 
 
+        {/* Fast Entry Rule link */}
+        <section className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-5">
+          <h2 className="text-purple-300 font-bold text-sm mb-2">Understanding the NASDAQ Fast Entry Rule</h2>
+          <p className="text-gray-400 text-sm leading-relaxed mb-3">
+            The May 2026 rule that makes SpaceX's NASDAQ-100 inclusion so significant — including the 3× weight multiplier and $50B+ forced buying mechanics — explained in full.
+          </p>
+          <Link
+            href="/nasdaq-fast-entry"
+            className="inline-block bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+          >
+            Read the Full NASDAQ Fast Entry Guide →
+          </Link>
+        </section>
+
         {/* Related */}
         <section>
           <h2 className="text-lg font-bold text-white mb-4">Other Upcoming IPOs</h2>
@@ -190,5 +243,6 @@ export default function SpaceXIpoPage() {
         <Link href="/" className="hover:text-gray-400 transition-colors">US Market Calendar</Link>
       </footer>
     </div>
+    </>
   );
 }

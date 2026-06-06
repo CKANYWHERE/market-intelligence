@@ -75,6 +75,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority:        0.9,
     },
+    {
+      url:             `${SITE_URL}/nasdaq-fast-entry`,
+      lastModified:    now,
+      changeFrequency: "weekly",
+      priority:        0.9,
+    },
     ...eventEntries,
   ];
 }
