@@ -28,6 +28,11 @@ function websiteSchema() {
     url: SITE_URL,
     description:
       "Free economic calendar tracking FOMC, CPI, PCE, NFP, earnings, IPOs, and breaking market news for US stock investors.",
+    potentialAction: {
+      "@type":        "SearchAction",
+      target:         `${SITE_URL}/?q={search_term_string}`,
+      "query-input":  "required name=search_term_string",
+    },
   };
 }
 

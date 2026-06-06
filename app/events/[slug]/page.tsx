@@ -8,6 +8,7 @@ import { EventCategory } from '@/types/events';
 import HistoryChart from '@/components/events/HistoryChart';
 import MarketReactionChart from '@/components/events/MarketReactionChart';
 import { getMarketReaction } from '@/lib/utils/marketReaction';
+import { getEventContent, getCrossLinkKeywords } from '@/lib/seo/event-descriptions';
 
 export const revalidate = 3600; // 1시간 ISR
 
@@ -148,6 +149,33 @@ async function getRelatedEvents(title: string, currentDate: string, category: st
       orderBy: { date: 'asc' },
       take:    3,
       select:  { id: true, title: true, date: true },
+    });
+    return rows.map((r) => ({
+      title: r.title,
+      date:  toDateStr(r.date),
+      slug:  toSlug(r.title, toDateStr(r.date)),
+    }));
+  } catch {
+    return [];
+  }
+}
+
+// ── 연관 다른 타입 이벤트 (교차 링크) ─────────────────────────
+async function getCrossLinks(title: string, currentDate: string) {
+  try {
+    const keywords = getCrossLinkKeywords(title);
+    if (keywords.length === 0) return [];
+    const after = new Date(`${currentDate}T23:59:59Z`);
+    const ahead = new Date(after);
+    ahead.setMonth(ahead.getMonth() + 2);
+    const rows = await db.economicEvent.findMany({
+      where: {
+        date: { gte: after, lte: ahead },
+        OR:   keywords.map((kw) => ({ title: { contains: kw } })),
+      },
+      orderBy: { date: 'asc' },
+      take:    4,
+      select:  { title: true, date: true },
     });
     return rows.map((r) => ({
       title: r.title,
@@ -448,38 +476,79 @@ export default async function EventPage({
   // 시장 반응 차트 데이터
   const marketReaction = await getMarketReaction(date);
 
-  // 관련 이벤트 조회
-  const related = result.type === 'economic'
-    ? await getRelatedEvents(eventTitle, date, category)
-    : [];
+  // 관련 이벤트 조회 + 교차 링크
+  const [related, crossLinks] = result.type === 'economic'
+    ? await Promise.all([
+        getRelatedEvents(eventTitle, date, category),
+        getCrossLinks(eventTitle, date),
+      ])
+    : [[], []];
 
-  // JSON-LD Event schema
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type':    'Event',
-    name:       eventTitle,
-    startDate:  time ? `${date}T${time}:00-05:00` : date,
-    url:        `${SITE_URL}/events/${slug}`,
-    location:   { '@type': 'VirtualLocation', url: SITE_URL },
-    organizer:  { '@type': 'Organization', name: 'US Market Calendar', url: SITE_URL },
-    eventStatus:         'https://schema.org/EventScheduled',
-    eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
-    description: `Track ${eventTitle} on US Market Calendar. Date: ${formatDate(date)}.`,
-  };
+  // 이벤트 설명 콘텐츠
+  const eventContent = getEventContent(
+    result.type,
+    category,
+    eventTitle,
+    result.type === 'earnings' ? (result.row as { symbol: string }).symbol : undefined,
+    result.type === 'earnings' ? (result.row as { company: string }).company
+      : result.type === 'ipo'  ? (result.row as { company: string }).company
+      : undefined,
+  );
+
+  // JSON-LD: Event + BreadcrumbList + FAQPage
+  const jsonLdGraphs: object[] = [
+    {
+      '@context': 'https://schema.org',
+      '@type':    'Event',
+      name:       eventTitle,
+      startDate:  time ? `${date}T${time}:00-05:00` : date,
+      url:        `${SITE_URL}/events/${slug}`,
+      location:   { '@type': 'VirtualLocation', url: SITE_URL },
+      organizer:  { '@type': 'Organization', name: 'US Market Calendar', url: SITE_URL },
+      eventStatus:         'https://schema.org/EventScheduled',
+      eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
+      description: `Track ${eventTitle} on US Market Calendar. Date: ${formatDate(date)}.`,
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type':    'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'US Market Calendar', item: SITE_URL },
+        { '@type': 'ListItem', position: 2, name: meta.label,          item: SITE_URL },
+        { '@type': 'ListItem', position: 3, name: eventTitle,          item: `${SITE_URL}/events/${slug}` },
+      ],
+    },
+    ...(eventContent && eventContent.faq.length > 0 ? [{
+      '@context':  'https://schema.org',
+      '@type':     'FAQPage',
+      mainEntity:  eventContent.faq.map((item) => ({
+        '@type': 'Question',
+        name:    item.q,
+        acceptedAnswer: { '@type': 'Answer', text: item.a },
+      })),
+    }] : []),
+  ];
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      {jsonLdGraphs.map((schema, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+      ))}
 
       <div className="min-h-screen bg-gray-950 text-white">
-        {/* Header */}
+        {/* Header / Breadcrumb */}
         <header className="border-b border-gray-800 px-6 py-4">
-          <Link href="/" className="text-gray-400 hover:text-white text-sm transition-colors">
-            ← US Market Calendar
-          </Link>
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-gray-500">
+            <Link href="/" className="hover:text-white transition-colors">US Market Calendar</Link>
+            <span>/</span>
+            <span className="text-gray-400">{meta.label}</span>
+            <span>/</span>
+            <span className="text-gray-300 truncate max-w-xs">{eventTitle}</span>
+          </nav>
         </header>
 
         <main className="max-w-3xl mx-auto px-6 py-8">
@@ -534,6 +603,45 @@ export default async function EventPage({
           {/* Extra fields (earnings/IPO) */}
           {extraFields}
 
+          {/* Event description content */}
+          {eventContent && (
+            <div className="mt-8 space-y-5 border-t border-gray-800 pt-8">
+              <div>
+                <h2 className="text-white font-semibold text-lg mb-2">
+                  What is {result.type === 'earnings' ? `${(result.row as { symbol: string }).symbol} Earnings?` : result.type === 'ipo' ? `the ${(result.row as { company: string }).company} IPO?` : eventTitle.split(' ').slice(0, 4).join(' ') + '?'}
+                </h2>
+                <p className="text-gray-400 text-sm leading-relaxed">{eventContent.what}</p>
+              </div>
+              <div>
+                <h3 className="text-gray-200 font-medium mb-2">Why does it matter for investors?</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">{eventContent.whyMatters}</p>
+              </div>
+              {eventContent.watchFor.length > 0 && (
+                <div>
+                  <h3 className="text-gray-200 font-medium mb-2">What to watch for</h3>
+                  <ul className="space-y-1.5">
+                    {eventContent.watchFor.map((item, i) => (
+                      <li key={i} className="flex gap-2 text-sm text-gray-400">
+                        <span className="text-blue-400 mt-0.5 shrink-0">›</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {eventContent.faq.length > 0 && (
+                <div className="space-y-4 pt-2">
+                  {eventContent.faq.map((item, i) => (
+                    <div key={i}>
+                      <h3 className="text-gray-200 font-medium text-sm mb-1">{item.q}</h3>
+                      <p className="text-gray-500 text-sm leading-relaxed">{item.a}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Market Reaction Chart */}
           {marketReaction && marketReaction.length >= 3 && (
             <div className="bg-gray-900 rounded-xl p-6 mb-8 mt-8 border-l-2 border-blue-500">
@@ -559,10 +667,10 @@ export default async function EventPage({
             </div>
           )}
 
-          {/* Related upcoming events */}
+          {/* Related upcoming events (same type) */}
           {related.length > 0 && (
             <div className="mt-8">
-              <h2 className="text-white font-semibold mb-4">Upcoming {eventTitle.split(' ')[0]} Releases</h2>
+              <h2 className="text-white font-semibold mb-3">Upcoming {eventTitle.split(' ')[0]} Releases</h2>
               <div className="space-y-2">
                 {related.map((ev) => (
                   <Link
@@ -572,6 +680,25 @@ export default async function EventPage({
                   >
                     <span className="text-gray-300">{ev.title}</span>
                     <span className="text-gray-500 text-sm font-mono">{ev.date}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Cross-linked related events (other types) */}
+          {crossLinks.length > 0 && (
+            <div className="mt-6">
+              <h2 className="text-white font-semibold mb-3">Related Market Events</h2>
+              <div className="space-y-2">
+                {crossLinks.map((ev) => (
+                  <Link
+                    key={ev.slug}
+                    href={`/events/${ev.slug}`}
+                    className="flex items-center justify-between bg-gray-900/60 hover:bg-gray-800 rounded-lg px-4 py-3 transition-colors"
+                  >
+                    <span className="text-gray-400">{ev.title}</span>
+                    <span className="text-gray-600 text-sm font-mono">{ev.date}</span>
                   </Link>
                 ))}
               </div>
