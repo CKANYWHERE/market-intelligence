@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/fetcher';
 
@@ -168,6 +169,16 @@ export default function MarketAnalysisSection() {
                 Outlook
               </h3>
               <p className="text-gray-300 text-sm leading-relaxed">{analysis.outlook}</p>
+            </div>
+
+            {/* Link to full page */}
+            <div className="border-t border-gray-800 pt-3">
+              <Link
+                href="/market-analysis"
+                className="text-blue-400 hover:text-blue-300 text-xs transition-colors"
+              >
+                Full analysis + upcoming key events →
+              </Link>
             </div>
           </div>
         </div>

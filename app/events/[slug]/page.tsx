@@ -22,22 +22,24 @@ function toDateStrStatic(d: unknown): string {
 export async function generateStaticParams() {
   try {
     const now = new Date();
+    const sixMonthsBack = new Date(now);
+    sixMonthsBack.setMonth(sixMonthsBack.getMonth() - 6);
     const sixMonthsOut = new Date(now);
     sixMonthsOut.setMonth(sixMonthsOut.getMonth() + 6);
 
     const [ecoRows, earnRows, ipoRows] = await Promise.all([
       db.economicEvent.findMany({
-        where:   { date: { gte: now, lte: sixMonthsOut } },
+        where:   { date: { gte: sixMonthsBack, lte: sixMonthsOut } },
         select:  { title: true, date: true },
         orderBy: { date: 'asc' },
       }),
       db.earningsEvent.findMany({
-        where:   { date: { gte: now, lte: sixMonthsOut } },
+        where:   { date: { gte: sixMonthsBack, lte: sixMonthsOut } },
         select:  { symbol: true, date: true },
         orderBy: { date: 'asc' },
       }),
       db.ipoEvent.findMany({
-        where:   { date: { gte: now, lte: sixMonthsOut } },
+        where:   { date: { gte: sixMonthsBack, lte: sixMonthsOut } },
         select:  { company: true, date: true },
         orderBy: { date: 'asc' },
       }),

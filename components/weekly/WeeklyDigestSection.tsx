@@ -87,9 +87,17 @@ export default function WeeklyDigestSection() {
             </span>
           )}
         </div>
-        <span className="text-[10px] text-gray-600 font-medium uppercase tracking-wide">
-          AI Curated
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] text-gray-600 font-medium uppercase tracking-wide">
+            AI Curated
+          </span>
+          <Link
+            href="/weekly-market-calendar"
+            className="text-[10px] text-blue-500 hover:text-blue-400 transition-colors"
+          >
+            Full schedule →
+          </Link>
+        </div>
       </div>
 
       {/* Content */}

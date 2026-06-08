@@ -16,6 +16,39 @@ export function toSlug(title: string, date: string): string {
 }
 
 /**
+ * Market Analysis 전용 slug 생성
+ *
+ * 일반 toSlug와 달리 등락률 표현을 보존:
+ *   -4.8%  →  down-4-8pct
+ *   +4.8%  →  up-4-8pct
+ *   QQQ -4.8%: Jobs Shock Triggers Worst Tech Selloff Since April 2025
+ *   →  qqq-down-4-8pct-jobs-shock-triggers-worst-tech-selloff-since-2026-06-09
+ *
+ * URL 길이 제한: 약 60자 (날짜 제외), 단어 경계에서 truncate
+ */
+export function toAnalysisSlug(title: string, date: string): string {
+  const normalized = title
+    // -4.8% → "down 4-8pct",  +4.8% → "up 4-8pct"
+    .replace(/([+-])(\d+\.?\d*)\s*%/g, (_, sign, num) =>
+      `${sign === '-' ? 'down' : 'up'} ${num.replace('.', '-')}pct`,
+    )
+    .replace(/[:%]+/g, ' '); // 콜론·퍼센트 기호 제거
+
+  const kebab = normalized
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  // 60자 초과 시 마지막 단어 경계에서 자르기
+  const truncated =
+    kebab.length > 60
+      ? kebab.slice(0, 60).replace(/-[^-]*$/, '')
+      : kebab;
+
+  return `${truncated}-${date}`;
+}
+
+/**
  * slug에서 날짜를 추출 (마지막 10자 = YYYY-MM-DD)
  */
 export function slugToDate(slug: string): string | null {
