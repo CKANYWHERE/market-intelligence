@@ -42,7 +42,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '-1.0 to -1.8%',
         bonds:  '10Y yield ↑ (+8~15bps)',
         note:   'Rate-cut odds fall sharply. Growth stocks reprice lower.',
-        action: 'Trim QQQ / rotate to TLT or cash — rate cut off the table',
+        action: 'Historically, QQQ and growth stocks declined as rate-cut expectations fell. Bonds outperformed on the day.',
         stocks: [
           { symbol: 'NVDA', move: '-3 to -5%' },
           { symbol: 'AAPL', move: '-1.5 to -2.5%' },
@@ -56,7 +56,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '+0.7 to +1.4%',
         bonds:  '10Y yield ↓ (-6~12bps)',
         note:   'June/July cut window re-opens. Tech and growth lead.',
-        action: 'Add to QQQ / tech — NVDA and growth stocks outperform',
+        action: 'Historically, QQQ and tech led gains on cool CPI. NVDA typically showed the strongest reaction.',
         stocks: [
           { symbol: 'NVDA', move: '+2 to +5%' },
           { symbol: 'AAPL', move: '+1.5 to +2.5%' },
@@ -79,7 +79,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '-1.0 to -1.8%',
         bonds:  '10Y yield ↑ (+8~15bps)',
         note:   'Core is the Fed\'s primary gauge. Bigger mover than headline CPI.',
-        action: 'Trim growth exposure — Core CPI surprise is the Fed\'s #1 concern',
+        action: 'Historically, growth stocks faced pressure on Core CPI beats — it is the Fed\'s primary inflation gauge.',
         stocks: [
           { symbol: 'NVDA', move: '-3 to -5%' },
           { symbol: 'AAPL', move: '-1.5 to -2.5%' },
@@ -93,7 +93,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '+0.7 to +1.4%',
         bonds:  '10Y yield ↓ (-6~12bps)',
         note:   'Disinflation narrative strengthens. Rate-cut probability surges.',
-        action: 'Add to QQQ / NVDA — disinflation is the best fuel for growth stocks',
+        action: 'Historically, QQQ and NVDA outperformed on Core CPI misses as disinflation strengthened rate-cut odds.',
         stocks: [
           { symbol: 'NVDA', move: '+2 to +5%' },
           { symbol: 'AAPL', move: '+1.5 to +2.5%' },
@@ -116,7 +116,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '-0.8 to -1.5%',
         bonds:  '10Y yield ↑ (+6~12bps)',
         note:   'PCE is the Fed\'s preferred inflation measure. Hawkish risk.',
-        action: 'Trim tech — watch TLT for entry point as yields spike',
+        action: 'Historically, tech stocks pulled back as yields spiked on hot PCE. Bond markets saw elevated volume.',
         stocks: [
           { symbol: 'NVDA', move: '-2.5 to -4%' },
           { symbol: 'AAPL', move: '-1.5 to -2.5%' },
@@ -130,7 +130,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '+0.6 to +1.2%',
         bonds:  '10Y yield ↓ (-5~10bps)',
         note:   'Fed\'s green light — confirms disinflation. Room to cut.',
-        action: 'Add to growth and tech — PCE cool is the Fed\'s official green light',
+        action: 'Historically, growth and tech outperformed when PCE confirmed disinflation — the Fed\'s preferred gauge.',
         stocks: [
           { symbol: 'NVDA', move: '+2 to +4%' },
           { symbol: 'AAPL', move: '+1 to +2%' },
@@ -153,7 +153,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '-1.5 to -3.0%',
         bonds:  '10Y yield ↑ (+10~20bps)',
         note:   'Higher-for-longer narrative. Growth stocks hit hardest.',
-        action: 'Reduce high-duration growth — rotate to value or financials',
+        action: 'Historically, high-duration growth stocks fell hardest on hawkish FOMC surprises. Value and financials held up better.',
         stocks: [
           { symbol: 'NVDA', move: '-4 to -7%' },
           { symbol: 'AAPL', move: '-2.5 to -4%' },
@@ -167,7 +167,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '+1.0 to +2.5%',
         bonds:  '10Y yield ↓ (-8~18bps)',
         note:   'Cut or dovish pivot. Risk-on. QQQ outperforms.',
-        action: 'Buy the dip in QQQ — tech and NVDA lead dovish-pivot rallies',
+        action: 'Historically, QQQ and NVDA led the rally in dovish-pivot scenarios. Tech outperformed the broad market.',
         stocks: [
           { symbol: 'NVDA', move: '+3 to +7%' },
           { symbol: 'AAPL', move: '+2 to +4%' },
@@ -191,7 +191,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '-0.4 to -1.2%',
         bonds:  '10Y yield ↑ (+4~8bps)',
         note:   'Minutes confirming "higher for longer" revive rate fears.',
-        action: 'Light defensive rotation — not as severe as FOMC day, but trim high-beta',
+        action: 'Historically, hawkish minutes caused a smaller move than FOMC day. High-beta stocks saw mild pressure.',
         stocks: [
           { symbol: 'NVDA', move: '-0.8 to -2%' },
           { symbol: 'AAPL', move: '-0.5 to -1.5%' },
@@ -205,7 +205,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '+0.4 to +1.0%',
         bonds:  '10Y yield ↓ (-3~7bps)',
         note:   'Concern about over-tightening signals potential pivot.',
-        action: 'Modest tech bounce — confirm with next CPI/PCE before adding size',
+        action: 'Historically, dovish minutes produced a modest tech bounce. Follow-through depended on subsequent CPI/PCE data.',
         stocks: [
           { symbol: 'NVDA', move: '+0.5 to +1.5%' },
           { symbol: 'AAPL', move: '+0.4 to +1.2%' },
@@ -228,7 +228,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '-0.3 to -1.0%',
         bonds:  '10Y yield ↑ (+5~10bps)',
         note:   'Strong jobs = Fed stays hawkish longer. Counterintuitively bearish for growth.',
-        action: 'Slight caution on rate-sensitive growth — financials and energy benefit',
+        action: 'Historically, strong jobs data was counterintuitively negative for growth — it reduced Fed cut odds. Financials held up better.',
         stocks: [
           { symbol: 'NVDA', move: '-1 to -2.5%' },
           { symbol: 'AAPL', move: '-0.8 to -1.5%' },
@@ -242,7 +242,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '+0.3 to +1.0%',
         bonds:  '10Y yield ↓ (-4~9bps)',
         note:   'Weak jobs gives Fed cover to cut. Markets cheer.',
-        action: 'Add to QQQ on dips — rate-cut odds recover, tech leads the bounce',
+        action: 'Historically, weak jobs data triggered rate-cut repricing, with tech leading the recovery.',
         stocks: [
           { symbol: 'NVDA', move: '+1 to +2.5%' },
           { symbol: 'AAPL', move: '+0.8 to +1.5%' },
@@ -266,7 +266,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '+0.2 to +0.7%',
         bonds:  '10Y yield ↓ (-3~8bps)',
         note:   'Higher unemployment signals labor cooling → Fed cut sooner.',
-        action: 'Counterintuitively bullish for tech — Fed cuts sooner, add to QQQ',
+        action: 'Historically, higher unemployment was counterintuitively positive for tech — it brought forward rate-cut expectations.',
         stocks: [
           { symbol: 'NVDA', move: '+0.5 to +1.5%' },
           { symbol: 'AAPL', move: '+0.4 to +1%' },
@@ -280,7 +280,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '-0.2 to -0.7%',
         bonds:  '10Y yield ↑ (+3~8bps)',
         note:   'Tight labor market → Fed holds. Slight negative for rate-sensitive stocks.',
-        action: 'Tight labor = wage pressure = Fed holds — slight headwind for growth',
+        action: 'Historically, tight labor market data created a mild headwind for rate-sensitive growth via wage pressure.',
         stocks: [
           { symbol: 'NVDA', move: '-0.5 to -1%' },
           { symbol: 'AAPL', move: '-0.3 to -0.8%' },
@@ -303,7 +303,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '+0.3 to +0.8%',
         bonds:  '10Y yield ↑ (+3~7bps)',
         note:   'Strong growth = strong earnings outlook. Mixed for rates.',
-        action: 'Mixed signal — growth good for earnings, but rates may stay higher',
+        action: 'Historically, strong GDP sent a mixed signal — positive for earnings but raising concern about sustained higher rates.',
         stocks: [
           { symbol: 'NVDA', move: '+0.5 to +1.5%' },
           { symbol: 'AAPL', move: '+0.3 to +1%' },
@@ -317,7 +317,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '-0.4 to -1.2%',
         bonds:  '10Y yield ↓ (-4~8bps)',
         note:   'Recession fears creep in. Defensive rotation.',
-        action: 'Reduce cyclicals — defensive rotation into staples and utilities',
+        action: 'Historically, weak GDP triggered defensive rotation. Cyclicals underperformed staples and utilities.',
         stocks: [
           { symbol: 'NVDA', move: '-1 to -2.5%' },
           { symbol: 'AAPL', move: '-0.8 to -1.5%' },
@@ -340,7 +340,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '+0.2 to +0.6%',
         bonds:  'yields flat to ↑',
         note:   'Manufacturing/services expansion supports earnings.',
-        action: 'Modest risk-on — hold positions, expansion supports corporate earnings',
+        action: 'Historically, expansion readings produced a modest positive. Corporate earnings outlook improved.',
         stocks: [
           { symbol: 'NVDA', move: '+0.3 to +1%' },
           { symbol: 'AAPL', move: '+0.2 to +0.8%' },
@@ -354,7 +354,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '-0.2 to -0.8%',
         bonds:  'yields flat to ↓',
         note:   'Contraction signals slowdown risk.',
-        action: 'Caution on cyclicals — defensive positioning preferred',
+        action: 'Historically, contraction readings pressured cyclicals. Defensive names held up relatively better.',
         stocks: [
           { symbol: 'NVDA', move: '-0.5 to -1.2%' },
           { symbol: 'AAPL', move: '-0.3 to -0.8%' },
@@ -377,7 +377,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '-0.4 to -1.0%',
         bonds:  '10Y yield ↑ (+4~8bps)',
         note:   'Producer inflation feeds into future CPI. Rate cut fears rise.',
-        action: 'Slight caution on tech — pipeline inflation will show up in next CPI',
+        action: 'Historically, hot PPI created a mild headwind for tech — pipeline inflation typically feeds into future CPI data.',
         stocks: [
           { symbol: 'NVDA', move: '-0.8 to -2%' },
           { symbol: 'AAPL', move: '-0.5 to -1.2%' },
@@ -391,7 +391,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '+0.3 to +0.8%',
         bonds:  '10Y yield ↓ (-3~7bps)',
         note:   'Pipeline inflation easing. Supports disinflation narrative.',
-        action: 'Modest tech tailwind — disinflation pipeline confirmed for future CPI',
+        action: 'Historically, cool PPI provided a modest tailwind for tech by signaling disinflation ahead in CPI.',
         stocks: [
           { symbol: 'NVDA', move: '+0.5 to +1.5%' },
           { symbol: 'AAPL', move: '+0.4 to +1%' },
@@ -414,7 +414,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '+0.2 to +0.6%',
         bonds:  'yields flat to ↑',
         note:   'Strong consumer = good for earnings. Mixed for rates.',
-        action: 'Consumer stocks benefit most — tech is mixed signal here',
+        action: 'Historically, consumer-facing stocks led on strong retail sales. Tech showed a more mixed reaction.',
         stocks: [
           { symbol: 'NVDA', move: 'flat to +1%' },
           { symbol: 'AAPL', move: '+0.3 to +0.8%' },
@@ -428,7 +428,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '-0.2 to -0.7%',
         bonds:  'yields flat to ↓',
         note:   'Consumer slowdown signals economic cooling.',
-        action: 'Reduce discretionary exposure — consumer slowdown risk rising',
+        action: 'Historically, weak retail sales pressured discretionary stocks as consumer slowdown risk increased.',
         stocks: [
           { symbol: 'NVDA', move: '-0.3 to -1%' },
           { symbol: 'AAPL', move: '-0.2 to -0.8%' },
@@ -451,7 +451,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '-0.2 to -0.6%',
         bonds:  'yields flat to ↑',
         note:   'Tight labor market → wage pressure → Fed holds.',
-        action: 'Wage pressure means Fed stays put — light headwind on growth stocks',
+        action: 'Historically, tight labor via JOLTs created a mild headwind for growth stocks through wage pressure.',
         stocks: [
           { symbol: 'NVDA', move: '-0.5 to -1.2%' },
           { symbol: 'AAPL', move: '-0.3 to -0.8%' },
@@ -465,7 +465,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spy:    '+0.2 to +0.5%',
         bonds:  'yields flat to ↓',
         note:   'Labor market cooling gives Fed room to cut.',
-        action: 'Labor cooling is bullish for rate-sensitive growth — mild QQQ tailwind',
+        action: 'Historically, labor cooling via JOLTs provided a mild tailwind for rate-sensitive growth stocks.',
         stocks: [
           { symbol: 'NVDA', move: '+0.3 to +0.8%' },
           { symbol: 'AAPL', move: '+0.2 to +0.5%' },
@@ -496,7 +496,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spyLabel: 'QQQ',
         bonds:    'no direct impact',
         note:     'Data center / AI revenue beat drives massive short-squeeze. Sector follows.',
-        action:   'NVDA beat = buy AMD, AVGO, SMCI — entire AI semiconductor complex rallies',
+        action:   'Historically, NVDA beats: historical gains in AMD, AVGO, SMCI — entire AI semiconductor complex rallies',
         stocks: [
           { symbol: 'AMD',  move: '+4 to +8%' },
           { symbol: 'AVGO', move: '+3 to +6%' },
@@ -512,7 +512,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spyLabel: 'QQQ',
         bonds:    'no direct impact',
         note:     'AI capex slowdown fear hits the entire semiconductor sector.',
-        action:   'NVDA miss = trim AI names (AMD, SMCI, AVGO) — sector contagion is real',
+        action:   'Historically, NVDA misses: pressure on AI names (AMD, SMCI, AVGO) — sector contagion is real',
         stocks: [
           { symbol: 'AMD',  move: '-4 to -8%' },
           { symbol: 'AVGO', move: '-3 to -6%' },
@@ -538,7 +538,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spyLabel: 'QQQ',
         bonds:    'no direct impact',
         note:     'iPhone + Services revenue beat signals healthy consumer. Highest QQQ weight.',
-        action:   'AAPL beat lifts QQQ meaningfully — largest index weight, modest upside',
+        action:   'Historically, AAPL beats lifted QQQ meaningfully — largest index weight, modest upside',
         stocks: [
           { symbol: 'QCOM', move: '+2 to +4%' },
           { symbol: 'AVGO', move: '+1.5 to +3%' },
@@ -554,7 +554,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spyLabel: 'QQQ',
         bonds:    'no direct impact',
         note:     'iPhone demand miss + China slowdown risk. Suppliers and QQQ dragged down.',
-        action:   'AAPL miss = reduce QQQ exposure, trim Apple suppliers (QCOM, AVGO)',
+        action:   'Historically, AAPL misses: weakness in QQQ exposure, trim Apple suppliers (QCOM, AVGO)',
         stocks: [
           { symbol: 'QCOM', move: '-2 to -5%' },
           { symbol: 'AVGO', move: '-1.5 to -3%' },
@@ -580,7 +580,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spyLabel: 'QQQ',
         bonds:    'no direct impact',
         note:     'Azure cloud growth + Copilot AI adoption signals enterprise AI spending.',
-        action:   'MSFT beat = add to cloud/AI names (GOOGL, AMZN, CRM)',
+        action:   'Historically, MSFT beats: gains in to cloud/AI names (GOOGL, AMZN, CRM)',
         stocks: [
           { symbol: 'GOOGL', move: '+1 to +2.5%' },
           { symbol: 'AMZN',  move: '+1 to +2%' },
@@ -596,7 +596,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spyLabel: 'QQQ',
         bonds:    'no direct impact',
         note:     'Azure deceleration raises enterprise cloud demand concerns across sector.',
-        action:   'MSFT miss = trim cloud names, Azure miss is a sector-wide warning',
+        action:   'Historically, MSFT misses: pressure on cloud names, Azure miss is a sector-wide warning',
         stocks: [
           { symbol: 'GOOGL', move: '-1.5 to -3%' },
           { symbol: 'AMZN',  move: '-1 to -2.5%' },
@@ -622,7 +622,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spyLabel: 'QQQ',
         bonds:    'no direct impact',
         note:     'Ad revenue beat + AI-driven engagement signals digital ad recovery.',
-        action:   'META beat = add to digital ad names (GOOGL, SNAP, TTD)',
+        action:   'Historically, META beats: gains in to digital ad names (GOOGL, SNAP, TTD)',
         stocks: [
           { symbol: 'GOOGL', move: '+1.5 to +3%' },
           { symbol: 'SNAP',  move: '+5 to +12%' },
@@ -638,7 +638,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spyLabel: 'QQQ',
         bonds:    'no direct impact',
         note:     'Ad slowdown or elevated capex guidance punished severely by market.',
-        action:   'META miss = exit digital ad positions — sector selloff can be severe',
+        action:   'Historically, META misses: exit digital ad positions — sector selloff can be severe',
         stocks: [
           { symbol: 'GOOGL', move: '-2 to -5%' },
           { symbol: 'SNAP',  move: '-8 to -18%' },
@@ -664,7 +664,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spyLabel: 'QQQ',
         bonds:    'no direct impact',
         note:     'Margin recovery + delivery beat signals EV demand stabilization.',
-        action:   'TSLA beat = add to EV/energy storage names, Musk sentiment plays',
+        action:   'Historically, TSLA beats: gains in to EV/energy storage names, Musk sentiment plays',
         stocks: [
           { symbol: 'RIVN', move: '+4 to +8%' },
           { symbol: 'LCID', move: '+3 to +7%' },
@@ -680,7 +680,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spyLabel: 'QQQ',
         bonds:    'no direct impact',
         note:     'Margin compression + delivery miss raises long-term growth concerns.',
-        action:   'TSLA miss = trim EV names — margin pressure is the biggest risk',
+        action:   'Historically, TSLA misses: pressure on EV names — margin pressure is the biggest risk',
         stocks: [
           { symbol: 'RIVN', move: '-5 to -10%' },
           { symbol: 'LCID', move: '-4 to -9%' },
@@ -706,7 +706,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spyLabel: 'QQQ',
         bonds:    'no direct impact',
         note:     'Search + Cloud (GCP) beat signals digital ad recovery and AI monetization.',
-        action:   'GOOGL beat = buy META and digital ad names — sector rising tide',
+        action:   'Historically, GOOGL beats: historical gains in META and digital ad names — sector rising tide',
         stocks: [
           { symbol: 'META', move: '+2 to +4%' },
           { symbol: 'MSFT', move: '+1 to +2%' },
@@ -722,7 +722,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spyLabel: 'QQQ',
         bonds:    'no direct impact',
         note:     'Search deceleration or AI cost pressure triggers digital ad sector concern.',
-        action:   'GOOGL miss = reduce digital ad exposure — cloud + ad slowdown signal',
+        action:   'Historically, GOOGL misses: weakness in digital ad exposure — cloud + ad slowdown signal',
         stocks: [
           { symbol: 'META', move: '-2 to -5%' },
           { symbol: 'MSFT', move: '-1 to -2.5%' },
@@ -748,7 +748,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spyLabel: 'QQQ',
         bonds:    'no direct impact',
         note:     'AWS growth reacceleration is the most watched number — cloud capex cycle indicator.',
-        action:   'AMZN beat = add to cloud names (MSFT, GOOGL) — AWS momentum confirms cycle',
+        action:   'Historically, AMZN beats: gains in to cloud names (MSFT, GOOGL) — AWS momentum confirms cycle',
         stocks: [
           { symbol: 'MSFT', move: '+1 to +2.5%' },
           { symbol: 'GOOGL', move: '+1 to +2%' },
@@ -764,7 +764,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spyLabel: 'QQQ',
         bonds:    'no direct impact',
         note:     'AWS deceleration raises enterprise cloud demand concerns broadly.',
-        action:   'AMZN miss = trim cloud stocks — AWS miss is a broad enterprise spending signal',
+        action:   'Historically, AMZN misses: pressure on cloud stocks — AWS miss is a broad enterprise spending signal',
         stocks: [
           { symbol: 'MSFT',  move: '-1.5 to -3%' },
           { symbol: 'GOOGL', move: '-1 to -2.5%' },
@@ -785,7 +785,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+8 to +15%', qqqLabel: 'AVGO', spy: '+0.3 to +0.7%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'AI custom ASIC (XPU) revenue beat confirms hyperscaler capex cycle.',
-        action: 'AVGO beat = add MRVL, CSCO — AI networking complex rallies',
+        action: 'Historically, AVGO beats: gains in MRVL, CSCO — AI networking complex rallies',
         stocks: [
           { symbol: 'MRVL', move: '+4 to +8%' }, { symbol: 'CSCO', move: '+2 to +4%' },
           { symbol: 'NVDA', move: '+1 to +3%' },  { symbol: 'INTC', move: '+1 to +2%' },
@@ -795,7 +795,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-8 to -12%', qqqLabel: 'AVGO', spy: '-0.3 to -0.6%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'AI ASIC demand miss raises hyperscaler spending caution.',
-        action: 'AVGO miss = trim MRVL, CSCO — capex cycle concern spreads',
+        action: 'Historically, AVGO misses: pressure on MRVL, CSCO — capex cycle concern spreads',
         stocks: [
           { symbol: 'MRVL', move: '-4 to -8%' }, { symbol: 'CSCO', move: '-2 to -4%' },
           { symbol: 'NVDA', move: '-1 to -3%' },  { symbol: 'AMD',  move: '-2 to -4%' },
@@ -813,7 +813,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +12%', qqqLabel: 'AMD', spy: '+0.2 to +0.5%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Data center GPU (MI300) beat challenges NVDA dominance narrative.',
-        action: 'AMD beat = hold NVDA, add MRVL — second-source AI chip play confirmed',
+        action: 'Historically, AMD beats: stability in NVDA, add MRVL — second-source AI chip play confirmed',
         stocks: [
           { symbol: 'NVDA', move: '-0.5 to +1%' }, { symbol: 'INTC', move: '+1 to +3%' },
           { symbol: 'QCOM', move: '+1 to +2%' },    { symbol: 'MRVL', move: '+2 to +4%' },
@@ -823,7 +823,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-8 to -15%', qqqLabel: 'AMD', spy: '-0.2 to -0.5%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'GPU demand miss = NVDA beneficiary, AMD market share concern.',
-        action: 'AMD miss = trim AMD, rotate to NVDA — clear winner in AI GPU race',
+        action: 'Historically, AMD misses: pressure on AMD, NVDA held up better — clear winner in AI GPU race',
         stocks: [
           { symbol: 'NVDA', move: '+0.5 to +2%' }, { symbol: 'INTC', move: '-1 to -3%' },
           { symbol: 'QCOM', move: '-1 to -2%' },    { symbol: 'MRVL', move: '-2 to -4%' },
@@ -841,7 +841,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+10 to +18%', qqqLabel: 'MU', spy: '+0.2 to +0.4%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Memory pricing recovery + HBM (AI memory) demand signals cycle upturn.',
-        action: 'MU beat = buy entire memory cycle — DRAM recovery benefits all semis',
+        action: 'Historically, MU beats: broad strength across memory cycle — DRAM recovery benefits all semis',
         stocks: [
           { symbol: 'NVDA', move: '+1 to +3%' }, { symbol: 'INTC', move: '+1 to +2%' },
           { symbol: 'AMAT', move: '+2 to +4%' }, { symbol: 'LRCX', move: '+2 to +4%' },
@@ -851,7 +851,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-10 to -18%', qqqLabel: 'MU', spy: '-0.2 to -0.4%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Memory oversupply or pricing weakness signals broader semi capex caution.',
-        action: 'MU miss = reduce semi equipment names — capex cuts follow demand miss',
+        action: 'Historically, MU misses: weakness in semi equipment names — capex cuts follow demand miss',
         stocks: [
           { symbol: 'AMAT', move: '-3 to -6%' }, { symbol: 'LRCX', move: '-3 to -6%' },
           { symbol: 'KLAC', move: '-2 to -5%' }, { symbol: 'INTC', move: '-2 to -4%' },
@@ -869,7 +869,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +10%', qqqLabel: 'QCOM', spy: '+0.1 to +0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Snapdragon AI chip demand + handset recovery signals mobile cycle upturn.',
-        action: 'QCOM beat = add AAPL suppliers — mobile recovery is broad',
+        action: 'Historically, QCOM beats: gains in AAPL suppliers — mobile recovery is broad',
         stocks: [
           { symbol: 'AAPL', move: '+0.5 to +1.5%' }, { symbol: 'MRVL', move: '+1 to +3%' },
           { symbol: 'AVGO', move: '+1 to +2%' },      { symbol: 'AMD',  move: '+0.5 to +1%' },
@@ -879,7 +879,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-8 to -12%', qqqLabel: 'QCOM', spy: '-0.1 to -0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Smartphone demand miss or China headwinds signal mobile cycle weakness.',
-        action: 'QCOM miss = trim mobile exposure — handset cycle turning negative',
+        action: 'Historically, QCOM misses: pressure on mobile stocks — handset cycle turning negative',
         stocks: [
           { symbol: 'AAPL', move: '-0.5 to -1.5%' }, { symbol: 'MRVL', move: '-1 to -2%' },
           { symbol: 'AVGO', move: '-1 to -2%' },      { symbol: 'INTC', move: '-1 to -2%' },
@@ -897,7 +897,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+3 to +7%', qqqLabel: 'TXN', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Industrial/auto analog demand beat = broad economy is re-stocking.',
-        action: 'TXN beat = add industrial semis (ADI, ON) — cycle inflection signal',
+        action: 'Historically, TXN beats: gains in industrial semis (ADI, ON) — cycle inflection signal',
         stocks: [
           { symbol: 'ADI',  move: '+2 to +4%' }, { symbol: 'ON',   move: '+2 to +5%' },
           { symbol: 'MCHP', move: '+2 to +4%' }, { symbol: 'STM',  move: '+2 to +4%' },
@@ -907,7 +907,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-5 to -10%', qqqLabel: 'TXN', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'TXN miss = industrial/auto demand soft — watch for inventory digestion.',
-        action: 'TXN miss = reduce industrial semis — cycle still in digestion phase',
+        action: 'Historically, TXN misses: weakness in industrial semis — cycle still in digestion phase',
         stocks: [
           { symbol: 'ADI',  move: '-2 to -4%' }, { symbol: 'ON',   move: '-3 to -6%' },
           { symbol: 'MCHP', move: '-2 to -4%' }, { symbol: 'STM',  move: '-2 to -4%' },
@@ -925,7 +925,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+3 to +8%', qqqLabel: 'INTC', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Foundry progress + PC/server market share stabilization beats low bar.',
-        action: 'INTC beat = market share stabilizing — modest upside, stay cautious on size',
+        action: 'Historically, INTC beats: market share stabilizing — modest upside, stay cautious on size',
         stocks: [
           { symbol: 'AMD',  move: '-1 to -2%' },  { symbol: 'QCOM', move: '+0.5 to +1%' },
           { symbol: 'AVGO', move: '+0.5 to +1%' }, { symbol: 'AMAT', move: '+1 to +2%' },
@@ -935,7 +935,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-8 to -15%', qqqLabel: 'INTC', spy: '-0.1 to -0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Continued market share loss to AMD/ARM or foundry delays punished hard.',
-        action: 'INTC miss = rotate to AMD — market share loss accelerates narrative',
+        action: 'Historically, INTC misses: rotation toward AMD — market share loss accelerates narrative',
         stocks: [
           { symbol: 'AMD',  move: '+1 to +3%' },  { symbol: 'QCOM', move: '-0.5 to -1%' },
           { symbol: 'AMAT', move: '-1 to -2%' }, { symbol: 'MRVL', move: '-1 to -2%' },
@@ -953,7 +953,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +10%', qqqLabel: 'AMAT', spy: '+0.1 to +0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Equipment orders beat = fab expansion cycle accelerating.',
-        action: 'AMAT beat = add semi equipment (LRCX, KLAC) — capex cycle confirmed',
+        action: 'Historically, AMAT beats: gains in semi equipment (LRCX, KLAC) — capex cycle confirmed',
         stocks: [
           { symbol: 'LRCX', move: '+3 to +6%' }, { symbol: 'KLAC', move: '+2 to +5%' },
           { symbol: 'ASML', move: '+2 to +4%' }, { symbol: 'MU',   move: '+2 to +4%' },
@@ -963,7 +963,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-6 to -12%', qqqLabel: 'AMAT', spy: '-0.1 to -0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Equipment orders miss = fab capex pullback, cycle concerns.',
-        action: 'AMAT miss = reduce semi equipment exposure — cycle peaking concern',
+        action: 'Historically, AMAT misses: weakness in semi equipment stocks — cycle peaking concern',
         stocks: [
           { symbol: 'LRCX', move: '-3 to -7%' }, { symbol: 'KLAC', move: '-2 to -5%' },
           { symbol: 'ASML', move: '-2 to -5%' }, { symbol: 'MU',   move: '-2 to -4%' },
@@ -981,7 +981,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +10%', qqqLabel: 'LRCX', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Etch/deposition equipment beat = memory and logic fabs investing.',
-        action: 'LRCX beat = add AMAT, KLAC — equipment cycle rising together',
+        action: 'Historically, LRCX beats: gains in AMAT, KLAC — equipment cycle rising together',
         stocks: [
           { symbol: 'AMAT', move: '+3 to +5%' }, { symbol: 'KLAC', move: '+2 to +4%' },
           { symbol: 'ASML', move: '+2 to +3%' }, { symbol: 'MU',   move: '+2 to +4%' },
@@ -991,7 +991,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-6 to -12%', qqqLabel: 'LRCX', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Equipment bookings miss = memory/logic fab caution.',
-        action: 'LRCX miss = trim semi equipment — capex cycle softening',
+        action: 'Historically, LRCX misses: pressure on semi equipment — capex cycle softening',
         stocks: [
           { symbol: 'AMAT', move: '-3 to -5%' }, { symbol: 'KLAC', move: '-2 to -4%' },
           { symbol: 'ASML', move: '-2 to -3%' }, { symbol: 'MU',   move: '-2 to -4%' },
@@ -1009,7 +1009,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+4 to +8%', qqqLabel: 'KLAC', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Process control equipment demand beat = advanced node investment ongoing.',
-        action: 'KLAC beat = semi equipment cycle intact — hold AMAT, LRCX',
+        action: 'Historically, KLAC beats: semi equipment cycle intact — hold AMAT, LRCX',
         stocks: [
           { symbol: 'AMAT', move: '+2 to +4%' }, { symbol: 'LRCX', move: '+2 to +4%' },
           { symbol: 'ASML', move: '+1 to +3%' }, { symbol: 'NVDA', move: '+0.5 to +1%' },
@@ -1019,7 +1019,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-5 to -10%', qqqLabel: 'KLAC', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Inspection demand miss signals fab investment slowdown.',
-        action: 'KLAC miss = reduce semi equipment — advanced node investment stalling',
+        action: 'Historically, KLAC misses: weakness in semi equipment — advanced node investment stalling',
         stocks: [
           { symbol: 'AMAT', move: '-2 to -4%' }, { symbol: 'LRCX', move: '-2 to -4%' },
           { symbol: 'ASML', move: '-1 to -3%' }, { symbol: 'MU',   move: '-1 to -3%' },
@@ -1037,7 +1037,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +10%', qqqLabel: 'ASML', spy: '+0.1 to +0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'EUV bookings beat = TSMC/Samsung/Intel advanced node expansion.',
-        action: 'ASML beat = add entire semi equipment complex — EUV drives next nodes',
+        action: 'Historically, ASML beats: broad gains in the semi equipment complex — EUV drives next nodes',
         stocks: [
           { symbol: 'AMAT', move: '+2 to +4%' }, { symbol: 'LRCX', move: '+2 to +4%' },
           { symbol: 'TSM',  move: '+1 to +3%' }, { symbol: 'NVDA', move: '+0.5 to +1.5%' },
@@ -1047,7 +1047,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-8 to -15%', qqqLabel: 'ASML', spy: '-0.1 to -0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Booking miss raises advanced node timeline risk for all chip makers.',
-        action: 'ASML miss = broad semi caution — EUV delay pushes back AI chip roadmap',
+        action: 'Historically, ASML misses: broad weakness in semi stocks — EUV delay pushes back AI chip roadmap',
         stocks: [
           { symbol: 'AMAT', move: '-3 to -5%' }, { symbol: 'LRCX', move: '-3 to -5%' },
           { symbol: 'TSM',  move: '-2 to -4%' }, { symbol: 'NVDA', move: '-1 to -2%' },
@@ -1065,7 +1065,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+3 to +8%', qqqLabel: 'SNPS', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'EDA software demand beat = chip design activity at capacity.',
-        action: 'SNPS beat = add CDNS — EDA duopoly both benefit from chip design boom',
+        action: 'Historically, SNPS beats: gains in CDNS — EDA duopoly both benefit from chip design boom',
         stocks: [
           { symbol: 'CDNS', move: '+2 to +5%' }, { symbol: 'ARM',  move: '+1 to +3%' },
           { symbol: 'NVDA', move: '+0.5 to +1%' }, { symbol: 'AMD', move: '+0.5 to +1%' },
@@ -1075,7 +1075,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-4 to -10%', qqqLabel: 'SNPS', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Chip design slowdown = future semiconductor supply chain concern.',
-        action: 'SNPS miss = trim CDNS — design activity slowing ahead of next cycle',
+        action: 'Historically, SNPS misses: pressure on CDNS — design activity slowing ahead of next cycle',
         stocks: [
           { symbol: 'CDNS', move: '-2 to -5%' }, { symbol: 'ARM',  move: '-1 to -3%' },
           { symbol: 'INTC', move: '-1 to -2%' }, { symbol: 'MRVL', move: '-1 to -2%' },
@@ -1093,7 +1093,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+3 to +8%', qqqLabel: 'CDNS', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'EDA/IP licensing beat confirms chip design boom continues.',
-        action: 'CDNS beat = add SNPS — EDA duopoly benefiting from AI chip complexity',
+        action: 'Historically, CDNS beats: gains in SNPS — EDA duopoly benefiting from AI chip complexity',
         stocks: [
           { symbol: 'SNPS', move: '+2 to +5%' }, { symbol: 'ARM',  move: '+1 to +3%' },
           { symbol: 'NVDA', move: '+0.5 to +1%' }, { symbol: 'AMD', move: '+0.5 to +1%' },
@@ -1103,7 +1103,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-4 to -10%', qqqLabel: 'CDNS', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'License miss signals chip design activity cooling.',
-        action: 'CDNS miss = trim SNPS, reduce semi capex names',
+        action: 'Historically, CDNS misses: pressure on SNPS and semi capex names',
         stocks: [
           { symbol: 'SNPS', move: '-2 to -5%' }, { symbol: 'ARM',  move: '-1 to -3%' },
           { symbol: 'INTC', move: '-1 to -2%' }, { symbol: 'MRVL', move: '-1 to -2%' },
@@ -1121,7 +1121,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+4 to +8%', qqqLabel: 'ON', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'SiC power chips for EV beat = EV adoption recovery signal.',
-        action: 'ON beat = add EV supply chain — SiC demand confirms EV recovery',
+        action: 'Historically, ON beats: gains in EV supply chain — SiC demand confirms EV recovery',
         stocks: [
           { symbol: 'STM',  move: '+2 to +5%' }, { symbol: 'TXN',  move: '+1 to +3%' },
           { symbol: 'TSLA', move: '+1 to +2%' }, { symbol: 'ADI',  move: '+1 to +2%' },
@@ -1131,7 +1131,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-8 to -15%', qqqLabel: 'ON', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'EV demand miss or SiC pricing weakness = auto/industrial cycle concern.',
-        action: 'ON miss = reduce EV supply chain — auto cycle still correcting',
+        action: 'Historically, ON misses: weakness in EV supply chain — auto cycle still correcting',
         stocks: [
           { symbol: 'STM',  move: '-3 to -6%' }, { symbol: 'TXN',  move: '-1 to -3%' },
           { symbol: 'TSLA', move: '-0.5 to -1.5%' }, { symbol: 'ADI', move: '-1 to -2%' },
@@ -1149,7 +1149,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+8 to +15%', qqqLabel: 'MRVL', spy: '+0.2 to +0.4%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'AI custom silicon (XPU) and data center interconnect beat = AI buildout.',
-        action: 'MRVL beat = add AVGO, CSCO — AI networking complex confirmed',
+        action: 'Historically, MRVL beats: gains in AVGO, CSCO — AI networking complex confirmed',
         stocks: [
           { symbol: 'AVGO', move: '+3 to +6%' }, { symbol: 'CSCO', move: '+2 to +4%' },
           { symbol: 'AMD',  move: '+1 to +3%' }, { symbol: 'NVDA', move: '+0.5 to +2%' },
@@ -1159,7 +1159,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-8 to -15%', qqqLabel: 'MRVL', spy: '-0.2 to -0.4%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'AI custom chip miss = hyperscaler spending pullback risk.',
-        action: 'MRVL miss = trim AVGO, review CSCO — AI networking spend in question',
+        action: 'Historically, MRVL misses: pressure on AVGO, uncertainty around CSCO — AI networking spend in question',
         stocks: [
           { symbol: 'AVGO', move: '-3 to -6%' }, { symbol: 'CSCO', move: '-2 to -4%' },
           { symbol: 'AMD',  move: '-1 to -3%' }, { symbol: 'NVDA', move: '-0.5 to -2%' },
@@ -1177,7 +1177,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+10 to +20%', qqqLabel: 'ARM', spy: '+0.2 to +0.4%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Royalty revenue beat = AI/mobile chip adoption exceeding expectations.',
-        action: 'ARM beat = add QCOM, NVDA — ARM architecture powering AI edge devices',
+        action: 'Historically, ARM beats: gains in QCOM, NVDA — ARM architecture powering AI edge devices',
         stocks: [
           { symbol: 'QCOM', move: '+2 to +5%' }, { symbol: 'NVDA', move: '+1 to +3%' },
           { symbol: 'AAPL', move: '+0.5 to +1.5%' }, { symbol: 'SNPS', move: '+2 to +4%' },
@@ -1187,7 +1187,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-10 to -20%', qqqLabel: 'ARM', spy: '-0.2 to -0.4%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Royalty miss = AI chip proliferation slower than priced in.',
-        action: 'ARM miss = trim AI chip ecosystem — adoption pace disappointing',
+        action: 'Historically, ARM misses: pressure on the AI chip ecosystem — adoption pace disappointing',
         stocks: [
           { symbol: 'QCOM', move: '-2 to -5%' }, { symbol: 'NVDA', move: '-1 to -2%' },
           { symbol: 'SNPS', move: '-2 to -4%' }, { symbol: 'CDNS', move: '-2 to -4%' },
@@ -1205,7 +1205,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +10%', qqqLabel: 'ADBE', spy: '+0.1 to +0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Firefly AI monetization + Creative Cloud retention beats disruption fears.',
-        action: 'ADBE beat = AI disruption narrative fading — add creative software names',
+        action: 'Historically, ADBE beats: AI disruption narrative fading — add creative software names',
         stocks: [
           { symbol: 'CRM',  move: '+1 to +2%' }, { symbol: 'NOW',  move: '+1 to +2%' },
           { symbol: 'INTU', move: '+1 to +2%' }, { symbol: 'MSFT', move: '+0.5 to +1%' },
@@ -1215,7 +1215,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-10 to -20%', qqqLabel: 'ADBE', spy: '-0.1 to -0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Subscriber churn or Firefly miss revives AI disruption fears strongly.',
-        action: 'ADBE miss = AI disruption narrative returns — reduce creative software',
+        action: 'Historically, ADBE misses: AI disruption narrative returns — reduce creative software',
         stocks: [
           { symbol: 'CRM',  move: '-1 to -3%' }, { symbol: 'NOW',  move: '-1 to -2%' },
           { symbol: 'INTU', move: '-1 to -2%' }, { symbol: 'TEAM', move: '-2 to -4%' },
@@ -1233,7 +1233,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +12%', qqqLabel: 'PANW', spy: '+0.1 to +0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Platformization deal wins confirm cybersecurity consolidation trend.',
-        action: 'PANW beat = add CRWD, ZS — cyber budgets are growing not shrinking',
+        action: 'Historically, PANW beats: gains in CRWD, ZS — cyber budgets are growing not shrinking',
         stocks: [
           { symbol: 'CRWD', move: '+2 to +5%' }, { symbol: 'ZS',   move: '+2 to +5%' },
           { symbol: 'FTNT', move: '+2 to +4%' }, { symbol: 'S',    move: '+3 to +6%' },
@@ -1243,7 +1243,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-8 to -15%', qqqLabel: 'PANW', spy: '-0.1 to -0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Platform deal slowdown raises enterprise IT budget concern.',
-        action: 'PANW miss = reduce cybersecurity exposure — consolidation pace slower',
+        action: 'Historically, PANW misses: weakness in cybersecurity stocks — consolidation pace slower',
         stocks: [
           { symbol: 'CRWD', move: '-2 to -5%' }, { symbol: 'ZS',   move: '-2 to -5%' },
           { symbol: 'FTNT', move: '-2 to -4%' }, { symbol: 'S',    move: '-3 to -6%' },
@@ -1261,7 +1261,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +10%', qqqLabel: 'CRM', spy: '+0.1 to +0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Agentforce AI + enterprise seat expansion beats IT spending concerns.',
-        action: 'CRM beat = add enterprise software (NOW, WDAY) — budgets unfreezing',
+        action: 'Historically, CRM beats: gains in enterprise software (NOW, WDAY) — budgets unfreezing',
         stocks: [
           { symbol: 'NOW',  move: '+2 to +4%' }, { symbol: 'WDAY', move: '+2 to +4%' },
           { symbol: 'HUBS', move: '+2 to +4%' }, { symbol: 'MSFT', move: '+0.5 to +1%' },
@@ -1271,7 +1271,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-8 to -15%', qqqLabel: 'CRM', spy: '-0.1 to -0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Seat growth miss or deal length elongation = enterprise spending caution.',
-        action: 'CRM miss = reduce enterprise software — IT budget freeze spreading',
+        action: 'Historically, CRM misses: weakness in enterprise software — IT budget freeze spreading',
         stocks: [
           { symbol: 'NOW',  move: '-2 to -4%' }, { symbol: 'WDAY', move: '-2 to -4%' },
           { symbol: 'HUBS', move: '-2 to -4%' }, { symbol: 'ADBE', move: '-1 to -3%' },
@@ -1289,7 +1289,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +12%', qqqLabel: 'NOW', spy: '+0.1 to +0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'AI workflow automation beats confirm enterprise AI ROI is real.',
-        action: 'NOW beat = add CRM, WDAY — AI in enterprise = compounding moat',
+        action: 'Historically, NOW beats: gains in CRM, WDAY — AI in enterprise = compounding moat',
         stocks: [
           { symbol: 'CRM',  move: '+2 to +4%' }, { symbol: 'WDAY', move: '+2 to +4%' },
           { symbol: 'SAP',  move: '+1 to +2%' }, { symbol: 'MSFT', move: '+0.5 to +1%' },
@@ -1299,7 +1299,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-5 to -10%', qqqLabel: 'NOW', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Renewal rate or new logo miss = enterprise AI adoption slower than hoped.',
-        action: 'NOW miss = trim enterprise software — deal cycle elongating',
+        action: 'Historically, NOW misses: pressure on enterprise software — deal cycle elongating',
         stocks: [
           { symbol: 'CRM',  move: '-2 to -3%' }, { symbol: 'WDAY', move: '-2 to -3%' },
           { symbol: 'HUBS', move: '-1 to -3%' }, { symbol: 'ADBE', move: '-1 to -2%' },
@@ -1317,7 +1317,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +10%', qqqLabel: 'INTU', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'TurboTax/QuickBooks AI growth confirms SMB software resilience.',
-        action: 'INTU beat = add SMB software names — small business AI adoption real',
+        action: 'Historically, INTU beats: gains in SMB software names — small business AI adoption real',
         stocks: [
           { symbol: 'HUBS', move: '+2 to +4%' }, { symbol: 'BILL', move: '+3 to +6%' },
           { symbol: 'PAYC', move: '+2 to +4%' }, { symbol: 'CRM',  move: '+1 to +2%' },
@@ -1327,7 +1327,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-5 to -12%', qqqLabel: 'INTU', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'SMB spending miss or AI cannibalization concern raises forward risk.',
-        action: 'INTU miss = reduce SMB software — small business budget caution',
+        action: 'Historically, INTU misses: weakness in SMB software — small business budget caution',
         stocks: [
           { symbol: 'HUBS', move: '-2 to -4%' }, { symbol: 'BILL', move: '-3 to -6%' },
           { symbol: 'PAYC', move: '-2 to -4%' }, { symbol: 'CRM',  move: '-1 to -2%' },
@@ -1345,7 +1345,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +12%', qqqLabel: 'TEAM', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Cloud migration + developer seat expansion beats low expectations.',
-        action: 'TEAM beat = add dev-tool SaaS (DDOG, HUBS) — cloud migration ongoing',
+        action: 'Historically, TEAM beats: gains in dev-tool SaaS (DDOG, HUBS) — cloud migration ongoing',
         stocks: [
           { symbol: 'DDOG', move: '+2 to +5%' }, { symbol: 'HUBS', move: '+2 to +4%' },
           { symbol: 'MSFT', move: '+0.5 to +1%' }, { symbol: 'CRM', move: '+1 to +2%' },
@@ -1355,7 +1355,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-10 to -20%', qqqLabel: 'TEAM', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Developer seat churn = tech hiring freeze still biting.',
-        action: 'TEAM miss = reduce dev-tool SaaS — IT headcount cuts still ongoing',
+        action: 'Historically, TEAM misses: weakness in dev-tool SaaS — IT headcount cuts still ongoing',
         stocks: [
           { symbol: 'DDOG', move: '-2 to -5%' }, { symbol: 'HUBS', move: '-2 to -4%' },
           { symbol: 'ZS',   move: '-1 to -3%' }, { symbol: 'CRWD', move: '-1 to -3%' },
@@ -1373,7 +1373,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +10%', qqqLabel: 'WDAY', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'HR/Finance cloud subscription beat = enterprises upgrading back-office.',
-        action: 'WDAY beat = add enterprise HR software — cloud migration still early',
+        action: 'Historically, WDAY beats: gains in enterprise HR software — cloud migration still early',
         stocks: [
           { symbol: 'CRM',  move: '+1 to +3%' }, { symbol: 'NOW',  move: '+1 to +3%' },
           { symbol: 'INTU', move: '+1 to +2%' }, { symbol: 'SAP',  move: '+1 to +2%' },
@@ -1383,7 +1383,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-8 to -15%', qqqLabel: 'WDAY', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Deal elongation = enterprise IT budget freeze spreading.',
-        action: 'WDAY miss = reduce enterprise SaaS — deal cycles getting longer',
+        action: 'Historically, WDAY misses: weakness in enterprise SaaS — deal cycles getting longer',
         stocks: [
           { symbol: 'CRM',  move: '-1 to -3%' }, { symbol: 'NOW',  move: '-1 to -3%' },
           { symbol: 'INTU', move: '-1 to -2%' }, { symbol: 'HUBS', move: '-1 to -2%' },
@@ -1401,7 +1401,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+8 to +15%', qqqLabel: 'SNOW', spy: '+0.1 to +0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Consumption revenue beat = AI data pipeline spending accelerating.',
-        action: 'SNOW beat = add high-multiple data names (DDOG, MDB) — AI data demand',
+        action: 'Historically, SNOW beats: gains in high-multiple data names (DDOG, MDB) — AI data demand',
         stocks: [
           { symbol: 'DDOG', move: '+3 to +6%' }, { symbol: 'DBX',  move: '+2 to +4%' },
           { symbol: 'CRM',  move: '+1 to +2%' }, { symbol: 'MSFT', move: '+0.5 to +1%' },
@@ -1411,7 +1411,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-15 to -25%', qqqLabel: 'SNOW', spy: '-0.1 to -0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Consumption miss = cloud data spend optimized or AI workloads elsewhere.',
-        action: 'SNOW miss = reduce cloud data platform names — consumption cycle caution',
+        action: 'Historically, SNOW misses: weakness in cloud data platform names — consumption cycle caution',
         stocks: [
           { symbol: 'DDOG', move: '-3 to -7%' }, { symbol: 'MDB',  move: '-3 to -7%' },
           { symbol: 'CRM',  move: '-1 to -2%' }, { symbol: 'NOW',  move: '-1 to -2%' },
@@ -1429,7 +1429,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +12%', qqqLabel: 'ZS', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Zero-trust deal wins = enterprises accelerating cloud security migration.',
-        action: 'ZS beat = add CRWD, PANW — zero-trust adoption driving entire sector',
+        action: 'Historically, ZS beats: gains in CRWD, PANW — zero-trust adoption driving entire sector',
         stocks: [
           { symbol: 'CRWD', move: '+2 to +5%' }, { symbol: 'PANW', move: '+2 to +4%' },
           { symbol: 'S',    move: '+3 to +6%' }, { symbol: 'FTNT', move: '+1 to +3%' },
@@ -1439,7 +1439,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-10 to -18%', qqqLabel: 'ZS', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Deal slippage = enterprise zero-trust budgets being cut or delayed.',
-        action: 'ZS miss = trim cybersecurity — enterprise security budgets under pressure',
+        action: 'Historically, ZS misses: pressure on cybersecurity stocks — enterprise security budgets under pressure',
         stocks: [
           { symbol: 'CRWD', move: '-2 to -5%' }, { symbol: 'PANW', move: '-2 to -4%' },
           { symbol: 'S',    move: '-3 to -6%' }, { symbol: 'FTNT', move: '-1 to -3%' },
@@ -1457,7 +1457,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +15%', qqqLabel: 'CRWD', spy: '+0.1 to +0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'ARR growth + customer win-back (post-outage) exceeds expectations.',
-        action: 'CRWD beat = outage impact fully absorbed — add ZS, PANW',
+        action: 'Historically, CRWD beats: outage impact fully absorbed — add ZS, PANW',
         stocks: [
           { symbol: 'ZS',   move: '+2 to +5%' }, { symbol: 'PANW', move: '+2 to +4%' },
           { symbol: 'S',    move: '+3 to +6%' }, { symbol: 'FTNT', move: '+1 to +3%' },
@@ -1467,7 +1467,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-8 to -15%', qqqLabel: 'CRWD', spy: '-0.1 to -0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Customer churn or NRR miss = outage reputational damage still lingering.',
-        action: 'CRWD miss = reduce endpoint security — customer trust still at risk',
+        action: 'Historically, CRWD misses: weakness in endpoint security stocks — customer trust still at risk',
         stocks: [
           { symbol: 'ZS',   move: '-2 to -4%' }, { symbol: 'PANW', move: '-2 to -4%' },
           { symbol: 'S',    move: '-3 to -5%' }, { symbol: 'FTNT', move: '-1 to -2%' },
@@ -1485,7 +1485,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +15%', qqqLabel: 'DDOG', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Cloud workload growth + AI observability demand beats optimization fears.',
-        action: 'DDOG beat = add SNOW, MDB — cloud spend recovery, optimization done',
+        action: 'Historically, DDOG beats: gains in SNOW, MDB — cloud spend recovery, optimization done',
         stocks: [
           { symbol: 'SNOW', move: '+3 to +6%' }, { symbol: 'MDB',  move: '+2 to +5%' },
           { symbol: 'TEAM', move: '+2 to +4%' }, { symbol: 'CRM',  move: '+1 to +2%' },
@@ -1495,7 +1495,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-8 to -18%', qqqLabel: 'DDOG', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Consumption miss = cloud optimization still ongoing, AI workloads not replacing.',
-        action: 'DDOG miss = reduce cloud-native SaaS — optimization cycle extended',
+        action: 'Historically, DDOG misses: weakness in cloud-native SaaS — optimization cycle extended',
         stocks: [
           { symbol: 'SNOW', move: '-3 to -6%' }, { symbol: 'MDB',  move: '-2 to -5%' },
           { symbol: 'TEAM', move: '-2 to -4%' }, { symbol: 'ZS',   move: '-1 to -3%' },
@@ -1513,7 +1513,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +12%', qqqLabel: 'HUBS', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'SMB seat growth + AI Breeze adoption beats small business spend concern.',
-        action: 'HUBS beat = add INTU, CRM — SMB software budgets resilient',
+        action: 'Historically, HUBS beats: gains in INTU, CRM — SMB software budgets resilient',
         stocks: [
           { symbol: 'INTU', move: '+2 to +4%' }, { symbol: 'CRM',  move: '+1 to +3%' },
           { symbol: 'BILL', move: '+2 to +4%' }, { symbol: 'WDAY', move: '+1 to +2%' },
@@ -1523,7 +1523,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-8 to -15%', qqqLabel: 'HUBS', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'SMB churn spike = small businesses cutting software — macro concern.',
-        action: 'HUBS miss = reduce SMB software — small business stress signal',
+        action: 'Historically, HUBS misses: weakness in SMB software — small business stress signal',
         stocks: [
           { symbol: 'INTU', move: '-2 to -4%' }, { symbol: 'CRM',  move: '-1 to -2%' },
           { symbol: 'BILL', move: '-2 to -4%' }, { symbol: 'WDAY', move: '-1 to -2%' },
@@ -1541,7 +1541,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+10 to +20%', qqqLabel: 'TTD', spy: '+0.1 to +0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'CTV/programmatic ad spend beat = brands increasing digital ad budgets.',
-        action: 'TTD beat = buy META, GOOGL — programmatic recovery is a sector tide',
+        action: 'Historically, TTD beats: gains in META, GOOGL — programmatic recovery is a sector tide',
         stocks: [
           { symbol: 'META', move: '+2 to +4%' }, { symbol: 'GOOGL', move: '+1 to +3%' },
           { symbol: 'MGNI', move: '+5 to +10%' }, { symbol: 'PUBM', move: '+4 to +8%' },
@@ -1551,7 +1551,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-15 to -25%', qqqLabel: 'TTD', spy: '-0.1 to -0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'CTV ad spend miss or market share loss to Google/Amazon DSPs.',
-        action: 'TTD miss = reduce digital ad exposure — brand budgets pulling back',
+        action: 'Historically, TTD misses: weakness in digital ad stocks — brand budgets pulling back',
         stocks: [
           { symbol: 'META',  move: '-2 to -5%' }, { symbol: 'GOOGL', move: '-1 to -2%' },
           { symbol: 'MGNI',  move: '-5 to -12%' }, { symbol: 'PUBM', move: '-4 to -8%' },
@@ -1569,7 +1569,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+2 to +5%', qqqLabel: 'COST', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Membership renewal + traffic beat = consumers trading down into value.',
-        action: 'COST beat = consumer is resilient — modest upside, defensive positioning',
+        action: 'Historically, COST beats: consumer is resilient — modest upside, defensive positioning',
         stocks: [
           { symbol: 'WMT',  move: '+0.5 to +1.5%' }, { symbol: 'TGT',  move: '+0.5 to +1.5%' },
           { symbol: 'AMZN', move: '+0.3 to +0.8%' }, { symbol: 'KR',   move: '+0.5 to +1%' },
@@ -1579,7 +1579,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-3 to -7%', qqqLabel: 'COST', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Membership softness = even value consumers pulling back — macro concern.',
-        action: 'COST miss = consumer stress even at Costco — defensive rotation',
+        action: 'Historically, COST misses: consumer stress signal — defensive names historically held up better',
         stocks: [
           { symbol: 'WMT',  move: '-0.5 to -1.5%' }, { symbol: 'TGT',  move: '-1 to -3%' },
           { symbol: 'AMZN', move: '-0.5 to -1%' },   { symbol: 'DG',   move: '-1 to -2%' },
@@ -1597,7 +1597,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+8 to +15%', qqqLabel: 'NFLX', spy: '+0.2 to +0.4%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Subscriber growth + ad-tier revenue beat confirms streaming dominance.',
-        action: 'NFLX beat = add streaming/media names — ad-tier model is working',
+        action: 'Historically, NFLX beats: gains in streaming/media names — ad-tier model is working',
         stocks: [
           { symbol: 'DIS',  move: '+1 to +3%' }, { symbol: 'PARA', move: '+2 to +5%' },
           { symbol: 'WBD',  move: '+2 to +4%' }, { symbol: 'SPOT', move: '+2 to +4%' },
@@ -1607,7 +1607,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-10 to -18%', qqqLabel: 'NFLX', spy: '-0.2 to -0.4%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Churn above estimates or ad revenue miss raises streaming model concern.',
-        action: 'NFLX miss = reduce streaming exposure — subscriber growth decelerating',
+        action: 'Historically, NFLX misses: weakness in streaming stocks — subscriber growth decelerating',
         stocks: [
           { symbol: 'DIS',  move: '-1 to -3%' }, { symbol: 'PARA', move: '-2 to -5%' },
           { symbol: 'WBD',  move: '-2 to -4%' }, { symbol: 'SPOT', move: '-2 to -4%' },
@@ -1625,7 +1625,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +12%', qqqLabel: 'ABNB', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Nights booked + ADR beat = travel demand still strong post-normalization.',
-        action: 'ABNB beat = add travel names (BKNG, UBER) — experience spending solid',
+        action: 'Historically, ABNB beats: gains in travel names (BKNG, UBER) — experience spending solid',
         stocks: [
           { symbol: 'BKNG', move: '+2 to +4%' }, { symbol: 'EXPE', move: '+3 to +6%' },
           { symbol: 'UBER', move: '+1 to +3%' }, { symbol: 'HLT',  move: '+1 to +2%' },
@@ -1635,7 +1635,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-8 to -15%', qqqLabel: 'ABNB', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Nights booked or pricing miss = travel demand normalizing lower.',
-        action: 'ABNB miss = trim travel/leisure — demand normalization ongoing',
+        action: 'Historically, ABNB misses: pressure on travel/leisure stocks — demand normalization ongoing',
         stocks: [
           { symbol: 'BKNG', move: '-2 to -4%' }, { symbol: 'EXPE', move: '-3 to -6%' },
           { symbol: 'UBER', move: '-1 to -2%' }, { symbol: 'MAR',  move: '-1 to -2%' },
@@ -1653,7 +1653,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +10%', qqqLabel: 'BKNG', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Room nights and gross bookings beat = international travel still robust.',
-        action: 'BKNG beat = add ABNB, EXPE — global travel recovery intact',
+        action: 'Historically, BKNG beats: gains in ABNB, EXPE — global travel recovery intact',
         stocks: [
           { symbol: 'ABNB', move: '+2 to +4%' }, { symbol: 'EXPE', move: '+2 to +4%' },
           { symbol: 'UBER', move: '+1 to +2%' }, { symbol: 'HLT',  move: '+1 to +2%' },
@@ -1663,7 +1663,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-5 to -10%', qqqLabel: 'BKNG', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Take rate pressure or booking volume miss = travel spend peaking.',
-        action: 'BKNG miss = reduce online travel — normalization trade is over',
+        action: 'Historically, BKNG misses: weakness in online travel — normalization trade is over',
         stocks: [
           { symbol: 'ABNB', move: '-2 to -4%' }, { symbol: 'EXPE', move: '-2 to -4%' },
           { symbol: 'UBER', move: '-1 to -2%' }, { symbol: 'MAR',  move: '-1 to -2%' },
@@ -1681,7 +1681,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +10%', qqqLabel: 'PYPL', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'TPV growth + branded checkout share gain beats low turnaround expectations.',
-        action: 'PYPL beat = add SQ, AFRM — fintech turnaround gaining credibility',
+        action: 'Historically, PYPL beats: gains in SQ, AFRM — fintech turnaround gaining credibility',
         stocks: [
           { symbol: 'SQ',   move: '+2 to +5%' }, { symbol: 'AFRM', move: '+3 to +7%' },
           { symbol: 'V',    move: '+0.5 to +1%' }, { symbol: 'MA',  move: '+0.5 to +1%' },
@@ -1691,7 +1691,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-8 to -15%', qqqLabel: 'PYPL', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Active account stagnation or margin miss = turnaround thesis in doubt.',
-        action: 'PYPL miss = avoid legacy fintech — platform moat eroding to Apple Pay / Stripe',
+        action: 'Historically, PYPL misses: weakness in legacy fintech — platform moat eroding to Apple Pay / Stripe',
         stocks: [
           { symbol: 'SQ',   move: '-2 to -4%' }, { symbol: 'AFRM', move: '-3 to -6%' },
           { symbol: 'V',    move: '-0.3 to -0.8%' }, { symbol: 'MA', move: '-0.3 to -0.8%' },
@@ -1709,7 +1709,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+3 to +7%', qqqLabel: 'EBAY', spy: '+0.1 to +0.1%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'GMV stabilization + Focus categories beat shows managed decline slowing.',
-        action: 'EBAY beat = mature marketplace floor confirmed — modest hold',
+        action: 'Historically, EBAY beats: mature marketplace floor confirmed — modest hold',
         stocks: [
           { symbol: 'AMZN', move: '+0.3 to +0.5%' }, { symbol: 'ETSY', move: '+1 to +3%' },
           { symbol: 'PYPL', move: '+0.5 to +1%' },   { symbol: 'SQ',   move: '+0.3 to +0.8%' },
@@ -1719,7 +1719,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-5 to -10%', qqqLabel: 'EBAY', spy: '-0.1 to -0.1%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'GMV decline accelerating = consumer spending on discretionary items soft.',
-        action: 'EBAY miss = consumer discretionary stress signal — reduce exposure',
+        action: 'Historically, EBAY misses: consumer discretionary stress signal — reduce exposure',
         stocks: [
           { symbol: 'ETSY', move: '-2 to -4%' }, { symbol: 'PYPL', move: '-0.5 to -1.5%' },
           { symbol: 'AMZN', move: '-0.3 to -0.8%' }, { symbol: 'SQ', move: '-0.5 to -1%' },
@@ -1737,7 +1737,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+3 to +7%', qqqLabel: 'AMGN', spy: '+0.1 to +0.1%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Obesity drug (Maritide) or biosimilar sales beat key pipeline milestones.',
-        action: 'AMGN beat = large-cap biotech resilient — add GILD, REGN',
+        action: 'Historically, AMGN beats: large-cap biotech resilient — add GILD, REGN',
         stocks: [
           { symbol: 'GILD', move: '+1 to +2%' }, { symbol: 'REGN', move: '+1 to +2%' },
           { symbol: 'VRTX', move: '+1 to +2%' }, { symbol: 'BIIB', move: '+1 to +2%' },
@@ -1747,7 +1747,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-4 to -8%', qqqLabel: 'AMGN', spy: '-0.1 to -0.1%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Biosimilar competition or pipeline miss reduces earnings visibility.',
-        action: 'AMGN miss = rotation out of large-cap biotech — pipeline risk repriced',
+        action: 'Historically, AMGN misses: rotation out of large-cap biotech — pipeline risk repriced',
         stocks: [
           { symbol: 'GILD', move: '-1 to -2%' }, { symbol: 'REGN', move: '-1 to -2%' },
           { symbol: 'ABBV', move: '-0.5 to -1%' }, { symbol: 'MRK', move: '-0.5 to -1%' },
@@ -1765,7 +1765,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+3 to +7%', qqqLabel: 'GILD', spy: '+0.1 to +0.1%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'HIV franchise stability + oncology (Trodelvy) pipeline beat.',
-        action: 'GILD beat = defensive biotech with dividend — add AMGN, ABBV',
+        action: 'Historically, GILD beats: defensive biotech with dividend — add AMGN, ABBV',
         stocks: [
           { symbol: 'AMGN', move: '+1 to +2%' }, { symbol: 'ABBV', move: '+0.5 to +1.5%' },
           { symbol: 'MRK',  move: '+0.5 to +1%' }, { symbol: 'BMY', move: '+0.5 to +1%' },
@@ -1775,7 +1775,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-4 to -8%', qqqLabel: 'GILD', spy: '-0.1 to -0.1%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'HIV pricing pressure or oncology miss raises LT growth concern.',
-        action: 'GILD miss = trim defensive biotech — pricing headwinds increasing',
+        action: 'Historically, GILD misses: pressure on defensive biotech — pricing headwinds increasing',
         stocks: [
           { symbol: 'AMGN', move: '-0.5 to -1.5%' }, { symbol: 'ABBV', move: '-0.5 to -1%' },
           { symbol: 'BMY',  move: '-0.5 to -1%' },   { symbol: 'MRK',  move: '-0.3 to -0.8%' },
@@ -1793,7 +1793,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +12%', qqqLabel: 'BIIB', spy: '+0.1 to +0.1%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Leqembi (Alzheimer\'s) uptake beat or pipeline milestone confirmation.',
-        action: 'BIIB beat = Alzheimer\'s market opening — add REGN, VRTX',
+        action: 'Historically, BIIB beats: Alzheimer\'s market opening — add REGN, VRTX',
         stocks: [
           { symbol: 'REGN', move: '+2 to +4%' }, { symbol: 'VRTX', move: '+1 to +3%' },
           { symbol: 'AMGN', move: '+1 to +2%' }, { symbol: 'LLY',  move: '+1 to +2%' },
@@ -1803,7 +1803,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-8 to -15%', qqqLabel: 'BIIB', spy: '-0.1 to -0.1%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Leqembi adoption slower than expected — high-risk pipeline dependency.',
-        action: 'BIIB miss = avoid CNS-focused biotech — Alzheimer\'s ramp disappointing',
+        action: 'Historically, BIIB misses: weakness in CNS-focused biotech — Alzheimer\'s ramp disappointing',
         stocks: [
           { symbol: 'REGN', move: '-1 to -3%' }, { symbol: 'VRTX', move: '-1 to -2%' },
           { symbol: 'AMGN', move: '-0.5 to -1.5%' }, { symbol: 'LLY', move: '-0.5 to -1%' },
@@ -1821,7 +1821,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+3 to +8%', qqqLabel: 'REGN', spy: '+0.1 to +0.1%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Dupixent global expansion beat confirms blockbuster multi-indication drug.',
-        action: 'REGN beat = Dupixent flywheel intact — add VRTX, AMGN',
+        action: 'Historically, REGN beats: Dupixent flywheel intact — add VRTX, AMGN',
         stocks: [
           { symbol: 'VRTX', move: '+1 to +3%' }, { symbol: 'AMGN', move: '+1 to +2%' },
           { symbol: 'BIIB', move: '+1 to +2%' }, { symbol: 'LLY',  move: '+0.5 to +1%' },
@@ -1831,7 +1831,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-4 to -10%', qqqLabel: 'REGN', spy: '-0.1 to -0.1%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Dupixent competition or pricing pressure slows growth trajectory.',
-        action: 'REGN miss = reduce high-PE biotech — pricing risk is real for biologics',
+        action: 'Historically, REGN misses: weakness in high-PE biotech — pricing risk is real for biologics',
         stocks: [
           { symbol: 'VRTX', move: '-1 to -2%' }, { symbol: 'AMGN', move: '-0.5 to -1.5%' },
           { symbol: 'BIIB', move: '-1 to -2%' }, { symbol: 'ABBV', move: '-0.5 to -1%' },
@@ -1849,7 +1849,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+4 to +10%', qqqLabel: 'VRTX', spy: '+0.1 to +0.1%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Trikafta CF franchise + pain pipeline (suzetrigine) beat.',
-        action: 'VRTX beat = specialty rare disease model working — add REGN, BIIB',
+        action: 'Historically, VRTX beats: specialty rare disease model working — add REGN, BIIB',
         stocks: [
           { symbol: 'REGN', move: '+1 to +3%' }, { symbol: 'BIIB', move: '+1 to +2%' },
           { symbol: 'MRNA', move: '+1 to +2%' }, { symbol: 'AMGN', move: '+0.5 to +1%' },
@@ -1859,7 +1859,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-5 to -12%', qqqLabel: 'VRTX', spy: '-0.1 to -0.1%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Pain drug miss or CF label expansion delay reduces growth optionality.',
-        action: 'VRTX miss = trim rare disease names — high-multiple needs pipeline delivery',
+        action: 'Historically, VRTX misses: pressure on rare disease names — high-multiple needs pipeline delivery',
         stocks: [
           { symbol: 'REGN', move: '-1 to -2%' }, { symbol: 'BIIB', move: '-1 to -2%' },
           { symbol: 'MRNA', move: '-0.5 to -1.5%' }, { symbol: 'AMGN', move: '-0.3 to -1%' },
@@ -1877,7 +1877,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +15%', qqqLabel: 'MRNA', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'RSV vaccine + flu mRNA pipeline beat reduces post-COVID revenue cliff risk.',
-        action: 'MRNA beat = mRNA platform diversifying — add BNTX as comp',
+        action: 'Historically, MRNA beats: mRNA platform diversifying — add BNTX as comp',
         stocks: [
           { symbol: 'BNTX', move: '+3 to +7%' }, { symbol: 'PFE',  move: '+1 to +2%' },
           { symbol: 'NVS',  move: '+0.5 to +1%' }, { symbol: 'VRTX', move: '+0.5 to +1%' },
@@ -1887,7 +1887,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-10 to -20%', qqqLabel: 'MRNA', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'COVID revenue cliff steeper than expected + pipeline delays.',
-        action: 'MRNA miss = platform not diversifying fast enough — reduce mRNA names',
+        action: 'Historically, MRNA misses: platform diversification concerns — pressure on mRNA names',
         stocks: [
           { symbol: 'BNTX', move: '-3 to -7%' }, { symbol: 'PFE',  move: '-0.5 to -1.5%' },
           { symbol: 'VRTX', move: '-0.3 to -1%' }, { symbol: 'AMGN', move: '-0.2 to -0.5%' },
@@ -1905,7 +1905,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+3 to +8%', qqqLabel: 'ISRG', spy: '+0.1 to +0.1%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Procedure volume beat + da Vinci 5 placements confirm robotic surgery growth.',
-        action: 'ISRG beat = surgical robotics runway long — add MDT, SYK',
+        action: 'Historically, ISRG beats: surgical robotics runway long — add MDT, SYK',
         stocks: [
           { symbol: 'MDT', move: '+1 to +2%' }, { symbol: 'SYK', move: '+1 to +2%' },
           { symbol: 'ZBH', move: '+0.5 to +1.5%' }, { symbol: 'BSX', move: '+0.5 to +1%' },
@@ -1915,7 +1915,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-4 to -10%', qqqLabel: 'ISRG', spy: '-0.1 to -0.1%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Hospital capex freeze or procedure softness = surgical volume concern.',
-        action: 'ISRG miss = hospital capex still under pressure — reduce medical devices',
+        action: 'Historically, ISRG misses: hospital capex still under pressure — reduce medical devices',
         stocks: [
           { symbol: 'MDT', move: '-0.5 to -1.5%' }, { symbol: 'SYK', move: '-0.5 to -1.5%' },
           { symbol: 'ZBH', move: '-0.5 to -1%' },   { symbol: 'BSX', move: '-0.5 to -1%' },
@@ -1933,7 +1933,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +12%', qqqLabel: 'ORCL', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'OCI (cloud) growth + AI training workloads beat — late-cycle cloud winner.',
-        action: 'ORCL beat = enterprise cloud still has legs — add MSFT, AMZN',
+        action: 'Historically, ORCL beats: enterprise cloud still has legs — add MSFT, AMZN',
         stocks: [
           { symbol: 'MSFT', move: '+0.5 to +1.5%' }, { symbol: 'AMZN', move: '+0.5 to +1%' },
           { symbol: 'CRM',  move: '+1 to +2%' },      { symbol: 'SAP',  move: '+1 to +2%' },
@@ -1943,7 +1943,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-5 to -10%', qqqLabel: 'ORCL', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'OCI bookings miss = enterprise cloud migration slower than MSFT/AWS.',
-        action: 'ORCL miss = stick to hyperscalers — OCI losing share in AI workloads',
+        action: 'Historically, ORCL misses: preference for hyperscalers — OCI losing share in AI workloads',
         stocks: [
           { symbol: 'MSFT', move: '-0.3 to -0.8%' }, { symbol: 'AMZN', move: '-0.2 to -0.5%' },
           { symbol: 'CRM',  move: '-0.5 to -1.5%' }, { symbol: 'SAP',  move: '-0.5 to -1%' },
@@ -1961,7 +1961,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +12%', qqqLabel: 'UBER', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Gross bookings + EBITDA margin expansion beat = platform leverage inflecting.',
-        action: 'UBER beat = add LYFT — ride-share category expanding, not zero-sum',
+        action: 'Historically, UBER beats: gains in LYFT — ride-share category expanding, not zero-sum',
         stocks: [
           { symbol: 'LYFT', move: '+3 to +7%' }, { symbol: 'ABNB', move: '+1 to +2%' },
           { symbol: 'BKNG', move: '+0.5 to +1.5%' }, { symbol: 'DASH', move: '+2 to +4%' },
@@ -1971,7 +1971,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-8 to -15%', qqqLabel: 'UBER', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Driver cost spike or demand miss = unit economics story in question.',
-        action: 'UBER miss = trim LYFT, DASH — gig economy cost pressures rising',
+        action: 'Historically, UBER misses: pressure on LYFT and DASH — gig economy cost pressures rising',
         stocks: [
           { symbol: 'LYFT', move: '-4 to -9%' }, { symbol: 'DASH', move: '-2 to -5%' },
           { symbol: 'ABNB', move: '-1 to -2%' }, { symbol: 'BKNG', move: '-0.5 to -1%' },
@@ -1989,7 +1989,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+8 to +15%', qqqLabel: 'LYFT', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Ride volume + profitability beat shows LYFT can sustain margins vs UBER.',
-        action: 'LYFT beat = ride-share category healthy — UBER likely follows',
+        action: 'Historically, LYFT beats: ride-share category healthy — UBER likely follows',
         stocks: [
           { symbol: 'UBER', move: '+1 to +3%' }, { symbol: 'DASH', move: '+1 to +3%' },
           { symbol: 'ABNB', move: '+0.5 to +1.5%' }, { symbol: 'COIN', move: 'flat to +1%' },
@@ -1999,7 +1999,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-10 to -18%', qqqLabel: 'LYFT', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Share loss to UBER or driver incentive costs destroy profitability.',
-        action: 'LYFT miss = UBER gains share — trim LYFT, review DASH',
+        action: 'Historically, LYFT misses: UBER historically gained share — LYFT and DASH saw pressure',
         stocks: [
           { symbol: 'UBER', move: '+0.5 to +1.5%' }, { symbol: 'DASH', move: '-1 to -3%' },
           { symbol: 'ABNB', move: '-0.5 to -1%' },   { symbol: 'COIN', move: 'flat' },
@@ -2017,7 +2017,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+8 to +20%', qqqLabel: 'PLTR', spy: '+0.1 to +0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'AIP commercial revenue + US government AI contracts beat = real AI ROI.',
-        action: 'PLTR beat = AI deployment story confirmed — add AI infra names',
+        action: 'Historically, PLTR beats: AI deployment story confirmed — add AI infra names',
         stocks: [
           { symbol: 'S',    move: '+3 to +6%' }, { symbol: 'SSTI', move: '+3 to +6%' },
           { symbol: 'MSFT', move: '+0.5 to +1%' }, { symbol: 'CRWD', move: '+1 to +2%' },
@@ -2027,7 +2027,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-10 to -20%', qqqLabel: 'PLTR', spy: '-0.1 to -0.3%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Commercial deal slippage = AI deployment harder to monetize than expected.',
-        action: 'PLTR miss = AI hype vs. ROI gap still wide — reduce speculative AI names',
+        action: 'Historically, PLTR misses: AI hype vs. ROI gap still wide — reduce speculative AI names',
         stocks: [
           { symbol: 'S',    move: '-3 to -5%' }, { symbol: 'MSFT', move: '-0.3 to -0.8%' },
           { symbol: 'CRWD', move: '-1 to -2%' }, { symbol: 'SNOW', move: '-2 to -4%' },
@@ -2045,7 +2045,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +15%', qqqLabel: 'RBLX', spy: '+0.1 to +0.1%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'DAU growth + bookings beat = user engagement returning post-normalization.',
-        action: 'RBLX beat = add gaming names (EA, TTWO, U) — platform stickiness real',
+        action: 'Historically, RBLX beats: gains in gaming names (EA, TTWO, U) — platform stickiness real',
         stocks: [
           { symbol: 'EA',   move: '+1 to +2%' }, { symbol: 'TTWO', move: '+1 to +3%' },
           { symbol: 'U',    move: '+2 to +5%' }, { symbol: 'SNAP', move: '+1 to +2%' },
@@ -2055,7 +2055,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-10 to -20%', qqqLabel: 'RBLX', spy: '-0.1 to -0.1%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'DAU decline or monetization miss = Gen Z attention moving elsewhere.',
-        action: 'RBLX miss = reduce gaming/metaverse — attention economy losing Gen Z',
+        action: 'Historically, RBLX misses: weakness in gaming/metaverse stocks — attention economy losing Gen Z',
         stocks: [
           { symbol: 'EA',   move: '-0.5 to -2%' }, { symbol: 'TTWO', move: '-1 to -3%' },
           { symbol: 'U',    move: '-2 to -5%' },   { symbol: 'SNAP', move: '-1 to -2%' },
@@ -2073,7 +2073,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +15%', qqqLabel: 'HOOD', spy: '+0.1 to +0.1%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'PFOF revenue + crypto trading beat = retail investors re-engaging.',
-        action: 'HOOD beat = retail sentiment positive — add COIN, SQ',
+        action: 'Historically, HOOD beats: retail sentiment positive — add COIN, SQ',
         stocks: [
           { symbol: 'COIN', move: '+3 to +7%' }, { symbol: 'SQ',   move: '+1 to +3%' },
           { symbol: 'IBKR', move: '+1 to +2%' }, { symbol: 'SCHW', move: '+0.5 to +1%' },
@@ -2083,7 +2083,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-10 to -18%', qqqLabel: 'HOOD', spy: '-0.1 to -0.1%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Trading volume miss = retail sentiment declining, crypto activity weak.',
-        action: 'HOOD miss = retail trading volume down — reduce COIN, SQ',
+        action: 'Historically, HOOD misses: retail trading volume historically declined — pressure on COIN and SQ',
         stocks: [
           { symbol: 'COIN', move: '-3 to -7%' }, { symbol: 'SQ',   move: '-1 to -3%' },
           { symbol: 'IBKR', move: '-0.5 to -1.5%' }, { symbol: 'SCHW', move: '-0.3 to -0.8%' },
@@ -2101,7 +2101,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+10 to +25%', qqqLabel: 'COIN', spy: '+0.1 to +0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Crypto trading volume + institutional custody beat = bull market confirmed.',
-        action: 'COIN beat = crypto bull cycle — add HOOD, MSTR as levered plays',
+        action: 'Historically, COIN beats: crypto bull cycle — gains in HOOD, MSTR as levered plays',
         stocks: [
           { symbol: 'HOOD',  move: '+4 to +8%' }, { symbol: 'MSTR', move: '+5 to +15%' },
           { symbol: 'RIOT',  move: '+5 to +12%' }, { symbol: 'MARA', move: '+5 to +12%' },
@@ -2111,7 +2111,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-15 to -25%', qqqLabel: 'COIN', spy: '-0.1 to -0.2%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Volume collapse or regulatory fine = crypto bear market signal.',
-        action: 'COIN miss = reduce all crypto-correlated names — liquidity drying up',
+        action: 'Historically, COIN misses: weakness across all crypto-correlated names — liquidity drying up',
         stocks: [
           { symbol: 'HOOD',  move: '-4 to -8%' }, { symbol: 'MSTR', move: '-8 to -18%' },
           { symbol: 'RIOT',  move: '-6 to -14%' }, { symbol: 'MARA', move: '-6 to -14%' },
@@ -2129,7 +2129,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '+5 to +12%', qqqLabel: 'GOOG', spy: '+0.2 to +0.8%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Search + Cloud (GCP) beat signals digital ad recovery and AI monetization.',
-        action: 'GOOG beat = buy META and digital ad names — sector rising tide',
+        action: 'Historically, GOOG beats: gains in META and digital ad names — sector rising tide',
         stocks: [
           { symbol: 'META',  move: '+2 to +4%' }, { symbol: 'MSFT', move: '+1 to +2%' },
           { symbol: 'AMZN',  move: '+1 to +2%' }, { symbol: 'TTD',  move: '+2 to +5%' },
@@ -2139,7 +2139,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         qqq: '-5 to -12%', qqqLabel: 'GOOG', spy: '-0.2 to -0.7%', spyLabel: 'QQQ',
         bonds: 'no direct impact',
         note: 'Search deceleration or AI cost pressure triggers digital ad sector concern.',
-        action: 'GOOG miss = reduce digital ad exposure — cloud + ad slowdown signal',
+        action: 'Historically, GOOG misses: weakness in digital ad stocks — cloud + ad slowdown signal',
         stocks: [
           { symbol: 'META',  move: '-2 to -5%' }, { symbol: 'MSFT', move: '-1 to -2.5%' },
           { symbol: 'AMZN',  move: '-1 to -2%' }, { symbol: 'TTD',  move: '-3 to -6%' },
@@ -2161,7 +2161,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spyLabel: 'Sector',
         bonds:    'no direct impact',
         note:     'Beat + raised guidance is the strongest reaction catalyst.',
-        action:   'Beat + raised guidance = buy the stock / add to sector ETF',
+        action:   'Historically, beats with raised guidance lifted the stock and the broader sector ETF.',
         stocks:   [],
       },
       cool: {
@@ -2171,7 +2171,7 @@ const SCENARIO_MAP: Array<{ match: RegExp; scenario: MarketScenario }> = [
         spyLabel: 'Sector',
         bonds:    'no direct impact',
         note:     'Miss + lowered guidance can trigger sector-wide selloff.',
-        action:   'Miss + cut guidance = trim the position, watch for sector contagion',
+        action:   'Historically, misses with cut guidance pressured the stock, sometimes triggering sector-wide contagion.',
         stocks:   [],
       },
     },

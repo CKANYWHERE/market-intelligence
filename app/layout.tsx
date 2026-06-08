@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
+import SiteFooter from "@/components/SiteFooter";
 import "./globals.css";
 
 const ADSENSE_CLIENT_ID = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
@@ -171,6 +172,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-gray-950 text-white">
         {children}
+        <SiteFooter />
       </body>
     </html>
   );

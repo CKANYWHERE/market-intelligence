@@ -99,7 +99,7 @@ function ScenarioHalf({
 
       {/* ACTION */}
       <div className={`mx-3 mb-2.5 px-2.5 py-2 rounded-lg border ${actionBg}`}>
-        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-0.5">Action</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-0.5">Historical Pattern</p>
         <p className={`text-xs font-semibold leading-snug ${actionText}`}>{side.action}</p>
       </div>
 
@@ -209,7 +209,7 @@ export default function ScenarioBar({ title, cutProb, compact }: Props) {
       {/* Header */}
       <div className="px-3 py-2 bg-gray-800/80 border-b border-gray-700/60 flex items-center justify-between">
         <span className="text-gray-200 font-bold text-[11px] uppercase tracking-wide">
-          If This Happens — What To Do
+          Historical Market Reactions
         </span>
         <span className="text-gray-600 text-[10px]">
           {apiData ? 'real historical avg' : 'based on historical avg'}
