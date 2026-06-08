@@ -14,6 +14,7 @@ import UpcomingCountdown from '@/components/calendar/UpcomingCountdown';
 import BreakingSection from '@/components/breaking/BreakingSection';
 import TodayEventsBar from '@/components/today/TodayEventsBar';
 import SpaceXIpoBanner from '@/components/banners/SpaceXIpoBanner';
+import MarketAnalysisSection from '@/components/market/MarketAnalysisSection';
 
 function MobileDrawer({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   const [visible, setVisible]       = useState(false);
@@ -150,6 +151,7 @@ export default function HomeClient() {
       <div className="md:hidden flex flex-col gap-3 p-3 pb-6">
         <UpcomingCountdown />
         <TodayEventsBar />
+        <MarketAnalysisSection />
         <KeyIndicatorsSection />
         <WeeklyDigestSection />
         <CalendarView
@@ -169,6 +171,7 @@ export default function HomeClient() {
       <main className="hidden md:flex flex-1 flex-col p-6 gap-4 overflow-y-auto">
         <UpcomingCountdown />
         <TodayEventsBar />
+        <MarketAnalysisSection />
         <KeyIndicatorsSection />
         {/* 캘린더 + 사이드바 row — 항상 나란히 */}
         <div className="flex gap-4 h-[660px]">

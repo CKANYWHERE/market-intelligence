@@ -14,6 +14,7 @@ export interface FedWatchData {
   meetingDate: string; // YYYY-MM-DD
   cutProb:     number; // 0–100
   holdProb:    number;
+  hikeProb:    number; // 0–100 — 인상 확률 (impliedRate > currentRate)
   currentRate: number; // FOMC 현재 상단 타깃
   impliedRate: number; // ZQ 내재금리
 }
@@ -67,15 +68,19 @@ export async function GET() {
     const quote = await getIndexQuote(zqSymbol);
     const impliedRate = parseFloat((100 - quote.value).toFixed(4));
 
-    // 25bp 단위 cut 확률 (0~100%)
-    const raw     = (currentRate - impliedRate) / 0.25;
-    const cutProb = Math.round(Math.max(0, Math.min(1, raw)) * 1000) / 10;
-    const holdProb = Math.round((100 - cutProb) * 10) / 10;
+    // 25bp 단위 cut / hold / hike 확률 계산
+    // diff > 0 → 인하 priced in, diff < 0 → 인상 priced in
+    const diff     = currentRate - impliedRate;
+    const rawProb  = diff / 0.25; // 단위: 횟수 (1 = 25bp 완전 반영)
+    const cutProb  = Math.round(Math.max(0, Math.min(1,  rawProb)) * 1000) / 10;
+    const hikeProb = Math.round(Math.max(0, Math.min(1, -rawProb)) * 1000) / 10;
+    const holdProb = Math.round((100 - cutProb - hikeProb) * 10) / 10;
 
     const data: FedWatchData = {
       meetingDate: fomcDate.toISOString().slice(0, 10),
       cutProb,
       holdProb,
+      hikeProb,
       currentRate,
       impliedRate,
     };

@@ -244,6 +244,31 @@ model IndicatorReaction {
 }
 
 // ─────────────────────────────────────────────
+// 10. MARKET ANALYSIS
+//     Source: manually curated (수동 입력)
+//     조정장/불장/하락장 등 시장 급변 시 원인·전망 분석
+//     is_active = true인 최신 1개만 UI에 표시
+// ─────────────────────────────────────────────
+model MarketAnalysis {
+  id               String   @id @default(cuid())
+  title            String   // e.g. "QQQ -4.8% 급락 분석"
+  event_date       DateTime // 분석 기준일 (UTC midnight)
+  market_condition String   // correction_entry | bear | bull | sideways | recovery
+  summary          String   @db.Text // 한 줄~두 줄 요약
+  causes           Json     // { title: string; description: string }[]
+  outlook          String   @db.Text // 전망
+  reference_ticker String   // "QQQ", "SPY", "NVDA" 등
+  reference_change Float    // 등락률 e.g. -4.8
+  reference_period String   // "1D" | "1W" | "1M"
+  is_active        Boolean  @default(true)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  @@index([is_active, created_at(sort: Desc)])
+  @@map("market_analyses")
+}
+
+// ─────────────────────────────────────────────
 // ENUMS
 // ─────────────────────────────────────────────
 enum Category {

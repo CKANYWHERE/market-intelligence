@@ -25,6 +25,20 @@ function Skeleton() {
   );
 }
 
+// 가장 높은 확률 시나리오로 색상 결정
+function getSentiment(d: FedWatchData) {
+  if (d.hikeProb >= 40) {
+    return { color: 'text-red-400', bg: 'bg-red-500/5', border: 'border-red-500/20', label: 'Hawkish — Hike Risk' };
+  }
+  if (d.cutProb >= 65) {
+    return { color: 'text-green-400', bg: 'bg-green-500/5', border: 'border-green-500/20', label: 'Dovish' };
+  }
+  if (d.cutProb >= 40) {
+    return { color: 'text-yellow-400', bg: 'bg-yellow-500/5', border: 'border-yellow-500/20', label: 'Neutral — Cut Lean' };
+  }
+  return { color: 'text-gray-400', bg: 'bg-gray-500/5', border: 'border-gray-500/20', label: 'Neutral — Hold' };
+}
+
 export default function FedWatchBanner() {
   const { data: resp, isLoading } = useSWR<Resp>(
     '/api/fed-watch',
@@ -36,15 +50,18 @@ export default function FedWatchBanner() {
   const d = resp?.data;
   if (!d) return null;
 
-  // 색상 / 레이블 — 확률에 따라 감성 표시
-  const { color, bg, border, sentiment } =
-    d.cutProb >= 65
-      ? { color: 'text-green-400',  bg: 'bg-green-500/5',  border: 'border-green-500/20', sentiment: 'Dovish' }
-      : d.cutProb >= 40
-      ? { color: 'text-yellow-400', bg: 'bg-yellow-500/5', border: 'border-yellow-500/20', sentiment: 'Neutral' }
-      : { color: 'text-red-400',    bg: 'bg-red-500/5',    border: 'border-red-500/20',    sentiment: 'Hawkish' };
+  const { color, bg, border, label } = getSentiment(d);
 
-  const barWidth = `${Math.round(d.cutProb)}%`;
+  // 3-way bar: hike (red, left) | hold (gray, center) | cut (green, right)
+  const hikeW  = `${Math.round(d.hikeProb)}%`;
+  const holdW  = `${Math.round(d.holdProb)}%`;
+  const cutW   = `${Math.round(d.cutProb)}%`;
+
+  // 주요 표시 확률 — 가장 높은 쪽
+  const dominantProb  = Math.max(d.cutProb, d.holdProb, d.hikeProb);
+  const dominantLabel =
+    d.hikeProb === dominantProb ? 'hike' :
+    d.cutProb  === dominantProb ? 'cut'  : 'hold';
 
   return (
     <div className={`border-b ${border} ${bg} px-4 md:px-6 py-2.5`}>
@@ -53,33 +70,39 @@ export default function FedWatchBanner() {
         {/* 레이블 */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <span className="text-gray-500 text-xs font-medium uppercase tracking-wide">
-            Fed Rate Cut Odds
+            FOMC Rate Odds
           </span>
           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${border} ${color}`}>
-            {sentiment}
+            {label}
           </span>
         </div>
 
         {/* 메인 확률 */}
         <div className="flex items-baseline gap-1.5 flex-shrink-0">
           <span className={`text-2xl font-black font-mono tabular-nums ${color}`}>
-            {d.cutProb.toFixed(0)}%
+            {dominantProb.toFixed(0)}%
           </span>
-          <span className="text-gray-500 text-xs">chance of cut</span>
+          <span className="text-gray-500 text-xs">chance of {dominantLabel}</span>
         </div>
 
-        {/* 프로그레스 바 */}
+        {/* 3-way 프로그레스 바 */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-gray-600 text-[10px]">Cut</span>
-          <div className="w-28 h-1.5 bg-gray-800 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${
-                d.cutProb >= 65 ? 'bg-green-500' : d.cutProb >= 40 ? 'bg-yellow-500' : 'bg-red-500'
-              }`}
-              style={{ width: barWidth }}
-            />
+          <span className="text-red-500 text-[10px]">Hike</span>
+          <div className="w-32 h-1.5 bg-gray-800 rounded-full overflow-hidden flex">
+            <div className="h-full bg-red-500   transition-all duration-500" style={{ width: hikeW }} />
+            <div className="h-full bg-gray-600  transition-all duration-500" style={{ width: holdW }} />
+            <div className="h-full bg-green-500 transition-all duration-500" style={{ width: cutW  }} />
           </div>
-          <span className="text-gray-600 text-[10px]">Hold</span>
+          <span className="text-green-500 text-[10px]">Cut</span>
+        </div>
+
+        {/* 세부 확률 (작은 텍스트) */}
+        <div className="flex items-center gap-2 text-[11px] flex-shrink-0">
+          <span className="text-red-400 font-mono">{d.hikeProb.toFixed(0)}% hike</span>
+          <span className="text-gray-700">·</span>
+          <span className="text-gray-400 font-mono">{d.holdProb.toFixed(0)}% hold</span>
+          <span className="text-gray-700">·</span>
+          <span className="text-green-400 font-mono">{d.cutProb.toFixed(0)}% cut</span>
         </div>
 
         {/* 메타 정보 */}
