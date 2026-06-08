@@ -60,21 +60,32 @@ export async function getRealtimeQuote(symbol: string): Promise<QuoteData> {
   const marketState = detectMarketState(meta.currentTradingPeriod);
 
   // ── 2. 현재가 결정 ────────────────────────────────────────────────
+  // 1순위: meta.preMarketPrice / meta.postMarketPrice (chart API meta에 포함 시)
+  // 2순위: 1m 캔들 마지막 종가 (prepost 포함)
+  // 3순위: meta.regularMarketPrice (전날 종가, fallback)
   let current = meta.regularMarketPrice as number;
 
   if (marketState === 'PRE' || marketState === 'POST') {
-    // 1m 캔들 (prepost 포함) → 마지막 캔들 종가 = 실제 현재가
-    try {
-      const url1m = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1m&range=1d&includePrePost=True`;
-      const res1m  = await fetch(url1m, { headers: HEADERS, cache: 'no-store' });
-      if (res1m.ok) {
-        const data1m   = await res1m.json();
-        const closes1m: number[] = data1m?.chart?.result?.[0]?.indicators?.quote?.[0]?.close ?? [];
-        const lastClose = [...closes1m].reverse().find((c) => c != null && !isNaN(c));
-        if (lastClose) current = lastClose;
+    const directPrice = marketState === 'PRE'
+      ? (meta.preMarketPrice as number | undefined)
+      : (meta.postMarketPrice as number | undefined);
+
+    if (directPrice && !isNaN(directPrice)) {
+      current = directPrice;
+    } else {
+      // chart API meta에 없으면 1m 캔들 fallback (prepost 포함)
+      try {
+        const url1m = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1m&range=1d&includePrePost=true`;
+        const res1m = await fetch(url1m, { headers: HEADERS, cache: 'no-store' });
+        if (res1m.ok) {
+          const data1m = await res1m.json();
+          const closes1m: number[] = data1m?.chart?.result?.[0]?.indicators?.quote?.[0]?.close ?? [];
+          const lastClose = [...closes1m].reverse().find((c) => c != null && !isNaN(c));
+          if (lastClose) current = lastClose;
+        }
+      } catch {
+        // 실패 시 regularMarketPrice 유지
       }
-    } catch {
-      // 1m 실패 시 regularMarketPrice 유지
     }
   }
 
@@ -82,15 +93,17 @@ export async function getRealtimeQuote(symbol: string): Promise<QuoteData> {
   // POST: 오늘 정규장 종가 대비
   // 주말(토/일): current = 금요일 종가, changeBase = 목요일 종가 (0% 방지)
   // 그 외: 전일 정규장 종가 대비
-  const dayOfWeekET = new Date(nowET + 'T12:00:00').getDay(); // 0=일, 6=토
-  const isWeekend   = dayOfWeekET === 0 || dayOfWeekET === 6;
-
   let changeBase: number;
   if (marketState === 'POST') {
+    // 당일 정규장 종가 대비 (after-hours 변동)
     changeBase = meta.regularMarketPrice as number;
-  } else if (isWeekend && completedCandles.length >= 2) {
-    changeBase = completedCandles.at(-2)!.close; // 금요일 기준 → 목요일 대비
+  } else if (marketState === 'CLOSED' && completedCandles.length >= 2) {
+    // CLOSED 상태: current = 마지막 세션 종가 = completedCandles.at(-1)
+    // → 그 전 세션 종가 대비로 비교해야 daily change가 0이 안 됨
+    // (주말/월요일 새벽/장외 시간 모두 포함)
+    changeBase = completedCandles.at(-2)!.close;
   } else {
+    // REGULAR / PRE: 전일 종가 대비
     changeBase = lastSessionClose;
   }
 
@@ -143,10 +156,17 @@ export async function getIndexQuote(
 
   const value = meta.regularMarketPrice as number;
 
-  // 주말이면 금→목 비교, 평일이면 오늘→전일 비교
-  const dayOfWeekET = new Date(nowET + 'T12:00:00').getDay(); // 0=일, 6=토
-  const isWeekend   = dayOfWeekET === 0 || dayOfWeekET === 6;
-  const prevClose   = isWeekend && completedCandles.length >= 2
+  // 장외(CLOSED): value = 마지막 세션 종가 = completedCandles.at(-1)
+  //   → 그 전 세션 종가 대비로 비교 (주말/야간 포함)
+  // 장중(REGULAR): value = 실시간 가격 → 전일 종가 대비
+  const now = Date.now() / 1000;
+  const ctp = meta.currentTradingPeriod as Record<string, { start: number; end: number }> | undefined;
+  const reg = ctp?.regular;
+  const post = ctp?.post;
+  const isMarketOpen = (reg && now >= reg.start && now < reg.end) ||
+                       (post && now >= post.start && now < post.end);
+
+  const prevClose = !isMarketOpen && completedCandles.length >= 2
     ? completedCandles.at(-2)!.close
     : (completedCandles.at(-1)?.close ?? (meta.chartPreviousClose ?? value) as number);
 

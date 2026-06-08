@@ -19,14 +19,20 @@ export default function AdBanner({ slot, format = 'auto', className = '' }: Prop
   const pushed = useRef(false);
 
   useEffect(() => {
-    // 광고 스크립트가 로드된 후 한 번만 push
     if (pushed.current) return;
-    try {
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-      pushed.current = true;
-    } catch {
-      // AdSense 스크립트 미로드 시 무시
-    }
+    const tryPush = () => {
+      // 컨테이너 너비가 0이면 push 하지 않음 (availableWidth=0 에러 방지)
+      if (!adRef.current || adRef.current.offsetWidth === 0) return;
+      try {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+        pushed.current = true;
+      } catch {
+        // AdSense 스크립트 미로드 시 무시
+      }
+    };
+    // 레이아웃이 완전히 그려진 후 실행
+    const raf = requestAnimationFrame(tryPush);
+    return () => cancelAnimationFrame(raf);
   }, []);
 
   const clientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
