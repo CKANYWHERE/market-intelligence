@@ -97,11 +97,15 @@ export async function getRealtimeQuote(symbol: string): Promise<QuoteData> {
   if (marketState === 'POST') {
     // 당일 정규장 종가 대비 (after-hours 변동)
     changeBase = meta.regularMarketPrice as number;
-  } else if (marketState === 'CLOSED' && completedCandles.length >= 2) {
-    // CLOSED 상태: current = 마지막 세션 종가 = completedCandles.at(-1)
-    // → 그 전 세션 종가 대비로 비교해야 daily change가 0이 안 됨
-    // (주말/월요일 새벽/장외 시간 모두 포함)
-    changeBase = completedCandles.at(-2)!.close;
+  } else if (marketState === 'CLOSED') {
+    // CLOSED 상태: current = meta.regularMarketPrice = 마지막 세션 종가
+    // validCandles에는 마지막 세션 캔들이 항상 포함됨 (nowET가 같은 ET날이어도)
+    // → at(-1) = 마지막 세션 종가 ≈ regularMarketPrice
+    // → at(-2) = 직전 세션 종가 = 올바른 changeBase
+    // (completedCandles.at(-2)를 쓰면 nowET=마지막거래일 당일인 경우 한 단계 더 밀려 오류 발생)
+    changeBase = validCandles.length >= 2
+      ? validCandles.at(-2)!.close
+      : lastSessionClose;
   } else {
     // REGULAR / PRE: 전일 종가 대비
     changeBase = lastSessionClose;
@@ -166,8 +170,12 @@ export async function getIndexQuote(
   const isMarketOpen = (reg && now >= reg.start && now < reg.end) ||
                        (post && now >= post.start && now < post.end);
 
-  const prevClose = !isMarketOpen && completedCandles.length >= 2
-    ? completedCandles.at(-2)!.close
+  // 장외(CLOSED): validCandles.at(-1) = 마지막 세션 종가 ≈ value
+  //               validCandles.at(-2) = 직전 세션 종가 = 올바른 prevClose
+  // 장중(REGULAR): completedCandles.at(-1) = 전일 종가
+  // completedCandles.at(-2) 사용 시 nowET=마지막거래일 당일이면 한 단계 더 밀려 오류 발생
+  const prevClose = !isMarketOpen && validCandles.length >= 2
+    ? validCandles.at(-2)!.close
     : (completedCandles.at(-1)?.close ?? (meta.chartPreviousClose ?? value) as number);
 
   const change = value - prevClose;
