@@ -90,25 +90,19 @@ export async function getRealtimeQuote(symbol: string): Promise<QuoteData> {
   }
 
   // ── 3. prevClose 및 change 계산 ──────────────────────────────────
-  // POST: 오늘 정규장 종가 대비
-  // 주말(토/일): current = 금요일 종가, changeBase = 목요일 종가 (0% 방지)
-  // 그 외: 전일 정규장 종가 대비
+  // Yahoo Finance meta.chartPreviousClose = 직전 거래일 정규장 종가
+  // range=5d에서 항상 정확 (range=2d는 주말에 수요일을 가리키는 버그 있음)
+  // POST: 오늘 정규장 종가 대비 (after-hours 변동)
+  // PRE/REGULAR/CLOSED: chartPreviousClose 대비
+  const chartPrevClose = (meta.chartPreviousClose ?? meta.previousClose ?? lastSessionClose) as number;
+
   let changeBase: number;
   if (marketState === 'POST') {
-    // 당일 정규장 종가 대비 (after-hours 변동)
+    // after-hours: 오늘 정규장 종가 대비
     changeBase = meta.regularMarketPrice as number;
-  } else if (marketState === 'CLOSED') {
-    // CLOSED 상태: current = meta.regularMarketPrice = 마지막 세션 종가
-    // validCandles에는 마지막 세션 캔들이 항상 포함됨 (nowET가 같은 ET날이어도)
-    // → at(-1) = 마지막 세션 종가 ≈ regularMarketPrice
-    // → at(-2) = 직전 세션 종가 = 올바른 changeBase
-    // (completedCandles.at(-2)를 쓰면 nowET=마지막거래일 당일인 경우 한 단계 더 밀려 오류 발생)
-    changeBase = validCandles.length >= 2
-      ? validCandles.at(-2)!.close
-      : lastSessionClose;
   } else {
-    // REGULAR / PRE: 전일 종가 대비
-    changeBase = lastSessionClose;
+    // PRE / REGULAR / CLOSED: Yahoo 공식 전일 종가 사용
+    changeBase = chartPrevClose;
   }
 
   const change        = current - changeBase;
@@ -127,9 +121,10 @@ export async function getRealtimeQuote(symbol: string): Promise<QuoteData> {
   };
 }
 
-/** VIX / ^TNX 등 인덱스 단순 조회 (pre/post market 로직 불필요)
- *  range=5d 사용 — range=2d는 주말에 chartPreviousClose가 수요일을 가리켜
- *  3일치 변화가 하루치처럼 표시되는 버그 있음
+/** VIX / ^TNX 등 인덱스 단순 조회
+ *  meta.chartPreviousClose = Yahoo Finance가 직접 제공하는 직전 거래일 종가
+ *  range=5d 에서 항상 정확 (range=2d는 주말에 오래된 날짜를 가리키는 버그 있음)
+ *  캔들 역산 불필요 — Yahoo 공식 값을 그대로 사용
  */
 export async function getIndexQuote(
   symbol: string,
@@ -143,42 +138,12 @@ export async function getIndexQuote(
   const result = data?.chart?.result?.[0];
   if (!result) throw new Error(`Yahoo: no result for ${symbol}`);
 
-  const meta       = result.meta;
-  const closes: number[]     = result.indicators?.quote?.[0]?.close ?? [];
-  const timestamps: number[] = result.timestamp ?? [];
+  const meta = result.meta;
 
-  // 유효한 (날짜, 종가) 쌍
-  const nowET = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
-  const validCandles = timestamps
-    .map((t: number, i: number) => ({
-      date:  new Date(t * 1000).toLocaleDateString('en-CA', { timeZone: 'America/New_York' }),
-      close: closes[i],
-    }))
-    .filter((c) => c.close != null && !isNaN(c.close));
-
-  const completedCandles = validCandles.filter((c) => c.date < nowET);
-
-  const value = meta.regularMarketPrice as number;
-
-  // 장외(CLOSED): value = 마지막 세션 종가 = completedCandles.at(-1)
-  //   → 그 전 세션 종가 대비로 비교 (주말/야간 포함)
-  // 장중(REGULAR): value = 실시간 가격 → 전일 종가 대비
-  const now = Date.now() / 1000;
-  const ctp = meta.currentTradingPeriod as Record<string, { start: number; end: number }> | undefined;
-  const reg = ctp?.regular;
-  const post = ctp?.post;
-  const isMarketOpen = (reg && now >= reg.start && now < reg.end) ||
-                       (post && now >= post.start && now < post.end);
-
-  // 장외(CLOSED): validCandles.at(-1) = 마지막 세션 종가 ≈ value
-  //               validCandles.at(-2) = 직전 세션 종가 = 올바른 prevClose
-  // 장중(REGULAR): completedCandles.at(-1) = 전일 종가
-  // completedCandles.at(-2) 사용 시 nowET=마지막거래일 당일이면 한 단계 더 밀려 오류 발생
-  const prevClose = !isMarketOpen && validCandles.length >= 2
-    ? validCandles.at(-2)!.close
-    : (completedCandles.at(-1)?.close ?? (meta.chartPreviousClose ?? value) as number);
-
-  const change = value - prevClose;
+  const value     = meta.regularMarketPrice as number;
+  // chartPreviousClose: Yahoo Finance 공식 직전 거래일 종가 — Yahoo 웹사이트가 change% 계산에 사용하는 값과 동일
+  const prevClose = (meta.chartPreviousClose ?? meta.previousClose ?? value) as number;
+  const change    = value - prevClose;
 
   return {
     value,
