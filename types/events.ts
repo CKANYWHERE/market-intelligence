@@ -56,6 +56,7 @@ export interface QuoteData {
   low: number;
   open: number;
   prevClose: number;
+  regularClose: number; // 항상 정규장 종가 (PRE/POST 무관)
   marketState?: 'PRE' | 'REGULAR' | 'POST' | 'CLOSED';
 }
 

@@ -54,43 +54,53 @@ export async function GET(req: NextRequest) {
         SYMBOLS.map(async (symbol) => {
           const q = await getRealtimeQuote(symbol);
 
+          // 항상 정규장 종가(regularClose) 저장 — 시간외 가격 저장 금지
+          const eodPrice = q.regularClose;
+
+          // 어제 종가: DB에서 오늘 이전 가장 최근 row
+          const prevRow = await db.etfQuote.findFirst({
+            where: { symbol, quoted_at: { lt: dayStart } },
+            orderBy: { quoted_at: 'desc' },
+          });
+          const prevClose     = prevRow?.price ?? eodPrice;
+          const change        = eodPrice - prevClose;
+          const changePercent = prevClose ? change / prevClose * 100 : 0;
+
           // 오늘 날짜 기준 기존 행 조회
           const existing = await db.etfQuote.findFirst({
             where: { symbol, quoted_at: { gte: dayStart, lte: dayEnd } },
           });
 
           if (existing) {
-            // 이미 있으면 최신 가격으로 업데이트
             await db.etfQuote.update({
               where: { id: existing.id },
               data: {
-                price:          q.current,
-                change:         q.change,
-                change_percent: q.changePercent,
+                price:          eodPrice,
+                change,
+                change_percent: changePercent,
                 high:           q.high,
                 low:            q.low,
                 open:           q.open,
-                prev_close:     q.prevClose,
+                prev_close:     prevClose,
                 quoted_at:      new Date(),
               },
             });
-            log.push(`  ↻ ${symbol}: $${q.current.toFixed(2)} (${q.changePercent >= 0 ? '+' : ''}${q.changePercent.toFixed(2)}%) — updated`);
+            log.push(`  ↻ ${symbol}: $${eodPrice.toFixed(2)} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%) — updated`);
           } else {
-            // 없으면 신규 삽입
             await db.etfQuote.create({
               data: {
                 symbol,
-                price:          q.current,
-                change:         q.change,
-                change_percent: q.changePercent,
+                price:          eodPrice,
+                change,
+                change_percent: changePercent,
                 high:           q.high,
                 low:            q.low,
                 open:           q.open,
-                prev_close:     q.prevClose,
+                prev_close:     prevClose,
                 quoted_at:      new Date(),
               },
             });
-            log.push(`  ✓ ${symbol}: $${q.current.toFixed(2)} (${q.changePercent >= 0 ? '+' : ''}${q.changePercent.toFixed(2)}%) — inserted`);
+            log.push(`  ✓ ${symbol}: $${eodPrice.toFixed(2)} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%) — inserted`);
           }
 
           refreshed++;

@@ -90,19 +90,26 @@ export async function getRealtimeQuote(symbol: string): Promise<QuoteData> {
   }
 
   // ── 3. prevClose 및 change 계산 ──────────────────────────────────
-  // Yahoo Finance meta.chartPreviousClose = 직전 거래일 정규장 종가
-  // range=5d에서 항상 정확 (range=2d는 주말에 수요일을 가리키는 버그 있음)
-  // POST: 오늘 정규장 종가 대비 (after-hours 변동)
-  // PRE/REGULAR/CLOSED: chartPreviousClose 대비
-  const chartPrevClose = (meta.chartPreviousClose ?? meta.previousClose ?? lastSessionClose) as number;
-
+  // PRE:     current = 프리마켓 가격, base = 어제 정규장 종가 (= meta.regularMarketPrice)
+  //          ※ range=5d 캔들에 어제 데이터가 None일 수 있어 regularMarketPrice가 가장 신뢰성 높음
+  // POST:    current = 시간외 가격, base = 오늘 정규장 종가 (= meta.regularMarketPrice)
+  // REGULAR: current = 실시간 가격, base = 어제 종가 (완료된 마지막 캔들)
+  // CLOSED:  current = 마지막 세션 종가, base = 그 직전 세션 종가 (validCandles.at(-2))
   let changeBase: number;
-  if (marketState === 'POST') {
-    // after-hours: 오늘 정규장 종가 대비
+  if (marketState === 'PRE') {
+    // 어제 정규장 종가 대비 프리마켓 변동 — regularMarketPrice = last regular session close
     changeBase = meta.regularMarketPrice as number;
+  } else if (marketState === 'POST') {
+    // 오늘 정규장 종가 대비 시간외 변동
+    changeBase = meta.regularMarketPrice as number;
+  } else if (marketState === 'CLOSED') {
+    // 마지막 세션 종가(≈regularMarketPrice)의 직전 세션 종가
+    changeBase = validCandles.length >= 2
+      ? validCandles.at(-2)!.close
+      : lastSessionClose;
   } else {
-    // PRE / REGULAR / CLOSED: Yahoo 공식 전일 종가 사용
-    changeBase = chartPrevClose;
+    // REGULAR: 전일 정규장 종가 대비
+    changeBase = lastSessionClose;
   }
 
   const change        = current - changeBase;
@@ -113,18 +120,23 @@ export async function getRealtimeQuote(symbol: string): Promise<QuoteData> {
     current,
     change,
     changePercent,
-    high:        (meta.regularMarketDayHigh ?? current) as number,
-    low:         (meta.regularMarketDayLow  ?? current) as number,
-    open:        (meta.regularMarketOpen    ?? current) as number,
-    prevClose:   changeBase,
+    high:         (meta.regularMarketDayHigh ?? current) as number,
+    low:          (meta.regularMarketDayLow  ?? current) as number,
+    open:         (meta.regularMarketOpen    ?? current) as number,
+    prevClose:    changeBase,
+    regularClose: meta.regularMarketPrice as number,
     marketState,
   };
 }
 
 /** VIX / ^TNX 등 인덱스 단순 조회
- *  meta.chartPreviousClose = Yahoo Finance가 직접 제공하는 직전 거래일 종가
- *  range=5d 에서 항상 정확 (range=2d는 주말에 오래된 날짜를 가리키는 버그 있음)
- *  캔들 역산 불필요 — Yahoo 공식 값을 그대로 사용
+ *  range=5d 사용 — range=2d는 주말에 chartPreviousClose가 수요일을 가리켜
+ *  3일치 변화가 하루치처럼 표시되는 버그 있음
+ *
+ *  chartPreviousClose = 5일 범위 시작 전날 종가 (직전 거래일 종가 아님!) → 사용 금지
+ *  prevClose는 캔들에서 직접 산출:
+ *    - 장중(REGULAR/POST): completedCandles.at(-1) = 전일 종가
+ *    - 장외(CLOSED/PRE):   validCandles.at(-2) = 마지막 세션의 직전 세션 종가
  */
 export async function getIndexQuote(
   symbol: string,
@@ -138,12 +150,36 @@ export async function getIndexQuote(
   const result = data?.chart?.result?.[0];
   if (!result) throw new Error(`Yahoo: no result for ${symbol}`);
 
-  const meta = result.meta;
+  const meta       = result.meta;
+  const closes: number[]     = result.indicators?.quote?.[0]?.close ?? [];
+  const timestamps: number[] = result.timestamp ?? [];
 
-  const value     = meta.regularMarketPrice as number;
-  // chartPreviousClose: Yahoo Finance 공식 직전 거래일 종가 — Yahoo 웹사이트가 change% 계산에 사용하는 값과 동일
-  const prevClose = (meta.chartPreviousClose ?? meta.previousClose ?? value) as number;
-  const change    = value - prevClose;
+  const nowET = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+  const validCandles = timestamps
+    .map((t: number, i: number) => ({
+      date:  new Date(t * 1000).toLocaleDateString('en-CA', { timeZone: 'America/New_York' }),
+      close: closes[i],
+    }))
+    .filter((c) => c.close != null && !isNaN(c.close));
+
+  const completedCandles = validCandles.filter((c) => c.date < nowET);
+
+  const value = meta.regularMarketPrice as number;
+
+  const now = Date.now() / 1000;
+  const ctp = meta.currentTradingPeriod as Record<string, { start: number; end: number }> | undefined;
+  const reg  = ctp?.regular;
+  const post = ctp?.post;
+  const isMarketOpen = (reg  && now >= reg.start  && now < reg.end) ||
+                       (post && now >= post.start && now < post.end);
+
+  // 장중: completedCandles.at(-1) = 전일 종가 (오늘 캔들 미포함)
+  // 장외: validCandles.at(-2) = 마지막 완료 세션의 직전 세션 종가
+  const prevClose = isMarketOpen
+    ? (completedCandles.at(-1)?.close ?? value)
+    : (validCandles.length >= 2 ? validCandles.at(-2)!.close : (completedCandles.at(-1)?.close ?? value));
+
+  const change = value - prevClose;
 
   return {
     value,
