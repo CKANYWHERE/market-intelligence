@@ -48,7 +48,7 @@ export default function FedWatchBadge() {
   return (
     <div
       className="flex items-center gap-1 md:gap-2 bg-gray-900 border border-gray-800 rounded-lg px-2 md:px-3 py-1.5 md:py-2"
-      title={`Hold: ${d.holdProb}%  Implied rate: ${d.impliedRate}%`}
+      title={`Hold: ${d.holdProb}%  Cut: ${d.cutProb}%  Hike: ${d.hikeProb}%  (via Polymarket)`}
     >
       <span className="text-gray-400 font-semibold text-xs md:text-sm hidden md:inline">
         {dateLabel}

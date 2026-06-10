@@ -334,6 +334,7 @@ export async function generateMetadata({
   let title       = '';
   let description = '';
   let keywords: string[] = [];
+  let ogCategory  = 'growth';
 
   if (result.type === 'economic') {
     const { row } = result;
@@ -341,6 +342,7 @@ export async function generateMetadata({
     title          = meta.title;
     description    = meta.description;
     keywords       = meta.keywords;
+    ogCategory     = row.category ?? 'growth';
 
   } else if (result.type === 'earnings') {
     const { row }  = result;
@@ -354,6 +356,7 @@ export async function generateMetadata({
       `${row.company} earnings report`, `${row.symbol} EPS estimate ${yr}`,
       `${row.symbol} revenue forecast`, 'NASDAQ-100 earnings calendar 2026',
     ];
+    ogCategory = 'earnings';
 
   } else {
     const { row }  = result;
@@ -372,20 +375,29 @@ export async function generateMetadata({
       'upcoming IPO 2026', 'NASDAQ IPO calendar 2026',
       ...(isFastEntry ? ['NASDAQ Fast Entry Rule 2026', 'QQQ forced buying IPO'] : []),
     ];
+    ogCategory = 'ipo';
   }
+
+  const ogImageUrl = `${SITE_URL}/og?title=${encodeURIComponent(title)}&date=${date}&category=${ogCategory}`;
 
   return {
     title,
     description,
     keywords,
     alternates: { canonical: `${SITE_URL}/events/${slug}` },
-    openGraph:  {
+    openGraph: {
       title,
       description,
-      url:      `${SITE_URL}/events/${slug}`,
-      type:     'article',
+      url:    `${SITE_URL}/events/${slug}`,
+      type:   'article',
+      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: title }],
     },
-    twitter: { card: 'summary', title, description },
+    twitter: {
+      card:    'summary_large_image',
+      title,
+      description,
+      images:  [ogImageUrl],
+    },
   };
 }
 

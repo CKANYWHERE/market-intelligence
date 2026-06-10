@@ -33,15 +33,11 @@ export async function GET() {
       prevCloseMap[row.symbol] = row.price;
     }
 
-    // change% 재계산
-    // PRE 상태: regularClose = meta.regularMarketPrice = 어제 정규장 종가 → 항상 정확, DB 무시
-    // REGULAR:  DB 어제 종가 사용 (장 중엔 regularMarketPrice가 현재가라 사용 불가)
-    // POST/CLOSED: DB 어제 종가 사용, 없으면 regularClose fallback
+    // 모든 상태에서 DB 어제 종가 기준으로 change% 계산
+    // DB 없으면 regularClose(= Yahoo regularMarketPrice) fallback
     const result: Record<string, QuoteData> = {};
     for (const [symbol, q] of Object.entries(quotes)) {
-      const changeBase = q.marketState === 'PRE'
-        ? q.regularClose
-        : (prevCloseMap[symbol] ?? q.regularClose);
+      const changeBase    = prevCloseMap[symbol] ?? q.regularClose;
       const change        = q.current - changeBase;
       const changePercent = changeBase ? (change / changeBase) * 100 : 0;
       result[symbol] = { ...q, change, changePercent, prevClose: changeBase };

@@ -1,12 +1,10 @@
 // GET /api/fed-watch
-// 30-Day Fed Funds Futures (ZQ, Yahoo Finance) + FRED 현재 금리로 cut 확률 계산
-// 방법: FOMC 개최월 다음 달 ZQ 선물가격으로 포스트-미팅 내재금리 추출
-//   implied_rate  = 100 - futures_price
-//   prob_cut      = (current_rate - implied_rate) / 0.25  (25bp 단위 기준)
+// Polymarket prediction market 기반 FOMC 금리 결정 확률 계산
+// 데이터 소스: gamma-api.polymarket.com (tag_slug=fomc, endDate 범위 필터)
+// fallback: data: null (UI에서 graceful hide)
 
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/batch/db';
-import { getIndexQuote } from '@/lib/api/yahooFinance';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,13 +12,11 @@ export interface FedWatchData {
   meetingDate: string; // YYYY-MM-DD
   cutProb:     number; // 0–100
   holdProb:    number;
-  hikeProb:    number; // 0–100 — 인상 확률 (impliedRate > currentRate)
-  currentRate: number; // FOMC 현재 상단 타깃
-  impliedRate: number; // ZQ 내재금리
+  hikeProb:    number;
+  currentRate: number; // FRED DFEDTARU 상단 타깃
+  impliedRate: number; // currentRate 기준 기대값 (합성)
+  source:      'Polymarket';
 }
-
-// ZQ 월 코드 (CME/Yahoo Finance 표기)
-const MONTH_LETTER = ['F','G','H','J','K','M','N','Q','U','V','X','Z'];
 
 async function getCurrentRate(): Promise<number> {
   const key = process.env.FRED_API_KEY;
@@ -47,6 +43,67 @@ async function getNextFomcDate(): Promise<Date | null> {
   return event?.date ?? null;
 }
 
+interface PolyMarket {
+  question:      string;
+  outcomePrices: string; // JSON array e.g. '["0.0035","0.9965"]'
+  outcomes:      string; // JSON array e.g. '["Yes","No"]'
+}
+
+interface PolyEvent {
+  title:   string;
+  markets: PolyMarket[];
+}
+
+async function getPolymarketOdds(fomcDate: Date): Promise<{ cutProb: number; holdProb: number; hikeProb: number } | null> {
+  // FOMC 날짜 ±3일 범위로 조회
+  const min = new Date(fomcDate); min.setDate(min.getDate() - 3);
+  const max = new Date(fomcDate); max.setDate(max.getDate() + 3);
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+
+  const url =
+    `https://gamma-api.polymarket.com/events` +
+    `?tag_slug=fomc&end_date_min=${fmt(min)}&end_date_max=${fmt(max)}&limit=10`;
+
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'Mozilla/5.0' },
+    signal:  AbortSignal.timeout(6000),
+    cache:   'no-store',
+  });
+  if (!res.ok) return null;
+
+  const events: PolyEvent[] = await res.json();
+
+  // "Fed Decision in {month}?" 이벤트 찾기
+  const event = events.find(
+    (e) => /fed decision in/i.test(e.title) && Array.isArray(e.markets),
+  );
+  if (!event) return null;
+
+  // outcomePrices[0] = "Yes" 확률
+  function yesPrice(m: PolyMarket): number {
+    try {
+      const prices   = JSON.parse(m.outcomePrices) as string[];
+      const outcomes = JSON.parse(m.outcomes)      as string[];
+      const idx = outcomes.findIndex((o) => o.toLowerCase() === 'yes');
+      return parseFloat(prices[idx >= 0 ? idx : 0] ?? '0');
+    } catch { return 0; }
+  }
+
+  const q = (m: PolyMarket) => m.question.toLowerCase();
+
+  const cut25  = event.markets.find((m) => q(m).includes('decrease') && q(m).includes('25'));
+  const cut50  = event.markets.find((m) => q(m).includes('decrease') && q(m).includes('50'));
+  const hold   = event.markets.find((m) => q(m).includes('no change'));
+  const hike25 = event.markets.find((m) => q(m).includes('increase') && q(m).includes('25'));
+  const hike50 = event.markets.find((m) => q(m).includes('increase') && q(m).includes('50'));
+
+  const cutProb  = Math.round(((cut25 ? yesPrice(cut25) : 0) + (cut50  ? yesPrice(cut50)  : 0)) * 1000) / 10;
+  const hikeProb = Math.round(((hike25? yesPrice(hike25): 0) + (hike50 ? yesPrice(hike50) : 0)) * 1000) / 10;
+  const holdProb = Math.round((hold ? yesPrice(hold) : Math.max(0, 1 - (cutProb + hikeProb) / 100)) * 1000) / 10;
+
+  return { cutProb, holdProb, hikeProb };
+}
+
 export async function GET() {
   try {
     const [currentRate, fomcDate] = await Promise.all([
@@ -58,23 +115,17 @@ export async function GET() {
       return NextResponse.json({ data: null, error: 'Missing rate or FOMC date' });
     }
 
-    // FOMC 다음 달 ZQ 계약 → 포스트-미팅 금리를 가장 깔끔하게 반영
-    const afterMonth = new Date(fomcDate);
-    afterMonth.setMonth(afterMonth.getMonth() + 1);
-    const m   = afterMonth.getMonth();       // 0-indexed
-    const y2  = afterMonth.getFullYear() % 100; // 2-digit year
-    const zqSymbol = `ZQ${MONTH_LETTER[m]}${y2 < 10 ? '0' + y2 : y2}.CBT`;
+    const odds = await getPolymarketOdds(fomcDate);
+    if (!odds) {
+      return NextResponse.json({ data: null, error: 'Polymarket data unavailable' });
+    }
 
-    const quote = await getIndexQuote(zqSymbol);
-    const impliedRate = parseFloat((100 - quote.value).toFixed(4));
+    const { cutProb, holdProb, hikeProb } = odds;
 
-    // 25bp 단위 cut / hold / hike 확률 계산
-    // diff > 0 → 인하 priced in, diff < 0 → 인상 priced in
-    const diff     = currentRate - impliedRate;
-    const rawProb  = diff / 0.25; // 단위: 횟수 (1 = 25bp 완전 반영)
-    const cutProb  = Math.round(Math.max(0, Math.min(1,  rawProb)) * 1000) / 10;
-    const hikeProb = Math.round(Math.max(0, Math.min(1, -rawProb)) * 1000) / 10;
-    const holdProb = Math.round((100 - cutProb - hikeProb) * 10) / 10;
+    // 합성 내재금리: currentRate에서 기대 변동 반영
+    const impliedRate = parseFloat(
+      (currentRate - (cutProb / 100) * 0.25 + (hikeProb / 100) * 0.25).toFixed(4),
+    );
 
     const data: FedWatchData = {
       meetingDate: fomcDate.toISOString().slice(0, 10),
@@ -83,11 +134,12 @@ export async function GET() {
       hikeProb,
       currentRate,
       impliedRate,
+      source: 'Polymarket',
     };
 
     return NextResponse.json(
       { data },
-      { headers: { 'Cache-Control': 's-maxage=600, stale-while-revalidate=60' } },
+      { headers: { 'Cache-Control': 's-maxage=300, stale-while-revalidate=60' } },
     );
   } catch (err) {
     console.error('[fed-watch]', err);

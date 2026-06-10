@@ -113,7 +113,7 @@ export default function FedWatchBanner() {
           <span className="text-gray-700">·</span>
           <span>Implied <span className="text-gray-400 font-mono">{d.impliedRate.toFixed(3)}%</span></span>
           <span className="text-gray-700 hidden sm:inline">·</span>
-          <span className="hidden sm:inline">via ZQ Futures</span>
+          <span className="hidden sm:inline">via Polymarket</span>
         </div>
 
       </div>

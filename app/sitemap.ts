@@ -112,6 +112,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority:        0.8,
     },
     {
+      url:             `${SITE_URL}/nonfarm-payrolls-2026`,
+      lastModified:    now,
+      changeFrequency: "daily",
+      priority:        0.9,
+    },
+    {
+      url:             `${SITE_URL}/pce-release-dates-2026`,
+      lastModified:    now,
+      changeFrequency: "daily",
+      priority:        0.9,
+    },
+    {
       url:             `${SITE_URL}/weekly-market-calendar`,
       lastModified:    now,
       changeFrequency: "weekly",
