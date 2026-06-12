@@ -140,25 +140,30 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(allSchemas(upcomingEvents)) }}
       />
 
-      {/* 크롤러용 서버사이드 렌더링 텍스트 — CSS로 시각적으로 숨기지 않고 실제 표시 */}
+      <HomeClient />
+
+      {/* 구글 크롤러용 서버사이드 이벤트 목록 — 실제 보이는 콘텐츠로 렌더링 */}
       {upcomingEvents.length > 0 && (
         <section
           aria-label="Upcoming US market events"
-          className="sr-only"
+          className="max-w-4xl mx-auto px-4 pb-12"
         >
-          <h2>Upcoming US Market Events — {month} {year}</h2>
-          <ul>
+          <h2 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-3">
+            Upcoming US Market Events — {month} {year}
+          </h2>
+          <ul className="space-y-1">
             {upcomingEvents.slice(0, 20).map((ev, i) => (
-              <li key={i}>
-                <time dateTime={ev.date}>{ev.date}</time>
-                {ev.time ? ` at ${ev.time} ET` : ''}: {ev.title}
+              <li key={i} className="text-gray-600 text-xs flex gap-2">
+                <time dateTime={ev.date} className="font-mono text-gray-500 flex-shrink-0">
+                  {ev.date}
+                </time>
+                {ev.time && <span className="text-gray-600">at {ev.time} ET</span>}
+                <span>{ev.title}</span>
               </li>
             ))}
           </ul>
         </section>
       )}
-
-      <HomeClient />
     </>
   );
 }

@@ -18,12 +18,11 @@ const SERIES_CONFIG = [
   { seriesId: 'PCEPILFE', titleKeyword: 'Core PCE' },
   { seriesId: 'PAYEMS',   titleKeyword: 'Nonfarm Payroll' },
   { seriesId: 'UNRATE',   titleKeyword: 'Unemployment Rate' },
-  { seriesId: 'GDPC1',    titleKeyword: 'GDP' },
   { seriesId: 'JTSJOL',   titleKeyword: 'JOLTS' },
   { seriesId: 'ICSA',     titleKeyword: 'Jobless Claims' },
   { seriesId: 'RSXFS',    titleKeyword: 'Retail Sales' },
   { seriesId: 'DGORDER',  titleKeyword: 'Durable Goods' },
-  { seriesId: 'MICH',     titleKeyword: 'Inflation Expectation' },
+  { seriesId: 'MICH',     titleKeyword: 'Michigan Consumer Sentiment' },
 ] as const;
 
 type FredObs = { date: string; value: string };
@@ -105,18 +104,31 @@ async function runUpdate(log: string[], startedAt: number) {
   t(`✓ Step3 done: ${allRows.length} snapshots`);
 
   // ── Step 4: actual 업데이트
+  // FRED는 참조기간(reference period) 기준 날짜를 반환 (예: 4월 CPI → 2026-04-01)
+  // DB economic_events는 실제 발표일(release date) 기준 (예: 6월 9일 발표)
+  // → 날짜 직접 매칭 불가. 참조일 이후 90일 이내에서 가장 가까운 미래 이벤트를 찾아 업데이트
   t('▶ Step4 start: DB updateMany');
   let updatedEvents = 0;
   await Promise.all(
     allRows.map(async ({ seriesId, date, value }) => {
       const { titleKeyword } = SERIES_CONFIG.find((s) => s.seriesId === seriesId)!;
-      const r = await db.economicEvent.updateMany({
-        where: { date: new Date(`${date}T00:00:00Z`), title: { contains: titleKeyword, mode: 'insensitive' }, actual: null },
-        data:  { actual: value },
+      const refDate = new Date(`${date}T00:00:00Z`);
+      const windowEnd = new Date(refDate);
+      windowEnd.setDate(windowEnd.getDate() + 90);
+
+      // 참조기간 이후 90일 이내의 가장 이른 actual=null 이벤트를 찾아 업데이트
+      const event = await db.economicEvent.findFirst({
+        where: {
+          title: { contains: titleKeyword, mode: 'insensitive' },
+          actual: null,
+          date: { gt: refDate, lte: windowEnd },
+        },
+        orderBy: { date: 'asc' },
       });
-      if (r.count > 0) {
+      if (event) {
+        await db.economicEvent.update({ where: { id: event.id }, data: { actual: value } });
         updatedEvents++;
-        log.push(`  ✓ actual updated: "${titleKeyword}" on ${date}`);
+        log.push(`  ✓ actual updated: "${titleKeyword}" ref=${date} → release=${event.date.toISOString().slice(0, 10)} value=${value}`);
         results[seriesId].eventUpdated = true;
       }
     }),
