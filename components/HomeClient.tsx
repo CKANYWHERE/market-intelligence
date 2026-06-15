@@ -4,17 +4,13 @@ import { useState, useRef, useEffect } from 'react';
 import { CalendarEvent } from '@/types/events';
 import NextEventCountdown from '@/components/NextEventCountdown';
 import MarketTickerBar from '@/components/MarketTickerBar';
-import FedWatchBanner from '@/components/FedWatchBanner';
 import WeeklyDigestSection from '@/components/weekly/WeeklyDigestSection';
 import CalendarView from '@/components/calendar/CalendarView';
 import EventDetailPanel from '@/components/detail/EventDetailPanel';
 import AdBanner from '@/components/ads/AdBanner';
-import KeyIndicatorsSection from '@/components/indicators/KeyIndicatorsSection';
 import UpcomingCountdown from '@/components/calendar/UpcomingCountdown';
-import BreakingSection from '@/components/breaking/BreakingSection';
 import TodayEventsBar from '@/components/today/TodayEventsBar';
 import SpaceXIpoBanner from '@/components/banners/SpaceXIpoBanner';
-import MarketAnalysisSection from '@/components/market/MarketAnalysisSection';
 
 function MobileDrawer({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   const [visible, setVisible]       = useState(false);
@@ -129,9 +125,6 @@ export default function HomeClient() {
       {/* ── 통합 마켓 티커 바 (데스크탑 + 모바일 공통) ─────────── */}
       <MarketTickerBar />
 
-      {/* ── Fed Rate Cut Odds 배너 ─────────────────────────────── */}
-      <FedWatchBanner />
-
       {/* ── SpaceX IPO 배너 (6/12 IPO ~ 7/12 자동 종료) ────────── */}
       <SpaceXIpoBanner />
 
@@ -151,15 +144,12 @@ export default function HomeClient() {
       <div className="md:hidden flex flex-col gap-3 p-3 pb-6">
         <UpcomingCountdown />
         <TodayEventsBar />
-        <MarketAnalysisSection />
-        <KeyIndicatorsSection />
         <WeeklyDigestSection />
         <CalendarView
           selectedEvent={selectedEvent}
           onSelectEvent={handleSelectEvent}
           onSelectDay={handleSelectDay}
         />
-        <BreakingSection />
         <AdBanner
           slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM ?? ''}
           format="rectangle"
@@ -171,8 +161,6 @@ export default function HomeClient() {
       <main className="hidden md:flex flex-1 flex-col p-6 gap-4 overflow-y-auto">
         <UpcomingCountdown />
         <TodayEventsBar />
-        <MarketAnalysisSection />
-        <KeyIndicatorsSection />
         {/* 캘린더 + 사이드바 row — 항상 나란히 */}
         <div className="flex gap-4 h-[660px]">
           <div className="flex-1 min-w-0 flex flex-col min-h-0">
@@ -200,7 +188,6 @@ export default function HomeClient() {
             <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-gray-950 to-transparent" />
           </div>
         </div>
-        <BreakingSection />
         <AdBanner
           slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM ?? ''}
           format="rectangle"

@@ -3,13 +3,11 @@
 import useSWR from 'swr';
 import { fetcher } from '@/lib/fetcher';
 import { QuoteData } from '@/types/events';
-import type { FedWatchData } from '@/app/api/fed-watch/route';
 
 const ETF_SYMBOLS = ['QQQ', 'SPY', 'SCHD'];
 
 interface PulseData { value: number; change: number; changePercent: number }
 interface PulseResp  { vix: PulseData | null; tny: PulseData | null }
-interface FedResp    { data: FedWatchData | null }
 
 function Divider() {
   return <span className="text-gray-700 select-none mx-1">·</span>;
@@ -46,13 +44,7 @@ export default function MarketTickerBar() {
     { refreshInterval: 120_000, dedupingInterval: 60_000 },
   );
 
-  const { data: fed } = useSWR<FedResp>(
-    '/api/fed-watch',
-    fetcher,
-    { refreshInterval: 600_000, dedupingInterval: 300_000, revalidateOnFocus: false },
-  );
-
-  if (qLoading || (!quotes && !pulse && !fed)) return <Skeleton />;
+  if (qLoading || (!quotes && !pulse)) return <Skeleton />;
 
   const items: React.ReactNode[] = [];
 

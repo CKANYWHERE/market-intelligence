@@ -146,7 +146,7 @@ export default async function Home() {
       {upcomingEvents.length > 0 && (
         <section
           aria-label="Upcoming US market events"
-          className="max-w-4xl mx-auto px-4 pb-12"
+          className="sr-only"
         >
           <h2 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-3">
             Upcoming US Market Events — {month} {year}

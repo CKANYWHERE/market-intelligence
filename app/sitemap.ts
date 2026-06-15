@@ -1,6 +1,6 @@
 import { MetadataRoute } from "next";
 import { db } from "@/lib/batch/db";
-import { toSlug, toAnalysisSlug } from "@/lib/utils/slug";
+import { toSlug } from "@/lib/utils/slug";
 
 export const revalidate = 3600;
 
@@ -20,7 +20,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let eventEntries: MetadataRoute.Sitemap = [];
   try {
-    const [ecoRows, earnRows, ipoRows, analysisRows] = await Promise.all([
+    const [ecoRows, earnRows, ipoRows] = await Promise.all([
       db.economicEvent.findMany({
         where:   { date: { gte: sixMonthsBack, lte: sixMonthsOut } },
         select:  { title: true, date: true },
@@ -35,10 +35,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         where:   { date: { gte: sixMonthsBack, lte: sixMonthsOut } },
         select:  { company: true, date: true },
         orderBy: { date: "asc" },
-      }),
-      db.marketAnalysis.findMany({
-        select:  { title: true, event_date: true },
-        orderBy: { event_date: "desc" },
       }),
     ]);
 
@@ -60,12 +56,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified:    now,
         changeFrequency: "daily" as const,
         priority:        0.8,
-      })),
-      ...analysisRows.map((r) => ({
-        url:             `${SITE_URL}/market-analysis/${toAnalysisSlug(r.title, toDateStr(r.event_date))}`,
-        lastModified:    new Date(r.event_date),
-        changeFrequency: "never" as const,
-        priority:        0.7,
       })),
     ];
   } catch {
@@ -104,12 +94,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified:    now,
       changeFrequency: "daily",
       priority:        0.9,
-    },
-    {
-      url:             `${SITE_URL}/market-analysis`,
-      lastModified:    now,
-      changeFrequency: "daily",
-      priority:        0.8,
     },
     {
       url:             `${SITE_URL}/nonfarm-payrolls-2026`,
