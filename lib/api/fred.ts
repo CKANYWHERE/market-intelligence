@@ -15,6 +15,7 @@ function getApiKey(): string {
 export async function getFredSeries(
   seriesId: string,
   limit = 24,
+  units?: string, // e.g. 'pch' (MoM % change), 'ch1' (period change), undefined = raw level
 ): Promise<Array<{ date: string; value: string }>> {
   const url = new URL(BASE_URL);
   url.searchParams.set('series_id', seriesId);
@@ -22,6 +23,7 @@ export async function getFredSeries(
   url.searchParams.set('file_type', 'json');
   url.searchParams.set('sort_order', 'desc');
   url.searchParams.set('limit', String(limit));
+  if (units) url.searchParams.set('units', units);
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 5_000);

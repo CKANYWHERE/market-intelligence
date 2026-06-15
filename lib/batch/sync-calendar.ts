@@ -268,7 +268,9 @@ export async function syncCalendar(from: string, to: string): Promise<SyncResult
         },
         update: {
           category: categorizeEconomicEvent(title),
-          actual:   item.actual   != null ? Number(item.actual)   : null,
+          // actual: Finnhub가 null을 반환하면 기존값 유지 (FRED 등으로 이미 저장된 값 보호)
+          // actual: Finnhub가 실제값을 반환하면 덮어씀 (잘못된 FRED 인덱스값 교정 포함)
+          ...(item.actual != null ? { actual: Number(item.actual) } : {}),
           estimate: item.estimate != null ? Number(item.estimate) : null,
           prev:     item.prev     != null ? Number(item.prev)     : null,
         },

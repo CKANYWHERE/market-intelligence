@@ -319,7 +319,355 @@ const IPO_DESCRIPTIONS: Record<string, { about: string; context: string }> = {
   },
 };
 
-// ── Main export ───────────────────────────────────────────────────
+// ── Housing indicators ────────────────────────────────────────────
+
+function nahb(): EventContent {
+  return {
+    what: 'The NAHB/Wells Fargo Housing Market Index (HMI) is a monthly survey of home builders conducted by the National Association of Home Builders. It measures builder confidence in the market for newly built single-family homes on a scale of 0–100. Readings above 50 indicate more builders view conditions as good than poor. The index has three components: current sales conditions, expected sales over the next six months, and prospective buyer traffic.',
+    whyMatters: 'Builder confidence is a leading indicator of future housing construction activity. When builders are optimistic, they break ground on more homes — which feeds into Housing Starts and GDP data weeks later. The index is sensitive to mortgage rates: sharp rate increases quickly dampen builder sentiment, while rate cuts can revive it. A sustained HMI below 50 signals a housing market contraction that can weigh on consumer wealth and construction employment.',
+    watchFor: [
+      'Headline index vs. 50 threshold and consensus estimate',
+      'Prospective buyer traffic sub-index — earliest signal of demand shifts',
+      'Regional breakdown: South (largest market) and West tend to be most rate-sensitive',
+      'Trend vs. prior 3 months: is confidence recovering or deteriorating?',
+      'Correlation with 30-year mortgage rates — HMI inversely tracks rate moves closely',
+    ],
+    faq: [
+      { q: 'What is a good NAHB Housing Market Index reading?', a: 'Any reading above 50 indicates that more builders view sales conditions as good than poor. Readings in the 60s–70s reflect a healthy housing market. During the pandemic housing boom, HMI reached record highs above 80.' },
+      { q: 'When is the NAHB Housing Market Index released?', a: 'The NAHB HMI is released on the third business day of each month at 10:00 AM Eastern Time, one day before the Housing Starts report.' },
+    ],
+  };
+}
+
+function housingStarts(): EventContent {
+  return {
+    what: 'The Housing Starts report, released monthly by the US Census Bureau and Department of Housing and Urban Development (HUD), measures the number of new residential construction projects begun during the month. It includes single-family homes and multi-unit buildings. Building Permits — also released in the same report — measure authorizations for new construction and serve as a leading indicator of future starts.',
+    whyMatters: 'Residential construction directly contributes to GDP through investment in structures. Housing starts also drive employment in construction, real estate, and related industries. A sharp decline in starts can signal broader economic weakness. Building permits lead starts by 1–2 months, making them a valuable forward-looking gauge. Rising starts alongside falling mortgage rates confirm a housing recovery.',
+    watchFor: [
+      'Housing Starts MoM change vs. consensus estimate',
+      'Building Permits (leading indicator, released simultaneously)',
+      'Single-family vs. multi-family split — single-family drives consumer wealth effect',
+      'Regional data: South and West account for the majority of US construction',
+      'Trend vs. 1-million-unit threshold: below signals housing contraction',
+    ],
+    faq: [
+      { q: 'What is the difference between Housing Starts and Building Permits?', a: 'Building Permits are authorizations issued by local governments before construction begins — they lead Housing Starts by 1–2 months. Housing Starts measure when ground is actually broken on a new home. Permits are generally considered a better forward indicator.' },
+      { q: 'When are Housing Starts released?', a: 'Housing Starts and Building Permits are released monthly by the Census Bureau at 8:30 AM Eastern Time, typically around the 17th–19th of the month for the prior month\'s data.' },
+    ],
+  };
+}
+
+function existingHomeSales(): EventContent {
+  return {
+    what: 'Existing Home Sales, released monthly by the National Association of Realtors (NAR), measures the annualized rate of completed sales of previously owned homes including single-family homes, townhomes, condominiums, and co-ops. It represents roughly 90% of total US home sales and covers closings that occurred during the reference month.',
+    whyMatters: 'Existing home sales are a barometer of consumer confidence in housing and the broader economy. Each home sale generates significant economic activity — furniture purchases, renovation spending, real estate commissions, and mortgage originations. The months\' supply metric (inventory ÷ sales rate) signals market tightness: below 4 months is a seller\'s market; above 6 months favors buyers. Falling existing sales alongside rising inventory can signal price corrections.',
+    watchFor: [
+      'Annualized sales rate vs. consensus estimate and prior month',
+      'Months of supply (inventory/sales pace) — below 4 months = tight market',
+      'Median home price YoY change',
+      'First-time buyer share (typically ~30% of sales)',
+      'Impact of current 30-year mortgage rate on affordability and sales pace',
+    ],
+    faq: [
+      { q: 'When are Existing Home Sales released?', a: 'Existing Home Sales are released by the National Association of Realtors on the 3rd or 4th week of each month at 10:00 AM ET, reflecting closings from the prior month.' },
+      { q: 'What is a "months of supply" reading?', a: 'Months of supply measures how long it would take to sell all homes currently on the market at the current sales pace. Below 4 months is a seller\'s market (upward price pressure); 6+ months is a buyer\'s market (downward price pressure). The pre-pandemic norm was around 6 months.' },
+    ],
+  };
+}
+
+function newHomeSales(): EventContent {
+  return {
+    what: 'New Home Sales, released monthly by the Census Bureau, measures the number of newly constructed single-family homes sold or for sale during the reference month. Unlike Existing Home Sales (which are counted at closing), New Home Sales are counted when a sales contract is signed — making them a more timely leading indicator of housing activity.',
+    whyMatters: 'New home sales directly measure demand for newly constructed homes, which feeds into builder confidence and future Housing Starts. Because they are counted at contract signing (not closing), they lead Existing Home Sales by 1–2 months. New home sales also proxy consumer confidence in making large, long-term financial commitments. A sharp drop in new home sales typically precedes cuts in housing construction activity.',
+    watchFor: [
+      'Monthly sales rate vs. consensus and prior month',
+      'Median new home price (reflects builder pricing power)',
+      'Months of supply of new homes on market',
+      'Regional data: South accounts for ~50% of new home sales',
+      'Revisions to prior months — often large and market-moving',
+    ],
+    faq: [
+      { q: 'When are New Home Sales released?', a: 'New Home Sales are released by the Census Bureau at 10:00 AM ET, typically in the last week of the month, covering sales from the prior month.' },
+      { q: 'Why are New Home Sales more volatile than Existing Home Sales?', a: 'New Home Sales are based on a much smaller sample size (roughly 10% of total home sales vs. 90% for existing) and are counted at contract signing rather than closing, making them subject to large monthly swings and significant revisions.' },
+    ],
+  };
+}
+
+function pendingHomeSales(): EventContent {
+  return {
+    what: 'The Pending Home Sales Index (PHSI), released monthly by the National Association of Realtors, measures signed real estate contracts for existing single-family homes, condos, and co-ops. Because a contract signing typically precedes closing by 1–2 months, the PHSI is a leading indicator of Existing Home Sales.',
+    whyMatters: 'Pending Home Sales provide a 4–6 week forward look at Existing Home Sales closings. A rising PHSI signals improving housing demand that will flow through to closing data in upcoming months. The index is sensitive to mortgage rate changes — rate spikes often cause immediate contract cancellations and PHSI declines. Sustained PHSI weakness typically foreshadows Existing Home Sales contraction.',
+    watchFor: [
+      'MoM and YoY change vs. consensus estimate',
+      'Regional breakdown — Northeast and Midwest often differ from national trend',
+      'Contract cancellation rate (tracked separately by NAR)',
+      'Lead-lag relationship: PHSI today ≈ Existing Home Sales in 1–2 months',
+    ],
+    faq: [
+      { q: 'How does Pending Home Sales differ from Existing Home Sales?', a: 'Pending Home Sales are counted at contract signing; Existing Home Sales are counted at closing (typically 30–60 days later). This makes PHSI a 1–2 month leading indicator of Existing Home Sales.' },
+    ],
+  };
+}
+
+// ── Manufacturing / Production indicators ─────────────────────────
+
+function industrialProduction(): EventContent {
+  return {
+    what: 'The Industrial Production (IP) index, released monthly by the Federal Reserve, measures the real output of the manufacturing, mining, and electric and gas utility industries. The Capacity Utilization rate — released simultaneously — shows what percentage of productive capacity is being used across US industries. Manufacturing accounts for roughly 75% of the total IP index.',
+    whyMatters: 'Industrial Production is a coincident economic indicator — it moves in line with the broader business cycle rather than leading or lagging it. Sustained IP declines have historically preceded recessions. Capacity Utilization above 80% is associated with inflationary pressures, as factories operating near full capacity face supply constraints. A sharp drop in IP signals weakening corporate revenues in goods-producing sectors.',
+    watchFor: [
+      'Month-over-month IP change vs. consensus estimate',
+      'Manufacturing sub-index (excludes mining and utilities for cleaner signal)',
+      'Capacity Utilization rate vs. 80% inflation threshold',
+      'Motor vehicle output — often drives large swings in headline IP',
+      'Year-over-year trend: consecutive YoY declines signal industrial recession',
+    ],
+    faq: [
+      { q: 'When is Industrial Production released?', a: 'Industrial Production and Capacity Utilization are released monthly by the Federal Reserve at 9:15 AM ET, typically around the 15th–17th of the month for the prior month\'s data.' },
+      { q: 'What does capacity utilization above 80% mean?', a: 'Capacity utilization above 80% historically signals that factories are running near full capacity, which can create supply-side inflationary pressure. The Fed watches this metric as one input into inflation risk assessment.' },
+    ],
+  };
+}
+
+function empireState(): EventContent {
+  return {
+    what: 'The Empire State Manufacturing Index (also called the NY Empire State Manufacturing Survey) is published monthly by the Federal Reserve Bank of New York. It surveys manufacturing executives in New York State on general business conditions, orders, shipments, and employment. Readings above 0 indicate expansion; below 0 signals contraction. It is one of the first regional manufacturing surveys released each month.',
+    whyMatters: 'As one of the earliest manufacturing sentiment indicators released each month (typically the 15th), the Empire State survey sets expectations for the national ISM Manufacturing PMI released 2–3 weeks later. While the survey covers only New York State manufacturers, its new orders and prices paid sub-indexes have reasonable predictive value for the national data. Traders use it to fine-tune their ISM expectations.',
+    watchFor: [
+      'Headline index vs. 0 threshold and consensus estimate',
+      'New Orders sub-index (forward-looking demand signal)',
+      'Prices Paid vs. Prices Received (margin pressure indicator)',
+      'Employment sub-index (preview of manufacturing jobs)',
+      'Directional consistency with prior Philly Fed and ISM readings',
+    ],
+    faq: [
+      { q: 'When is the Empire State Manufacturing Index released?', a: 'The Empire State Manufacturing Index is released by the Federal Reserve Bank of New York on the 15th of each month (or the nearest business day) at 8:30 AM ET.' },
+      { q: 'How does the Empire State index relate to ISM Manufacturing PMI?', a: 'The Empire State index is a regional leading indicator for the national ISM Manufacturing PMI, which is released 2–3 weeks later. While correlation is imperfect, extreme Empire State readings often foreshadow direction for the national ISM.' },
+    ],
+  };
+}
+
+function phillyFed(): EventContent {
+  return {
+    what: 'The Philadelphia Fed Manufacturing Index (Business Outlook Survey) is a monthly survey of manufacturers in the Third Federal Reserve District covering Pennsylvania, New Jersey, and Delaware. Published by the Philadelphia Fed, readings above 0 indicate expansion; below 0 signals contraction. Like the Empire State index, it is released early in the month and provides a preview of national manufacturing conditions.',
+    whyMatters: 'The Philly Fed survey covers a broader and more industrially diverse region than the Empire State index, making it a widely watched regional preview of the national ISM Manufacturing PMI. Its new orders, shipments, and employment sub-indexes are tracked alongside the Empire State data to build a consensus view ahead of the national ISM release. Significant divergence between Philly Fed and Empire State often resolves in the direction of the national ISM.',
+    watchFor: [
+      'Headline index vs. 0 and vs. Empire State reading from the same month',
+      'New Orders sub-index (forward demand signal)',
+      'Prices Paid sub-index (upstream inflation gauge)',
+      'Six-month outlook index (forward-looking business expectations)',
+      'Combined signal with Empire State as ISM Manufacturing preview',
+    ],
+    faq: [
+      { q: 'When is the Philadelphia Fed Manufacturing Index released?', a: 'The Philadelphia Fed Manufacturing Index is released on the third Thursday of each month at 8:30 AM ET.' },
+    ],
+  };
+}
+
+function factoryOrders(): EventContent {
+  return {
+    what: 'Factory Orders (Manufacturers\' Shipments, Inventories, and Orders) is a monthly report from the US Census Bureau measuring new orders, shipments, and unfilled orders at US manufacturers. It covers both durable goods (lasting 3+ years) and non-durable goods (consumables). The data provides a comprehensive picture of manufacturing demand and pipeline activity.',
+    whyMatters: 'Factory Orders reflect the health of manufacturing demand from both domestic and foreign buyers. Unfilled orders (backlog) signal future production activity — a rising backlog means factories will be busy for months ahead. The shipments component feeds directly into GDP calculations. Core capital goods orders (excluding defense and aircraft) are the most closely watched component as a proxy for business investment.',
+    watchFor: [
+      'Month-over-month change vs. consensus estimate',
+      'Core capital goods orders ex-defense, ex-aircraft (capex proxy)',
+      'Unfilled orders (backlog) trend — indicates future production strength',
+      'Inventories-to-shipments ratio (rising ratio can signal demand slowdown)',
+      'Revisions to prior month Durable Goods orders (released 2 weeks earlier)',
+    ],
+    faq: [
+      { q: 'When is the Factory Orders report released?', a: 'Factory Orders are released by the Census Bureau at 10:00 AM ET, typically on the first business day of the month that is 5 weeks after the reference month.' },
+    ],
+  };
+}
+
+function durableGoods(): EventContent {
+  return {
+    what: 'The Durable Goods Orders report, released monthly by the US Census Bureau, measures new orders received by US manufacturers for goods intended to last three years or more — including aircraft, machinery, computers, appliances, and defense equipment. Core Durable Goods (ex-transportation, ex-defense, ex-aircraft) strips out volatile categories to reveal underlying business investment trends.',
+    whyMatters: 'Durable goods orders are a leading indicator of manufacturing activity and business capital expenditure. The "Core Capex" sub-component (non-defense capital goods ex-aircraft) is the best real-time proxy for business investment in GDP. When companies order new machinery and equipment, it signals confidence in future demand. Sustained weakness in core orders typically precedes earnings guidance cuts in industrials and technology sectors.',
+    watchFor: [
+      'Core Durable Goods ex-transportation vs. consensus (strips out Boeing orders)',
+      'Non-defense capital goods ex-aircraft (core capex, most important sub-index)',
+      'Aircraft orders from Boeing — one large order can distort the headline significantly',
+      'Defense orders (government spending signal)',
+      'Shipments vs. orders: gap indicates future production direction',
+    ],
+    faq: [
+      { q: 'Why is Durable Goods ex-transportation important?', a: 'Transportation orders — especially Boeing aircraft — are extremely lumpy, swinging headline durable goods by billions of dollars based on a handful of aircraft orders. Excluding transportation and defense provides a cleaner read on underlying business investment trends.' },
+      { q: 'When are Durable Goods Orders released?', a: 'Durable Goods Orders are released by the Census Bureau at 8:30 AM ET, typically around the 26th of the month for the prior month\'s data.' },
+    ],
+  };
+}
+
+// ── Trade / Energy / Labor / Other indicators ─────────────────────
+
+function tradeBalance(): EventContent {
+  return {
+    what: 'The US Trade Balance report, released monthly by the Bureau of Economic Analysis (BEA) and Census Bureau, measures the difference between US exports and imports of goods and services. A trade deficit means the US imports more than it exports (negative number); a surplus means exports exceed imports. The US has run a persistent trade deficit for decades, currently in the range of -$60 to -$100 billion per month.',
+    whyMatters: 'The trade balance directly affects GDP — a narrowing deficit (or growing surplus) adds to GDP, while a widening deficit subtracts. Trade data is closely watched during periods of tariff policy changes, as tariffs can cause significant swings in both import and export volumes. A widening goods trade deficit typically puts downward pressure on the US dollar. The data also reveals sector-level competitiveness in manufactured goods, agriculture, and services.',
+    watchFor: [
+      'Headline trade balance vs. consensus estimate',
+      'Goods deficit vs. services surplus breakdown',
+      'Top trade partners: China, EU, Mexico, Canada deficits/surpluses',
+      'Impact of tariff changes on import volumes (especially consumer goods)',
+      'Export volumes: a decline signals weak global demand for US goods',
+    ],
+    faq: [
+      { q: 'When is the US Trade Balance released?', a: 'The Trade Balance is released by the Bureau of Economic Analysis and Census Bureau at 8:30 AM ET, typically on the first Friday of the month that is 5 weeks after the reference month.' },
+      { q: 'How does the trade deficit affect GDP?', a: 'In the GDP formula (GDP = C + I + G + NX), net exports (NX = exports minus imports) is a direct component. A wider trade deficit subtracts from GDP; a narrowing deficit or growing surplus adds to it. This is why import surges ahead of tariff deadlines can temporarily reduce GDP.' },
+    ],
+  };
+}
+
+function importExportPrices(): EventContent {
+  return {
+    what: 'The Import and Export Price Indexes, released monthly by the Bureau of Labor Statistics, measure changes in prices of goods traded between the US and other countries. Import prices cover goods entering the US from abroad; export prices cover goods leaving the US. Both exclude services. These indexes are released simultaneously and cover the prior month.',
+    whyMatters: 'Import prices are a direct channel through which global inflation (or deflation) enters the US economy. Rising import prices — especially for consumer goods, industrial supplies, and petroleum — can feed into domestic CPI and PPI. Export prices affect the competitiveness of US goods abroad. Both indexes are sensitive to currency movements: a stronger dollar generally reduces import prices and makes US exports more expensive for foreign buyers.',
+    watchFor: [
+      'Import prices ex-petroleum MoM (strips out oil volatility)',
+      'Export prices MoM vs. import prices (terms-of-trade signal)',
+      'Petroleum import prices — direct impact on energy CPI',
+      'Industrial supplies and materials import prices (feed into PPI)',
+      'Currency effect: compare with US Dollar Index trend over the month',
+    ],
+    faq: [
+      { q: 'When are Import and Export Prices released?', a: 'Import and Export Price Indexes are released by the Bureau of Labor Statistics at 8:30 AM ET, typically around the 10th–14th of the month for the prior month\'s data — often on the same day as CPI.' },
+    ],
+  };
+}
+
+function eiaOil(): EventContent {
+  return {
+    what: 'The EIA Weekly Petroleum Status Report, published every Wednesday by the US Energy Information Administration, provides data on US crude oil and petroleum product inventories, production, imports, and refinery utilization. The headline figures most watched by markets are the change in crude oil stockpiles (in barrels) at Cushing, Oklahoma — the main US delivery hub — and across all domestic storage.',
+    whyMatters: 'Crude oil inventories directly influence WTI crude oil prices, which feed into US gasoline prices and energy CPI. A larger-than-expected draw (inventory decrease) signals strong demand or supply constraints and is bullish for oil prices. A larger-than-expected build (inventory increase) is bearish. Energy companies (XOM, CVX, OXY) and refiners are directly affected, and the data can move broader equity markets when moves are extreme.',
+    watchFor: [
+      'Crude oil stockpile change vs. consensus and prior week API estimate',
+      'Cushing, Oklahoma inventory level (WTI delivery hub)',
+      'Gasoline and distillate (diesel) inventory changes',
+      'Refinery utilization rate (high utilization = strong demand signal)',
+      'US crude production level (weekly output trend)',
+    ],
+    faq: [
+      { q: 'What is the difference between EIA and API oil inventory data?', a: 'The API (American Petroleum Institute) releases private inventory estimates on Tuesday evening, a day before the official EIA report. The EIA data is considered more authoritative. Markets often react to both — first to the API as a preview, then to the official EIA.' },
+      { q: 'When is the EIA Crude Oil inventory report released?', a: 'The EIA Weekly Petroleum Status Report is released every Wednesday at 10:30 AM ET (or Thursday if Monday was a federal holiday).' },
+    ],
+  };
+}
+
+function eiaGas(): EventContent {
+  return {
+    what: 'The EIA Weekly Natural Gas Storage Report, released every Thursday by the US Energy Information Administration, measures the change in natural gas held in underground storage facilities across the US, reported in billion cubic feet (Bcf). The report covers the week ending the prior Friday.',
+    whyMatters: 'Natural gas storage levels are a key driver of natural gas (Henry Hub) prices. Below-average storage heading into winter (heating season) is bullish for prices; above-average storage is bearish. Natural gas prices affect utility company earnings, electricity generation costs, and industrial energy costs. Utilities, LNG exporters (LNG), and pipeline operators are directly impacted.',
+    watchFor: [
+      'Weekly injection/withdrawal vs. consensus estimate',
+      'Storage level vs. 5-year average and prior year (% above/below normal)',
+      'Season context: draws in winter (heating demand), injections in summer (refill season)',
+      'Implied demand: warmer-than-normal winter = smaller draws = bearish signal',
+    ],
+    faq: [
+      { q: 'When is the EIA Natural Gas Storage report released?', a: 'The EIA Weekly Natural Gas Storage Report is released every Thursday at 10:30 AM ET.' },
+    ],
+  };
+}
+
+function apiOil(): EventContent {
+  return {
+    what: 'The American Petroleum Institute (API) Weekly Statistical Bulletin is a private industry report released every Tuesday evening that estimates changes in US crude oil, gasoline, and distillate inventories. It is produced by the oil industry\'s main trade group and serves as a preview of the official EIA inventory data released the following Wednesday morning.',
+    whyMatters: 'The API report is the earliest available inventory estimate each week, typically released at 4:30 PM ET on Tuesdays. It often moves crude oil futures in after-hours trading. While less authoritative than the EIA data, large API surprises — especially if confirmed by the EIA the next morning — can significantly move oil prices and energy stocks. The API and EIA figures frequently diverge, which creates a second trading opportunity at the Wednesday EIA release.',
+    watchFor: [
+      'Crude oil stockpile change vs. analyst estimates',
+      'Gasoline and distillate inventory changes',
+      'Directional alignment with the subsequent EIA release',
+      'Cushing, Oklahoma crude inventory level',
+    ],
+    faq: [
+      { q: 'When is the API oil inventory report released?', a: 'The API Weekly Statistical Bulletin is released every Tuesday at approximately 4:30 PM ET. It is a private report and not always released if Monday was a federal holiday.' },
+    ],
+  };
+}
+
+function mbaMortgage(): EventContent {
+  return {
+    what: 'The MBA Mortgage Applications Survey, released weekly by the Mortgage Bankers Association every Wednesday morning, tracks mortgage application volume for home purchases and refinances across the US. The 30-Year Fixed Mortgage Rate published alongside the survey reflects the average rate offered by lenders to prime borrowers.',
+    whyMatters: 'The 30-year mortgage rate is the single most important price signal in the US housing market. It directly determines monthly payments and therefore housing affordability. When rates rise sharply, purchase applications fall, existing home sales decline, and housing starts slow — creating a chain reaction through the economy. The purchase index (ex-refi) is a leading indicator of Existing Home Sales 30–60 days ahead.',
+    watchFor: [
+      '30-year fixed mortgage rate vs. prior week and 10-year Treasury yield spread',
+      'Purchase applications index (leading indicator for home sales)',
+      'Refinance applications index (sensitive to rate moves)',
+      'Refinance share of applications (high share = rates have fallen recently)',
+      'Trend vs. prior year: YoY comparison controls for seasonality',
+    ],
+    faq: [
+      { q: 'When is the MBA Mortgage Rate data released?', a: 'The Mortgage Bankers Association releases its Weekly Mortgage Applications Survey every Wednesday at 7:00 AM ET, covering the week ending the prior Friday.' },
+      { q: 'How does the 30-year mortgage rate relate to the Fed funds rate?', a: 'The 30-year mortgage rate is more closely tied to the 10-year Treasury yield than to the Fed funds rate (which is an overnight rate). The typical spread between the 10-year Treasury and the 30-year mortgage is 1.5–2.0%. Fed rate cuts reduce the funds rate but may not immediately lower mortgage rates if long-term Treasury yields remain elevated.' },
+    ],
+  };
+}
+
+function averageHourlyEarnings(): EventContent {
+  return {
+    what: 'Average Hourly Earnings (AHE), released as part of the monthly Bureau of Labor Statistics jobs report (alongside Nonfarm Payrolls), measures the average hourly wage paid to private-sector, non-supervisory workers. It is expressed as both a month-over-month and year-over-year percentage change. The data covers approximately 80% of the US workforce.',
+    whyMatters: 'Average Hourly Earnings is the Fed\'s most direct real-time measure of wage inflation. Persistent wage growth above 3.5% annually risks becoming embedded in services inflation, as companies pass higher labor costs to consumers. The Fed\'s dual mandate requires balancing full employment with price stability — strong wage growth creates tension between the two goals. Earnings above 0.4% MoM typically trigger a hawkish market reaction.',
+    watchFor: [
+      'MoM change vs. consensus estimate (above 0.4% = wage inflation concern)',
+      'YoY rate vs. CPI inflation (real wage growth = purchasing power)',
+      'Trend: is wage growth accelerating or decelerating?',
+      'Sector breakdown: leisure & hospitality wages often lead the cycle',
+      'Combination with NFP: strong jobs + strong wages = most hawkish signal for Fed',
+    ],
+    faq: [
+      { q: 'What wage growth rate does the Fed consider inflationary?', a: 'The Fed generally considers wage growth above ~3.5% annually as potentially inflationary for services prices (since wage costs drive services CPI). Growth in the 3–3.5% range is broadly consistent with 2% inflation when paired with normal productivity gains.' },
+    ],
+  };
+}
+
+function participationRate(): EventContent {
+  return {
+    what: 'The Labor Force Participation Rate (LFPR), released monthly by the Bureau of Labor Statistics alongside Nonfarm Payrolls, measures the percentage of the civilian noninstitutional population aged 16 and over that is either employed or actively seeking employment. It is a measure of the active labor supply available to the economy.',
+    whyMatters: 'The participation rate critically affects how the unemployment rate should be interpreted. If unemployment falls because discouraged workers stop looking for jobs (exit the labor force), the participation rate falls — making the unemployment rate look artificially low. A rising participation rate with stable unemployment is a genuinely healthy signal: more people are entering the workforce AND finding jobs. The Fed watches participation to assess how much labor supply slack remains in the economy.',
+    watchFor: [
+      'LFPR vs. prior month and pre-pandemic 2019 baseline (~63.3%)',
+      'Prime-age LFPR (ages 25–54) — removes retirement distortions',
+      'Direction of change alongside unemployment rate (divergence is significant)',
+      'Long-term trend: post-pandemic recovery of workers who left the labor force',
+    ],
+    faq: [
+      { q: 'Why does the participation rate matter for the Fed?', a: 'A low and falling participation rate can mask true labor market weakness — the unemployment rate appears stable only because fewer people are looking for work. The Fed prefers to see high participation alongside low unemployment, which signals genuine labor market strength rather than demographic withdrawal.' },
+    ],
+  };
+}
+
+function businessInventories(): EventContent {
+  return {
+    what: 'The Business Inventories report, released monthly by the Census Bureau, measures the total value of unsold goods held by manufacturers, wholesalers, and retailers at the end of the reference month. It also includes the inventories-to-sales ratio, which shows how many months of supply are currently on hand at the current sales rate.',
+    whyMatters: 'Inventory levels are a key component of GDP (change in private inventories contributes to quarterly GDP growth). A rapid inventory buildup — particularly when sales are slowing — creates a future GDP drag, as businesses cut orders and production to work down excess stock. An unintended inventory build (inventories rising faster than sales) is a leading indicator of production slowdowns and potential layoffs in the goods sector.',
+    watchFor: [
+      'Inventories-to-sales ratio vs. prior month and historical norms',
+      'Retail vs. wholesale vs. manufacturing breakdown',
+      'Unintended vs. intended inventory build (context from ISM and sales data)',
+      'GDP tracking implications: inventory changes feed directly into quarterly GDP',
+    ],
+    faq: [
+      { q: 'When is the Business Inventories report released?', a: 'Business Inventories are released by the Census Bureau at 10:00 AM ET, typically in the second or third week of the month, covering data from two months prior.' },
+    ],
+  };
+}
+
+function currentAccount(): EventContent {
+  return {
+    what: 'The Current Account balance, released quarterly by the Bureau of Economic Analysis, measures the broadest measure of US international trade — combining the trade balance in goods and services, net income from foreign investments, and net transfer payments. A current account deficit means the US is a net borrower from the rest of the world; a surplus means it is a net lender.',
+    whyMatters: 'The current account deficit must be financed by capital inflows from abroad (foreigners buying US assets — Treasuries, stocks, real estate). A widening deficit can put long-term pressure on the US dollar. Conversely, if foreign demand for US assets weakens, the dollar can fall even without a change in the trade deficit. The current account is a key metric for long-term dollar and Treasury market analysis.',
+    watchFor: [
+      'Quarterly balance vs. prior quarter and consensus estimate',
+      'Services surplus (US competitive strength in finance, tech, education)',
+      'Investment income balance (US earns on foreign assets vs. what foreigners earn on US assets)',
+      'Trend relative to GDP: current account deficit above 4–5% of GDP raises sustainability concerns',
+    ],
+    faq: [
+      { q: 'When is the Current Account released?', a: 'The Current Account is released quarterly by the BEA at 8:30 AM ET, typically around 75 days after the end of the reference quarter.' },
+    ],
+  };
+}
 
 export function getEventContent(
   type: 'economic' | 'earnings' | 'ipo',
@@ -361,17 +709,59 @@ export function getEventContent(
   // Economic events — match by title
   const t = title.toLowerCase();
 
-  if (/fomc|federal open market|rate decision|federal funds/i.test(t)) return fomc();
-  if (/\bcpi\b|consumer price index/i.test(t)) return cpi();
-  if (/\bpce\b|personal consumption expenditure/i.test(t)) return pce();
+  // ── Monetary policy ────────────────────────────────────────────
+  if (/fomc|federal open market|rate decision|federal funds|fed press conference|fed.*projection|\bfed\b.*(speech|remarks|testimony|statement)/i.test(t)) return fomc();
+
+  // ── Inflation ─────────────────────────────────────────────────
+  // CPI — Finnhub uses "Inflation Rate MoM/YoY" and "Core Inflation Rate MoM"
+  if (/\bcpi\b|consumer price index|inflation rate/i.test(t)) return cpi();
+  // PCE — also covers Personal Income & Spending (released in same report)
+  if (/\bpce\b|personal consumption expenditure|personal spending|personal income/i.test(t)) return pce();
   if (/\bppi\b|producer price index/i.test(t)) return ppi();
-  if (/nonfarm payroll|nfp|jobs report/i.test(t)) return nfp();
-  if (/unemployment rate/i.test(t)) return unemployment();
+  // Import/Export Prices
+  if (/import price|export price/i.test(t)) return importExportPrices();
+
+  // ── Employment ────────────────────────────────────────────────
+  // NFP — Finnhub uses "Non Farm Payrolls" (with space)
+  if (/non.?farm payroll|nonfarm|\bnfp\b|jobs report/i.test(t)) return nfp();
+  // Average Hourly Earnings — released with NFP but distinct signal
+  if (/average hourly earnings/i.test(t)) return averageHourlyEarnings();
+  // Participation Rate
+  if (/participation rate/i.test(t)) return participationRate();
+  // Unemployment / Jobless Claims
+  if (/unemployment rate|jobless claims/i.test(t)) return unemployment();
   if (/\bjolts\b|job opening/i.test(t)) return jolts();
   if (/\badp\b|adp employment|adp national/i.test(t)) return adp();
+
+  // ── Growth / GDP ──────────────────────────────────────────────
   if (/\bgdp\b|gross domestic product/i.test(t)) return gdp();
   if (/retail sales/i.test(t)) return retailSales();
-  if (/\bism\b|purchasing managers|pmi/i.test(t)) return ism();
+  if (/durable goods/i.test(t)) return durableGoods();
+  if (/factory orders/i.test(t)) return factoryOrders();
+  if (/business inventories/i.test(t)) return businessInventories();
+  if (/trade balance|balance of trade|goods trade|imports|exports/i.test(t)) return tradeBalance();
+  if (/current account/i.test(t)) return currentAccount();
+
+  // ── Manufacturing surveys ─────────────────────────────────────
+  if (/\bism\b|purchasing managers|\bpmi\b/i.test(t)) return ism();
+  if (/empire state manufacturing/i.test(t)) return empireState();
+  if (/philadelphia fed|philly fed/i.test(t)) return phillyFed();
+  if (/industrial production|capacity utilization/i.test(t)) return industrialProduction();
+
+  // ── Housing ───────────────────────────────────────────────────
+  if (/nahb|housing market index|home builder/i.test(t)) return nahb();
+  if (/housing starts|building permits/i.test(t)) return housingStarts();
+  if (/existing home sales/i.test(t)) return existingHomeSales();
+  if (/new home sales/i.test(t)) return newHomeSales();
+  if (/pending home sales/i.test(t)) return pendingHomeSales();
+  if (/mortgage rate|mba.*mortgage|mortgage.*application/i.test(t)) return mbaMortgage();
+
+  // ── Energy ───────────────────────────────────────────────────
+  if (/eia.*crude|eia.*oil|crude.*stocks|crude.*inventory/i.test(t)) return eiaOil();
+  if (/eia.*gasoline|gasoline.*stocks/i.test(t)) return eiaGas();
+  if (/api.*crude|api.*oil|api.*stock/i.test(t)) return apiOil();
+
+  // ── Consumer ─────────────────────────────────────────────────
   if (/consumer confidence|consumer sentiment/i.test(t)) return consumerConfidence();
 
   return null;

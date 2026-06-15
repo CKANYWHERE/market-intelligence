@@ -26,8 +26,9 @@ function isAuthorized(req: NextRequest): boolean {
   return req.headers.get('authorization') === `Bearer ${secret}`;
 }
 
-function defaultRange(daysAhead = 90) {
+function defaultRange(daysAhead = 90, daysBehind = 30) {
   const from = new Date();
+  from.setDate(from.getDate() - daysBehind); // 30일 전 → 과거 actual 업데이트 포함
   const to   = new Date();
   to.setDate(to.getDate() + daysAhead);
   return {

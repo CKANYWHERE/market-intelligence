@@ -10,19 +10,30 @@ import { getFredSeries } from '@/lib/api/fred';
 
 export const maxDuration = 60;
 
+// IMPORTANT: titleKeyword must match Finnhub event titles stored in DB.
+// Finnhub naming ≠ FRED naming — e.g. CPIAUCSL → "Inflation Rate MoM" (not "CPI")
+//
+// units explanation:
+//   'pch'       → Month-over-month % change (what Finnhub shows for rate indicators)
+//   'ch1'       → Period-over-period change in level units (NFP: thousands of jobs)
+//   undefined   → Raw level (Unemployment %, JOLTS thousands, Claims thousands, Sentiment index)
+//
+// NOTE: FRED is a fallback. Primary actual values come from Finnhub via daily-calendar cron
+// (which now fetches 30 days back). FRED only fills in events still null after Finnhub runs.
+// FRED revised data may differ slightly from Finnhub's initial-release values.
 const SERIES_CONFIG = [
-  { seriesId: 'CPIAUCSL', titleKeyword: 'CPI' },
-  { seriesId: 'CPILFESL', titleKeyword: 'Core CPI' },
-  { seriesId: 'PPIACO',   titleKeyword: 'PPI' },
-  { seriesId: 'PCEPI',    titleKeyword: 'PCE' },
-  { seriesId: 'PCEPILFE', titleKeyword: 'Core PCE' },
-  { seriesId: 'PAYEMS',   titleKeyword: 'Nonfarm Payroll' },
-  { seriesId: 'UNRATE',   titleKeyword: 'Unemployment Rate' },
-  { seriesId: 'JTSJOL',   titleKeyword: 'JOLTS' },
-  { seriesId: 'ICSA',     titleKeyword: 'Jobless Claims' },
-  { seriesId: 'RSXFS',    titleKeyword: 'Retail Sales' },
-  { seriesId: 'DGORDER',  titleKeyword: 'Durable Goods' },
-  { seriesId: 'MICH',     titleKeyword: 'Michigan Consumer Sentiment' },
+  { seriesId: 'CPIAUCSL', titleKeyword: 'Inflation Rate',      units: 'pch'       }, // "Inflation Rate MoM" in Finnhub
+  { seriesId: 'CPILFESL', titleKeyword: 'Core Inflation Rate', units: 'pch'       }, // "Core Inflation Rate MoM"
+  { seriesId: 'PPIFID',   titleKeyword: 'PPI',                 units: 'pch'       }, // "PPI MoM" — Final Demand PPI (PPIACO는 원자재 전체라 값이 틀림)
+  { seriesId: 'PCEPI',    titleKeyword: 'PCE',                 units: 'pch'       }, // "PCE Price Index MoM"
+  { seriesId: 'PCEPILFE', titleKeyword: 'Core PCE',            units: 'pch'       }, // "Core PCE Price Index MoM"
+  { seriesId: 'PAYEMS',   titleKeyword: 'Non Farm Payroll',    units: 'ch1'       }, // "Non Farm Payrolls" — ch1 = jobs added (thousands)
+  { seriesId: 'UNRATE',   titleKeyword: 'Unemployment Rate',   units: undefined   }, // raw level = %
+  { seriesId: 'JTSJOL',   titleKeyword: 'JOLTS',              units: undefined   }, // raw level = thousands of openings
+  { seriesId: 'ICSA',     titleKeyword: 'Jobless Claims',      units: undefined   }, // raw level = thousands
+  { seriesId: 'RSXFS',    titleKeyword: 'Retail Sales',        units: 'pch'       }, // "Retail Sales MoM"
+  { seriesId: 'DGORDER',  titleKeyword: 'Durable Goods',       units: 'pch'       }, // "Durable Goods Orders MoM"
+  { seriesId: 'MICH',     titleKeyword: 'Michigan',            units: undefined   }, // "Michigan Consumer Sentiment"
 ] as const;
 
 type FredObs = { date: string; value: string };
@@ -55,8 +66,8 @@ async function runUpdate(log: string[], startedAt: number) {
   // ── Step 1: FRED API fetch (순차)
   t('▶ Step1 start: FRED fetch sequential');
   const fetchResults: PromiseSettledResult<{ date: string; value: string }[]>[] = [];
-  for (const { seriesId } of SERIES_CONFIG) {
-    const result = await getFredSeries(seriesId, 1)
+  for (const { seriesId, units } of SERIES_CONFIG) {
+    const result = await getFredSeries(seriesId, 1, units)
       .then((v) => ({ status: 'fulfilled' as const, value: v }))
       .catch((e) => ({ status: 'rejected' as const, reason: e }));
     fetchResults.push(result);
