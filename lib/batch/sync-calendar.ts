@@ -10,6 +10,18 @@ import {
 } from '@/lib/api/finnhub';
 import { categorizeEconomicEvent, mapImpact } from '@/lib/utils/categorize';
 
+// Finnhub 무료 티어는 일부 지표의 actual을 인덱스 레벨로 반환하는 버그가 있음.
+// MoM/QoQ/YoY 이벤트는 ±50% 범위를 벗어날 수 없으므로 초과값은 null 처리.
+// NFP처럼 절대값(수천 단위)을 쓰는 이벤트는 검증에서 제외.
+function sanitizeActual(value: number, title: string): number | null {
+  const isRateOfChange = /\b(MoM|QoQ|YoY)\b/i.test(title);
+  if (isRateOfChange && Math.abs(value) > 50) {
+    console.warn(`[sync-calendar] Rejected suspicious actual for "${title}": ${value} (expected ±50%)`);
+    return null;
+  }
+  return value;
+}
+
 // ── Alpha Vantage EARNINGS_CALENDAR ───────────────────────────
 async function fetchAlphaVantageEarnings(): Promise<
   { symbol: string; name: string; reportDate: string; estimate: string | null; timeOfTheDay: string }[]
@@ -268,9 +280,12 @@ export async function syncCalendar(from: string, to: string): Promise<SyncResult
         },
         update: {
           category: categorizeEconomicEvent(title),
-          // actual: Finnhub가 null을 반환하면 기존값 유지 (FRED 등으로 이미 저장된 값 보호)
-          // actual: Finnhub가 실제값을 반환하면 덮어씀 (잘못된 FRED 인덱스값 교정 포함)
-          ...(item.actual != null ? { actual: Number(item.actual) } : {}),
+          // Finnhub 무료 티어는 일부 지표(PPI 등)의 actual을 인덱스 레벨로 반환하는 버그가 있음.
+          // MoM/QoQ/YoY 이벤트는 현실적으로 ±50% 범위를 벗어날 수 없으므로 초과값은 무시.
+          // Finnhub가 null을 반환하면 기존값 유지 (이미 올바른 값이 있을 수 있음).
+          ...(item.actual != null
+            ? { actual: sanitizeActual(Number(item.actual), title) }
+            : {}),
           estimate: item.estimate != null ? Number(item.estimate) : null,
           prev:     item.prev     != null ? Number(item.prev)     : null,
         },
