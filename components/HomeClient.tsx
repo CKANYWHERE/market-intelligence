@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { SWRConfig } from 'swr';
 import { CalendarEvent } from '@/types/events';
+import type { DigestItem } from '@/lib/batch/generate-weekly-digest';
 import NextEventCountdown from '@/components/NextEventCountdown';
 import MarketTickerBar from '@/components/MarketTickerBar';
 import WeeklyDigestSection from '@/components/weekly/WeeklyDigestSection';
@@ -80,7 +82,13 @@ function MobileDrawer({ children, onClose }: { children: React.ReactNode; onClos
   );
 }
 
-export default function HomeClient() {
+interface DigestFallback {
+  weekStart: string;
+  weekEnd:   string;
+  items:     DigestItem[];
+}
+
+export default function HomeClient({ digestFallback }: { digestFallback?: DigestFallback | null }) {
   const [selectedEvent, setSelectedEvent]         = useState<CalendarEvent | null>(null);
   const [selectedDayEvents, setSelectedDayEvents] = useState<CalendarEvent[] | null>(null);
 
@@ -99,7 +107,12 @@ export default function HomeClient() {
 
   const hasPanel = selectedEvent !== null || (selectedDayEvents !== null && selectedDayEvents.length > 0);
 
+  const swrFallback = digestFallback
+    ? { '/api/weekly-digest': digestFallback }
+    : {};
+
   return (
+    <SWRConfig value={{ fallback: swrFallback }}>
     <div className="bg-gray-950 text-white flex flex-col min-h-screen">
 
       {/* ── Header ───────────────────────────────────────────── */}
@@ -227,5 +240,6 @@ export default function HomeClient() {
         <span className="ml-auto text-gray-700 text-xs">© {new Date().getFullYear()} US Market Calendar</span>
       </footer>
     </div>
+    </SWRConfig>
   );
 }

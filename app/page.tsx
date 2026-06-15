@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { db } from '@/lib/batch/db';
 import HomeClient from '@/components/HomeClient';
 import { allSchemas, UpcomingEvent } from '@/lib/seo/json-ld';
+import { getOrGenerateDigest, getWeekStart } from '@/lib/batch/generate-weekly-digest';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://marketclock.net';
 
@@ -69,6 +70,22 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+async function getDigestFallback() {
+  try {
+    const items     = await getOrGenerateDigest();
+    const weekStart = getWeekStart();
+    const weekEnd   = new Date(weekStart);
+    weekEnd.setUTCDate(weekEnd.getUTCDate() + 6);
+    return {
+      weekStart: weekStart.toISOString().slice(0, 10),
+      weekEnd:   weekEnd.toISOString().slice(0, 10),
+      items,
+    };
+  } catch {
+    return null;
+  }
+}
+
 async function getUpcomingEvents(): Promise<UpcomingEvent[]> {
   try {
     const now = new Date();
@@ -125,7 +142,10 @@ async function getUpcomingEvents(): Promise<UpcomingEvent[]> {
 }
 
 export default async function Home() {
-  const upcomingEvents = await getUpcomingEvents();
+  const [upcomingEvents, digestFallback] = await Promise.all([
+    getUpcomingEvents(),
+    getDigestFallback(),
+  ]);
 
   // 크롤러가 읽을 수 있는 서버사이드 이벤트 요약 (upcoming events)
   const now   = new Date();
@@ -140,25 +160,18 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(allSchemas(upcomingEvents)) }}
       />
 
-      <HomeClient />
+      <HomeClient digestFallback={digestFallback} />
 
-      {/* 구글 크롤러용 서버사이드 이벤트 목록 — 실제 보이는 콘텐츠로 렌더링 */}
+      {/* SEO용 서버사이드 이벤트 목록 (크롤러 전용) */}
       {upcomingEvents.length > 0 && (
-        <section
-          aria-label="Upcoming US market events"
-          className="sr-only"
-        >
-          <h2 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-3">
-            Upcoming US Market Events — {month} {year}
-          </h2>
-          <ul className="space-y-1">
-            {upcomingEvents.slice(0, 20).map((ev, i) => (
-              <li key={i} className="text-gray-600 text-xs flex gap-2">
-                <time dateTime={ev.date} className="font-mono text-gray-500 flex-shrink-0">
-                  {ev.date}
-                </time>
-                {ev.time && <span className="text-gray-600">at {ev.time} ET</span>}
-                <span>{ev.title}</span>
+        <section aria-label="Upcoming US market events" className="sr-only">
+          <h2>Upcoming US Market Events — {month} {year}</h2>
+          <ul>
+            {upcomingEvents.slice(0, 25).map((ev, i) => (
+              <li key={i}>
+                <time dateTime={ev.date}>{ev.date}</time>
+                {ev.time && <span> at {ev.time} ET</span>}
+                <span> {ev.title}</span>
               </li>
             ))}
           </ul>
