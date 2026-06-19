@@ -30,6 +30,14 @@ async function getCurrentRate(): Promise<number> {
   return parseFloat(json?.observations?.[0]?.value ?? '0');
 }
 
+// 2026 FOMC 금리결정 발표일 (Finnhub free 플랜 30일 한계 fallback용)
+const FOMC_DATES_2026 = [
+  '2026-07-30',
+  '2026-09-17',
+  '2026-10-29',
+  '2026-12-10',
+];
+
 async function getNextFomcDate(): Promise<Date | null> {
   const now = new Date();
   const event = await db.economicEvent.findFirst({
@@ -40,7 +48,11 @@ async function getNextFomcDate(): Promise<Date | null> {
     },
     orderBy: { date: 'asc' },
   });
-  return event?.date ?? null;
+  if (event?.date) return event.date;
+
+  // DB에 없으면 하드코딩된 2026 FOMC 일정 사용
+  const next = FOMC_DATES_2026.find((d) => new Date(d) >= now);
+  return next ? new Date(next) : null;
 }
 
 interface PolyMarket {
