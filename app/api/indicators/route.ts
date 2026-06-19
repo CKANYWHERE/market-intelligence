@@ -49,11 +49,21 @@ export async function GET() {
         // 변화량 계산
         let change: number | null = null;
         if (prevVal !== null) {
-          if (ind.type === 'diff') {
-            change = latestVal - prevVal; // 절대 변화 (K jobs)
-          } else {
-            change = latestVal - prevVal; // percentage point 변화
+          change = latestVal - prevVal;
+        }
+
+        // 표시용 값 계산
+        // yoy  → DB에는 raw FRED 레벨 저장. 가장 오래된 sparkline row(12개월 전)와 비교해 YoY% 산출
+        // diff → 레벨 차이가 곧 월간 증가분 (PAYEMS 단위: 천 명 = K)
+        // level→ 그대로
+        let displayValue: number = latestVal;
+        if (ind.type === 'yoy' && sorted.length >= 2) {
+          const yearAgoVal = Number(sorted[0].value);
+          if (yearAgoVal !== 0) {
+            displayValue = ((latestVal - yearAgoVal) / yearAgoVal) * 100;
           }
+        } else if (ind.type === 'diff' && change !== null) {
+          displayValue = change; // 월간 증가분 (K)
         }
 
         return {
@@ -65,6 +75,7 @@ export async function GET() {
           latest:    latestVal,
           prev:      prevVal,
           change,
+          displayValue,
           sparkline,
         };
       }),

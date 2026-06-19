@@ -33,11 +33,16 @@ export async function GET() {
       prevCloseMap[row.symbol] = row.price;
     }
 
-    // 모든 상태에서 DB 어제 종가 기준으로 change% 계산
-    // DB 없으면 regularClose(= Yahoo regularMarketPrice) fallback
+    // DB 종가를 기준으로 change% 계산
+    // CLOSED 상태: current = 마지막 세션 종가 = DB에 저장된 값과 동일 → DB 사용 시 change=0
+    //              → 반드시 Yahoo q.prevClose(두 번째 최신 캔들) 사용
+    // OPEN/PRE/POST: DB 어제 종가 사용, 없으면 Yahoo q.prevClose fallback
     const result: Record<string, QuoteData> = {};
     for (const [symbol, q] of Object.entries(quotes)) {
-      const changeBase    = prevCloseMap[symbol] ?? q.regularClose;
+      const dbPrev = prevCloseMap[symbol];
+      const changeBase = (q.marketState !== 'CLOSED' && dbPrev !== undefined)
+        ? dbPrev
+        : q.prevClose;
       const change        = q.current - changeBase;
       const changePercent = changeBase ? (change / changeBase) * 100 : 0;
       result[symbol] = { ...q, change, changePercent, prevClose: changeBase };

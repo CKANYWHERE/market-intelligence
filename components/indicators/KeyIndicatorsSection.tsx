@@ -8,15 +8,16 @@ import { INDICATOR_CONTEXT } from '@/lib/utils/marketContext';
 interface SparkPoint { date: string; value: number }
 
 interface Indicator {
-  series_id:  string;
-  name:       string;
-  unit:       string;
-  type:       string;
-  latestDate: string;
-  latest:     number;
-  prev:       number | null;
-  change:     number | null;
-  sparkline:  SparkPoint[];
+  series_id:    string;
+  name:         string;
+  unit:         string;
+  type:         string;
+  latestDate:   string;
+  latest:       number;
+  prev:         number | null;
+  change:       number | null;
+  displayValue: number;
+  sparkline:    SparkPoint[];
 }
 
 function Sparkline({ data }: { data: SparkPoint[] }) {
@@ -54,25 +55,24 @@ function IndicatorCard({
   active: boolean;
   onClick: () => void;
 }) {
-  const isPositive = ind.change !== null && ind.change > 0;
-  const isNegative = ind.change !== null && ind.change < 0;
+  const isPositive = ind.displayValue > 0;
+  const isNegative = ind.displayValue < 0;
 
   const goodDirection = ['UNRATE', 'CPIAUCSL', 'CPILFESL', 'PCEPILFE'].includes(ind.series_id)
     ? isNegative
     : isPositive;
 
-  const changeColor = ind.change === null ? 'text-gray-500'
-    : goodDirection ? 'text-emerald-400'
-    : 'text-red-400';
+  const changeColor = goodDirection ? 'text-emerald-400' : 'text-red-400';
 
+  // displayValue: yoy → YoY%, diff → 월간 증가분(K), level → raw
   const formatVal = (v: number) =>
     ind.type === 'diff'
-      ? `${v >= 0 ? '+' : ''}${(v / 1000).toFixed(0)}K`
+      ? `${v >= 0 ? '+' : ''}${v.toFixed(0)}K`
       : `${v.toFixed(1)}${ind.unit}`;
 
   const formatChange = (v: number) =>
     ind.type === 'diff'
-      ? `${v >= 0 ? '+' : ''}${(v / 1000).toFixed(0)}K`
+      ? `${v >= 0 ? '+' : ''}${v.toFixed(0)}K`
       : `${v >= 0 ? '+' : ''}${v.toFixed(2)}pp`;
 
   return (
@@ -88,10 +88,12 @@ function IndicatorCard({
           <span className="text-gray-600 text-[10px]">ⓘ</span>
         </div>
         <div className="text-white font-mono font-bold text-xl leading-none">
-          {formatVal(ind.latest)}
+          {formatVal(ind.displayValue)}
         </div>
         <div className={`text-xs mt-1 font-mono ${changeColor}`}>
-          {ind.change !== null
+          {ind.type === 'yoy'
+            ? 'YoY'
+            : ind.change !== null
             ? `${formatChange(ind.change)} vs prev`
             : `prev: ${ind.prev !== null ? formatVal(ind.prev) : '—'}`}
         </div>
