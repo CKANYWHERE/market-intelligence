@@ -4,10 +4,9 @@
  */
 
 import { db } from '@/lib/batch/db';
-import {
-  getEconomicCalendar,
-  getIpoCalendar,
-} from '@/lib/api/finnhub';
+import { getIpoCalendar } from '@/lib/api/finnhub';
+// Finnhub의 /calendar/economic 이 free plan에서 403으로 막혀 FMP로 교체
+import { getEconomicCalendar } from '@/lib/api/fmp';
 import { categorizeEconomicEvent, mapImpact } from '@/lib/utils/categorize';
 
 // Finnhub 무료 티어는 일부 지표의 actual을 인덱스 레벨로 반환하는 버그가 있음.
