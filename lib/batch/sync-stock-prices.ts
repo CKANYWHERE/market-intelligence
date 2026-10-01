@@ -11,26 +11,26 @@
 import { db } from './db';
 import { getEodCandles } from '../api/yahooFinance';
 
-// All tracked symbols — QQQ/SPY included for macro context
+// 나스닥-100(QQQ 추종 지수) 전 종목 + QQQ/SPY(매크로 참고용 ETF).
+// en.wikipedia.org/wiki/Nasdaq-100 직접 크롤링 후 티커 오류 교차검증
+// (Astera Labs→ALAB, Lumentum→LITE, AppLovin→APP, CoreWeave→CRWV,
+// Nebius→NBIS, Sandisk→SNDK, SpaceX→SPCX 로 정정 — 1차 크롤링 결과엔
+// 잘못된 티커가 섞여 있었음). 편입/편출은 분기마다 바뀌므로 연 1~2회
+// 점검 필요.
 export const TRACKED_SYMBOLS = [
   // ETFs
   'QQQ', 'SPY',
-  // Mega-cap tech
-  'NVDA', 'AAPL', 'MSFT', 'META', 'GOOGL', 'AMZN', 'TSLA',
-  // Semiconductors
-  'AVGO', 'AMD', 'MU', 'QCOM', 'TXN', 'INTC', 'AMAT', 'LRCX', 'KLAC',
-  'ASML', 'SNPS', 'CDNS', 'ON', 'MRVL', 'ARM',
-  // Software / SaaS
-  'ADBE', 'PANW', 'CRM', 'NOW', 'INTU', 'TEAM', 'WDAY', 'SNOW',
-  'ZS', 'CRWD', 'DDOG', 'HUBS', 'TTD',
-  // Consumer / E-commerce
-  'COST', 'NFLX', 'ABNB', 'BKNG',
-  // Fintech
-  'PYPL', 'EBAY', 'COIN', 'HOOD',
-  // Biotech / Pharma
-  'AMGN', 'GILD', 'BIIB', 'REGN', 'VRTX', 'MRNA', 'ISRG',
-  // Other
-  'ORCL', 'UBER', 'LYFT', 'PLTR', 'RBLX',
+  // Nasdaq-100 constituents (as of 2026-10, ticker-verified)
+  'ADBE', 'ADP', 'AMD', 'ABNB', 'ALNY', 'GOOGL', 'AMZN', 'AEP', 'AMGN', 'ADI',
+  'AAPL', 'AMAT', 'APP', 'ARM', 'ASML', 'ALAB', 'ADSK', 'AXON', 'BKR', 'BKNG',
+  'AVGO', 'CDNS', 'CTAS', 'CSCO', 'CCEP', 'CMCSA', 'CEG', 'CPRT', 'CRWV', 'COST',
+  'CRWD', 'CSX', 'DDOG', 'DXCM', 'FANG', 'DASH', 'EXC', 'FAST', 'FER', 'FTNT',
+  'GEHC', 'GILD', 'HON', 'IDXX', 'INTC', 'INTU', 'ISRG', 'KDP', 'KLAC', 'LRCX',
+  'LIN', 'LITE', 'MAR', 'MRVL', 'MELI', 'META', 'MCHP', 'MU', 'MSFT', 'MSTR',
+  'MDLZ', 'MPWR', 'MNST', 'NBIS', 'NFLX', 'NVDA', 'NXPI', 'ORLY', 'ODFL', 'PCAR',
+  'PLTR', 'PANW', 'PAYX', 'PYPL', 'PDD', 'PEP', 'QCOM', 'REGN', 'RKLB', 'ROP',
+  'ROST', 'SNDK', 'STX', 'SHOP', 'SPCX', 'SBUX', 'SNPS', 'TMUS', 'TTWO', 'TER',
+  'TSLA', 'TXN', 'TRI', 'VRTX', 'WMT', 'WBD', 'WDC', 'WDAY', 'XEL',
 ];
 
 export async function syncStockPrices(
@@ -82,7 +82,34 @@ export async function syncStockPrices(
     }
   }
 
+  await recomputeDayPct(symbols);
+
   return { upserted: total, log };
+}
+
+/**
+ * day_pct(전일 종가 대비 등락률 %) 재계산 — 히트맵, indicator-reaction
+ * 통계 둘 다 이 컬럼을 읽음. LAG() 윈도우 함수로 심볼별 전일 종가를 구해서
+ * 한 번에 UPDATE (신규 삽입된 날짜뿐 아니라 그 다음 날짜의 day_pct도 바뀔
+ * 수 있어서 — 해당 심볼 전체를 매번 재계산하는 게 안전함, 비용도 낮음).
+ */
+async function recomputeDayPct(symbols: string[]): Promise<void> {
+  await db.$executeRawUnsafe(`
+    UPDATE stock_daily_prices sdp
+    SET day_pct = sub.pct
+    FROM (
+      SELECT id,
+        CASE WHEN prev_close IS NULL OR prev_close = 0 THEN NULL
+             ELSE (close - prev_close) / prev_close * 100 END AS pct
+      FROM (
+        SELECT id, close,
+          LAG(close) OVER (PARTITION BY symbol ORDER BY date) AS prev_close
+        FROM stock_daily_prices
+        WHERE symbol = ANY($1::text[])
+      ) w
+    ) sub
+    WHERE sdp.id = sub.id
+  `, symbols);
 }
 
 /**

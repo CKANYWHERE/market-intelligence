@@ -1,6 +1,7 @@
 'use client';
 
 import useSWR from 'swr';
+import Link from 'next/link';
 import { fetcher } from '@/lib/fetcher';
 import { QuoteData } from '@/types/events';
 
@@ -122,6 +123,13 @@ export default function MarketTickerBar() {
     >
       <div className="flex items-center min-w-max">
         {items}
+        <SectionDivider />
+        <Link
+          href="/heatmap"
+          className="flex-shrink-0 text-blue-400 hover:text-blue-300 font-semibold transition-colors"
+        >
+          히트맵 →
+        </Link>
       </div>
     </div>
   );
