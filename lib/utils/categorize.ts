@@ -1,33 +1,5 @@
 import { EventCategory, Importance } from '@/types/events';
 
-export function categorizeEconomicEvent(eventName: string): EventCategory {
-  const n = eventName.toLowerCase();
-
-  if (
-    /fomc|federal open market|fed interest rate|interest rate decision|beige book|powell|federal reserve chair|monetary policy statement|rate hike|rate cut|fed funds|quantitative|fed.*speech|fed.*statement|press conference|fed chair|fed governor|fed president|fed vice|federal reserve.*speech|central bank/.test(n)
-  )
-    return 'monetary_policy';
-
-  if (
-    /\bcpi\b|consumer price index|core cpi|\bppi\b|producer price|\bpce\b|personal consumption expenditure|core pce|inflation expectation|michigan.*inflation|inflation/.test(n)
-  )
-    return 'inflation';
-
-  if (
-    /nonfarm payroll|non-farm payroll|\bnfp\b|unemployment rate|initial jobless|continuing jobless|employment change|jolts|job openings|adp.*employment|labor market/.test(n)
-  )
-    return 'employment';
-
-  // Default: growth / macro
-  return 'growth';
-}
-
-export function mapImpact(impact: string): Importance {
-  if (impact === 'high') return 'high';
-  if (impact === 'medium') return 'medium';
-  return 'low';
-}
-
 export type CategoryMeta = {
   label: string;
   chipClass: string; // bg + text + border for chips

@@ -5,21 +5,6 @@
 
 import { db } from '@/lib/batch/db';
 import { getIpoCalendar } from '@/lib/api/finnhub';
-// Finnhub의 /calendar/economic 이 free plan에서 403으로 막혀 FMP로 교체
-import { getEconomicCalendar } from '@/lib/api/fmp';
-import { categorizeEconomicEvent, mapImpact } from '@/lib/utils/categorize';
-
-// Finnhub 무료 티어는 일부 지표의 actual을 인덱스 레벨로 반환하는 버그가 있음.
-// MoM/QoQ/YoY 이벤트는 ±50% 범위를 벗어날 수 없으므로 초과값은 null 처리.
-// NFP처럼 절대값(수천 단위)을 쓰는 이벤트는 검증에서 제외.
-function sanitizeActual(value: number, title: string): number | null {
-  const isRateOfChange = /\b(MoM|QoQ|YoY)\b/i.test(title);
-  if (isRateOfChange && Math.abs(value) > 50) {
-    console.warn(`[sync-calendar] Rejected suspicious actual for "${title}": ${value} (expected ±50%)`);
-    return null;
-  }
-  return value;
-}
 
 // ── Alpha Vantage EARNINGS_CALENDAR ───────────────────────────
 async function fetchAlphaVantageEarnings(): Promise<
@@ -220,13 +205,6 @@ function toDate(val: unknown): Date | null {
   return null;
 }
 
-function toTime(val: unknown): string | null {
-  if (!val) return null;
-  const s = String(val);
-  const m = s.match(/\d{2}:\d{2}/);
-  return m ? m[0] : null;
-}
-
 export interface SyncResult {
   counts:     { economic: number; earnings: number; ipo: number; skipped: number };
   log:        string[];
@@ -240,62 +218,13 @@ export async function syncCalendar(from: string, to: string): Promise<SyncResult
 
   log.push(`▶ Fetching calendars for ${from} → ${to}`);
 
-  const [ecoResult, ipoResult] = await Promise.allSettled([
-    getEconomicCalendar(from, to),
+  // Economic events: Finnhub(/calendar/economic)와 FMP(economic-calendar) 둘 다
+  // 유료 플랜 전용으로 막혀서 더 이상 여기서 안 가져옴 — 하드코딩된 BLS/BEA/Census
+  // 일정(lib/batch/economic-calendar-2026.ts, /api/admin/seed-economic-calendar)으로
+  // 대체. actual은 /api/cron/fred-update, estimate는 /api/cron/estimate-sync가 채움.
+  const [ipoResult] = await Promise.allSettled([
     getIpoCalendar(from, to),
   ]);
-
-  // ── 1. Economic Events ─────────────────────────────────────
-  log.push('▶ Processing economic events...');
-  if (ecoResult.status === 'fulfilled') {
-    const items: RawRecord[] =
-      ((ecoResult.value as RawRecord)?.economicCalendar as RawRecord[]) ?? [];
-
-    const ecoOps = [];
-    for (const item of items) {
-      if (item.country !== 'US') { counts.skipped++; continue; }
-      const importance = mapImpact(String(item.impact ?? ''));
-      if (importance === 'low') { counts.skipped++; continue; }
-
-      const date = toDate(item.time ?? item.date);
-      if (!date) continue;
-
-      const title    = String(item.event ?? '');
-      const sourceId = String(item.id ?? `eco_${date.toISOString().slice(0, 10)}_${title.slice(0, 20)}`);
-
-      ecoOps.push(db.economicEvent.upsert({
-        where:  { source_id: sourceId },
-        create: {
-          source_id:  sourceId,
-          date,
-          time:       toTime(item.time),
-          title,
-          category:   categorizeEconomicEvent(title),
-          importance,
-          unit:       item.unit     ? String(item.unit)     : null,
-          actual:     item.actual   != null ? Number(item.actual)   : null,
-          estimate:   item.estimate != null ? Number(item.estimate) : null,
-          prev:       item.prev     != null ? Number(item.prev)     : null,
-        },
-        update: {
-          category: categorizeEconomicEvent(title),
-          // Finnhub 무료 티어는 일부 지표(PPI 등)의 actual을 인덱스 레벨로 반환하는 버그가 있음.
-          // MoM/QoQ/YoY 이벤트는 현실적으로 ±50% 범위를 벗어날 수 없으므로 초과값은 무시.
-          // Finnhub가 null을 반환하면 기존값 유지 (이미 올바른 값이 있을 수 있음).
-          ...(item.actual != null
-            ? { actual: sanitizeActual(Number(item.actual), title) }
-            : {}),
-          estimate: item.estimate != null ? Number(item.estimate) : null,
-          prev:     item.prev     != null ? Number(item.prev)     : null,
-        },
-      }));
-      counts.economic++;
-    }
-    if (ecoOps.length > 0) await Promise.all(ecoOps);
-    log.push(`  ✓ ${counts.economic} upserted (${counts.skipped} skipped)`);
-  } else {
-    log.push(`  ✗ economic: ${String(ecoResult.reason)}`);
-  }
 
   // ── 2. Earnings Events — Alpha Vantage 전용 (syncAlphaVantageEarnings 사용)
   log.push('▶ Earnings: handled by Alpha Vantage (skipping Finnhub)');
