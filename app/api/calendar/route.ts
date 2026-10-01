@@ -94,7 +94,13 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  events.sort((a, b) => a.date.localeCompare(b.date));
+  // 날짜 오름차순, 같은 날짜 안에서는 중요도 높은 순(high → medium → low)
+  const importanceRank: Record<Importance, number> = { high: 0, medium: 1, low: 2 };
+  events.sort((a, b) => {
+    const byDate = a.date.localeCompare(b.date);
+    if (byDate !== 0) return byDate;
+    return importanceRank[a.importance] - importanceRank[b.importance];
+  });
 
   return NextResponse.json({ events, year, month }, {
     headers: {

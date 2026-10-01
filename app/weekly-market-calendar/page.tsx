@@ -169,7 +169,14 @@ export default async function WeeklyMarketCalendarPage() {
         actual: null, estimate: null, prev: null, unit: null,
         eventType: 'ipo' as const,
       })),
-    ].sort((a, b) => a.date.getTime() - b.date.getTime());
+    ];
+    // 날짜 오름차순, 같은 날짜 안에서는 중요도 높은 순(high → medium → low)
+    const importanceRank: Record<string, number> = { high: 0, medium: 1, low: 2 };
+    allEvents.sort((a, b) => {
+      const byDate = a.date.getTime() - b.date.getTime();
+      if (byDate !== 0) return byDate;
+      return (importanceRank[a.importance] ?? 1) - (importanceRank[b.importance] ?? 1);
+    });
   } catch { /* graceful degradation */ } finally {
     db.$disconnect().catch(() => {});
   }

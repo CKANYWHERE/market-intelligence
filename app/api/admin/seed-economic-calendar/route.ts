@@ -62,7 +62,26 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ ok: true, total: events.length, created, updated });
+    // 레거시(예전 Finnhub 동기화로 만든 eco_* source_id) 이벤트 중 방금 심은
+    // 행과 title+date가 겹치는 게 있으면 제거. 레거시 쪽 actual은 과거
+    // (지금은 고친) fred-update 추정 매칭으로 들어간 값이라 신뢰 불가 —
+    // 하드코딩+fred_ref_date 정밀 매칭 쪽을 항상 우선.
+    const legacyRows = await db.economicEvent.findMany({
+      where: { source_id: { startsWith: 'eco_' } },
+      select: { id: true, title: true, date: true },
+    });
+    let dedupedLegacy = 0;
+    for (const row of legacyRows) {
+      const twin = await db.economicEvent.findFirst({
+        where: { title: row.title, date: row.date, source_id: { startsWith: 'hardcoded_' } },
+      });
+      if (twin) {
+        await db.economicEvent.delete({ where: { id: row.id } });
+        dedupedLegacy++;
+      }
+    }
+
+    return NextResponse.json({ ok: true, total: events.length, created, updated, dedupedLegacy });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error('[admin/seed-economic-calendar]', err);

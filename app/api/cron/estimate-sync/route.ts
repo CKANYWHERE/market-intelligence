@@ -102,9 +102,14 @@ export async function GET(req: NextRequest) {
       const windowStart = new Date(dayStart.getTime() - 86_400_000);
       const windowEnd   = new Date(dayEnd.getTime()   + 86_400_000);
 
+      // "PCE" 검색어가 "Core PCE" 제목에도 걸려버리는 문제 방지 (fred-update와 동일 이슈)
+      const titleFilter = keyword.toLowerCase().includes('core')
+        ? { contains: keyword, mode: 'insensitive' as const }
+        : { contains: keyword, mode: 'insensitive' as const, not: { contains: 'Core' } };
+
       const event = await db.economicEvent.findFirst({
         where: {
-          title: { contains: keyword, mode: 'insensitive' },
+          title: titleFilter,
           date:  { gte: windowStart, lte: windowEnd },
         },
         orderBy: { date: 'asc' },

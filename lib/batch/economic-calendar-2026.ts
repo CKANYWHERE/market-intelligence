@@ -28,7 +28,7 @@
 export interface SeedEvent {
   date:        string; // YYYY-MM-DD, 실제 발표일
   title:       string;
-  category:    'employment' | 'growth';
+  category:    'employment' | 'growth' | 'inflation';
   // 실제 시장 영향력 기준 차등 — 전부 high로 두면 "중요도" 자체가 무의미해짐.
   // high: NFP/실업률/GDP (헤드라인, FOMC 정책 판단에 직결)
   // medium: JOLTS/소매판매/ISM PMI/내구재주문/ADP (보조 지표, 서프라이즈 시 영향)
@@ -125,6 +125,38 @@ const DURABLE_GOODS: Array<[release: string, ref: string]> = [
   ['2026-11-25', '2026-10-01'],
 ];
 
+// ── BLS: Consumer Price Index (CPI + Core CPI, 같은 날 발표) ──────
+// https://www.bls.gov/schedule/news_release/cpi.htm ("Reference Month" 열)
+const CPI: Array<[release: string, ref: string]> = [
+  ['2026-01-13', '2025-12-01'], ['2026-02-13', '2026-01-01'], ['2026-03-11', '2026-02-01'],
+  ['2026-04-10', '2026-03-01'], ['2026-05-12', '2026-04-01'], ['2026-06-10', '2026-05-01'],
+  ['2026-07-14', '2026-06-01'], ['2026-08-12', '2026-07-01'], ['2026-09-11', '2026-08-01'],
+  ['2026-10-14', '2026-09-01'], ['2026-11-10', '2026-10-01'], ['2026-12-10', '2026-11-01'],
+];
+
+// ── BLS: Producer Price Index ───────────────────────────────────
+// https://www.bls.gov/schedule/news_release/ppi.htm ("Reference Month" 열)
+// Core PPI는 생략 — fred-update에 대응 FRED 시리즈가 아직 없음 (headline만 연결)
+const PPI: Array<[release: string, ref: string]> = [
+  ['2026-01-14', '2025-11-01'], ['2026-01-30', '2025-12-01'], ['2026-02-27', '2026-01-01'],
+  ['2026-03-18', '2026-02-01'], ['2026-04-14', '2026-03-01'], ['2026-05-13', '2026-04-01'],
+  ['2026-06-11', '2026-05-01'], ['2026-07-15', '2026-06-01'], ['2026-08-13', '2026-07-01'],
+  ['2026-09-10', '2026-08-01'], ['2026-10-15', '2026-09-01'], ['2026-11-13', '2026-10-01'],
+  ['2026-12-15', '2026-11-01'],
+];
+
+// ── BEA: Personal Income and Outlays (PCE + Core PCE, 같은 날 발표) ──
+// https://www.bea.gov/news/schedule — 2026년 일정 중 7월/8월 참조월분은
+// 공식 페이지에서 날짜가 서로 다르게 보여 교차검증 못함 (2026년 정부 셧다운
+// 여파로 발표 일정 자체가 한 차례 변경된 걸로 보임 — bea.gov 2026-01-15
+// "Economic Release Schedule Updates" 공지 참고). 확실한 10개월분만 포함,
+// 7/8월분은 비워둠 — 틀린 날짜 넣느니 비우는 게 나음.
+const PCE: Array<[release: string, ref: string]> = [
+  ['2026-03-13', '2026-01-01'], ['2026-04-09', '2026-02-01'], ['2026-04-30', '2026-03-01'],
+  ['2026-05-28', '2026-04-01'], ['2026-06-25', '2026-05-01'], ['2026-07-30', '2026-06-01'],
+  ['2026-10-29', '2026-09-01'], ['2026-11-25', '2026-10-01'], ['2026-12-23', '2026-11-01'],
+];
+
 function generateAdpDates(): string[] {
   // ADP National Employment Report — NFP 발표(금요일) 이틀 전 수요일에 발표
   return EMPLOYMENT_SITUATION.map(([release]) => addDays(release, -2));
@@ -169,6 +201,17 @@ export function buildEconomicCalendar2026(): SeedEvent[] {
   for (const date of generateJoblessClaimsDates(2026)) {
     // FRED(ICSA)는 "week ending" 토요일을 ref로 씀 — 발표(목) 기준 5일 전 토요일
     events.push({ date, title: 'Initial Jobless Claims', category: 'employment', importance: 'low', unit: 'K', fredRefDate: addDays(date, -5) });
+  }
+  for (const [date, ref] of CPI) {
+    events.push({ date, title: 'Inflation Rate MoM',      category: 'inflation', importance: 'high', unit: '%', fredRefDate: ref });
+    events.push({ date, title: 'Core Inflation Rate MoM', category: 'inflation', importance: 'high', unit: '%', fredRefDate: ref });
+  }
+  for (const [date, ref] of PPI) {
+    events.push({ date, title: 'PPI MoM', category: 'inflation', importance: 'medium', unit: '%', fredRefDate: ref });
+  }
+  for (const [date, ref] of PCE) {
+    events.push({ date, title: 'PCE Price Index MoM',      category: 'inflation', importance: 'high', unit: '%', fredRefDate: ref });
+    events.push({ date, title: 'Core PCE Price Index MoM', category: 'inflation', importance: 'high', unit: '%', fredRefDate: ref });
   }
   for (const [date, ref] of GDP) {
     events.push({ date, title: 'GDP q/q', category: 'growth', importance: 'high', unit: '%', fredRefDate: ref });

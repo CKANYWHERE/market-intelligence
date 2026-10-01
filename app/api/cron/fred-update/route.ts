@@ -180,12 +180,19 @@ async function runUpdate(log: string[], startedAt: number) {
       const { titleKeyword } = SERIES_CONFIG.find((s) => s.seriesId === seriesId)!;
       const sorted = [...rows].sort((a, b) => a.date.localeCompare(b.date));
 
+      // "PCE"가 "Core PCE" 제목에도 contains로 걸려버리는 문제 방지 — titleKeyword
+      // 자체가 "Core"를 포함하지 않으면, "Core"가 들어간 제목은 명시적으로 제외
+      // (그 반대 방향은 문제 없음: "Core PCE" 검색어는 애초에 plain "PCE" 제목에 안 걸림)
+      const titleFilter = titleKeyword.toLowerCase().includes('core')
+        ? { contains: titleKeyword, mode: 'insensitive' as const }
+        : { contains: titleKeyword, mode: 'insensitive' as const, not: { contains: 'Core' } };
+
       for (const { date, value } of sorted) {
         const refDate = new Date(`${date}T00:00:00Z`);
 
         let event = await db.economicEvent.findFirst({
           where: {
-            title: { contains: titleKeyword, mode: 'insensitive' },
+            title: titleFilter,
             actual: null,
             fred_ref_date: refDate,
           },
@@ -197,7 +204,7 @@ async function runUpdate(log: string[], startedAt: number) {
           windowEnd.setDate(windowEnd.getDate() + 90);
           event = await db.economicEvent.findFirst({
             where: {
-              title: { contains: titleKeyword, mode: 'insensitive' },
+              title: titleFilter,
               actual: null,
               fred_ref_date: null, // fred_ref_date가 있는 이벤트는 위에서 이미 못 찾은 것 — 추정 매칭 대상에서 제외
               date: { gt: refDate, lte: windowEnd },
