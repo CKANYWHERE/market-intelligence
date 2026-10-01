@@ -24,9 +24,11 @@ export const maxDuration = 60;
 //   'chg' → Change (period-over-period, in level units — NFP: jobs added that month)
 //   undefined → Raw level (Unemployment %, JOLTS thousands, Claims thousands, Sentiment index)
 //
-// NOTE: FRED is a fallback. Primary actual values come from Finnhub via daily-calendar cron
-// (which now fetches 30 days back). FRED only fills in events still null after Finnhub runs.
-// FRED revised data may differ slightly from Finnhub's initial-release values.
+// NOTE: FRED is a fallback. The economic_events schedule itself comes from a
+// hardcoded BLS/BEA/Census release calendar (see lib/batch/economic-calendar-2026.ts)
+// since Finnhub's /calendar/economic and FMP's economic-calendar are both
+// paid-plan-only now. FRED only fills in `actual` for events still null.
+// FRED revised data may differ slightly from the initial-release values.
 const SERIES_CONFIG = [
   { seriesId: 'CPIAUCSL', titleKeyword: 'Inflation Rate',      actualUnits: 'pch'       }, // "Inflation Rate MoM" in Finnhub
   { seriesId: 'CPILFESL', titleKeyword: 'Core Inflation Rate', actualUnits: 'pch'       }, // "Core Inflation Rate MoM"
@@ -39,7 +41,8 @@ const SERIES_CONFIG = [
   { seriesId: 'ICSA',     titleKeyword: 'Jobless Claims',      actualUnits: undefined   }, // raw level = thousands
   { seriesId: 'RSXFS',    titleKeyword: 'Retail Sales',        actualUnits: 'pch'       }, // "Retail Sales MoM"
   { seriesId: 'DGORDER',  titleKeyword: 'Durable Goods',       actualUnits: 'pch'       }, // "Durable Goods Orders MoM"
-  { seriesId: 'MICH',     titleKeyword: 'Michigan',            actualUnits: undefined   }, // "Michigan Consumer Sentiment"
+  { seriesId: 'MICH',     titleKeyword: 'Michigan',            actualUnits: undefined   }, // "Michigan Consumer Sentiment" (실제로는 기대인플레이션 series)
+  { seriesId: 'GDPC1',    titleKeyword: 'GDP',                 actualUnits: 'pca'       }, // Real GDP — pca = 분기 연율 성장률 %("GDP q/q")
 ] as const;
 
 // indicators 카드 스파크라인/YoY 계산에 필요한 과거 관측치 개수 (12개월 + 여유)
@@ -85,10 +88,13 @@ async function runUpdate(log: string[], startedAt: number) {
   t('✓ Step1a done');
 
   // ── Step 1b: actual-matching fetch (순차) — economic_events.actual 갱신용 (Finnhub 표시 단위와 일치시킴)
+  // limit=20 — ICSA(신규실업수당청구)처럼 주간 지표는 "최신 1개"만 가져오면
+  // 과거 몇 주치 actual이 밀려서 영영 안 채워짐. 여러 개 받아서 Step4에서
+  // 전부 순회 매칭 (이미 actual이 있는 이벤트는 where 조건에서 걸러져 안전)
   t('▶ Step1b start: FRED actual-units fetch sequential');
   const actualFetchResults: PromiseSettledResult<FredObs[]>[] = [];
   for (const { seriesId, actualUnits } of SERIES_CONFIG) {
-    const result = await getFredSeries(seriesId, 1, actualUnits)
+    const result = await getFredSeries(seriesId, 20, actualUnits)
       .then((v) => ({ status: 'fulfilled' as const, value: v }))
       .catch((e) => ({ status: 'rejected' as const, reason: e }));
     actualFetchResults.push(result);
@@ -122,7 +128,7 @@ async function runUpdate(log: string[], startedAt: number) {
     }
   }
 
-  // ── Step 2b: actual-매칭용 최신값 파싱 (시리즈당 1개)
+  // ── Step 2b: actual-매칭용 값 파싱 (시리즈당 최대 20개 — 주간 지표 백로그 포함)
   const actualRows: SnapshotRow[] = [];
   for (let i = 0; i < SERIES_CONFIG.length; i++) {
     const { seriesId } = SERIES_CONFIG[i];
@@ -131,10 +137,11 @@ async function runUpdate(log: string[], startedAt: number) {
       log.push(`  ✗ ${seriesId} (actual): ${String(result.reason)}`);
       continue;
     }
-    const latest = result.value.find((o) => o.value !== '.' && o.value !== '');
-    if (!latest) continue;
-    const value = parseFloat(latest.value);
-    if (!isNaN(value)) actualRows.push({ seriesId, date: latest.date, value });
+    for (const obs of result.value) {
+      if (obs.value === '.' || obs.value === '') continue;
+      const value = parseFloat(obs.value);
+      if (!isNaN(value)) actualRows.push({ seriesId, date: obs.date, value });
+    }
   }
 
   // ── Step 3: DB snapshot (raw level)
@@ -152,32 +159,59 @@ async function runUpdate(log: string[], startedAt: number) {
   t(`✓ Step3 done: ${snapshotRows.length} snapshots`);
 
   // ── Step 4: actual 업데이트
-  // FRED는 참조기간(reference period) 기준 날짜를 반환 (예: 4월 CPI → 2026-04-01)
-  // DB economic_events는 실제 발표일(release date) 기준 (예: 6월 9일 발표)
-  // → 날짜 직접 매칭 불가. 참조일 이후 90일 이내에서 가장 가까운 미래 이벤트를 찾아 업데이트
+  // 1순위: economic_events.fred_ref_date가 FRED observation 날짜와 정확히 같은
+  //   행을 찾아 업데이트 (하드코딩 시드 이벤트는 전부 이 필드가 채워져 있음 —
+  //   lib/batch/economic-calendar-2026.ts 참고). 날짜 "추정"이 전혀 없어 재실행
+  //   해도 항상 정확함.
+  // 2순위(fallback): fred_ref_date가 없는 레거시 이�트(예전 Finnhub 동기화로 만든
+  //   CPI/PPI/PCE 등) 전용 — 참조일 이후 90일 이내 가장 이른 actual=null 이벤트로
+  //   "추정" 매칭. 이 경로는 재실행 시 이미 채워진 슬롯을 건너뛰고 엉뚱한 미래
+  //   슬롯을 잘못 집을 수 있어 정밀하지 않음 — 알려진 한계.
   t('▶ Step4 start: DB updateMany');
   let updatedEvents = 0;
-  await Promise.all(
-    actualRows.map(async ({ seriesId, date, value }) => {
-      const { titleKeyword } = SERIES_CONFIG.find((s) => s.seriesId === seriesId)!;
-      const refDate = new Date(`${date}T00:00:00Z`);
-      const windowEnd = new Date(refDate);
-      windowEnd.setDate(windowEnd.getDate() + 90);
+  const bySeries = new Map<string, SnapshotRow[]>();
+  for (const row of actualRows) {
+    if (!bySeries.has(row.seriesId)) bySeries.set(row.seriesId, []);
+    bySeries.get(row.seriesId)!.push(row);
+  }
 
-      // 참조기간 이후 90일 이내의 가장 이른 actual=null 이벤트를 찾아 업데이트
-      const event = await db.economicEvent.findFirst({
-        where: {
-          title: { contains: titleKeyword, mode: 'insensitive' },
-          actual: null,
-          date: { gt: refDate, lte: windowEnd },
-        },
-        orderBy: { date: 'asc' },
-      });
-      if (event) {
-        await db.economicEvent.update({ where: { id: event.id }, data: { actual: value } });
-        updatedEvents++;
-        log.push(`  ✓ actual updated: "${titleKeyword}" ref=${date} → release=${event.date.toISOString().slice(0, 10)} value=${value}`);
-        results[seriesId].eventUpdated = true;
+  await Promise.all(
+    Array.from(bySeries.entries()).map(async ([seriesId, rows]) => {
+      const { titleKeyword } = SERIES_CONFIG.find((s) => s.seriesId === seriesId)!;
+      const sorted = [...rows].sort((a, b) => a.date.localeCompare(b.date));
+
+      for (const { date, value } of sorted) {
+        const refDate = new Date(`${date}T00:00:00Z`);
+
+        let event = await db.economicEvent.findFirst({
+          where: {
+            title: { contains: titleKeyword, mode: 'insensitive' },
+            actual: null,
+            fred_ref_date: refDate,
+          },
+          orderBy: { date: 'asc' },
+        });
+
+        if (!event) {
+          const windowEnd = new Date(refDate);
+          windowEnd.setDate(windowEnd.getDate() + 90);
+          event = await db.economicEvent.findFirst({
+            where: {
+              title: { contains: titleKeyword, mode: 'insensitive' },
+              actual: null,
+              fred_ref_date: null, // fred_ref_date가 있는 이벤트는 위에서 이미 못 찾은 것 — 추정 매칭 대상에서 제외
+              date: { gt: refDate, lte: windowEnd },
+            },
+            orderBy: { date: 'asc' },
+          });
+        }
+
+        if (event) {
+          await db.economicEvent.update({ where: { id: event.id }, data: { actual: value } });
+          updatedEvents++;
+          log.push(`  ✓ actual updated: "${titleKeyword}" ref=${date} → release=${event.date.toISOString().slice(0, 10)} value=${value}`);
+          results[seriesId].eventUpdated = true;
+        }
       }
     }),
   );

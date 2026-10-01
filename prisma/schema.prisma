@@ -40,6 +40,12 @@ model EconomicEvent {
 
   // FRED series for historical chart data
   fred_series_id String? // "CPIAUCSL", "PAYEMS", etc.
+  // FRED observation reference date this event corresponds to (e.g. 2026-08-01
+  // for "August 2026 data"). Set only on hardcoded-seeded events — lets
+  // fred-update match actual values by EXACT reference date instead of a
+  // fuzzy date-window guess, which breaks across re-runs once some slots
+  // are already filled (a later ref can "steal" an unrelated future null slot).
+  fred_ref_date DateTime?
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
