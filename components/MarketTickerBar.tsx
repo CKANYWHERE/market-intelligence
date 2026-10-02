@@ -128,7 +128,7 @@ export default function MarketTickerBar() {
           href="/heatmap"
           className="flex-shrink-0 text-blue-400 hover:text-blue-300 font-semibold transition-colors"
         >
-          히트맵 →
+          Heatmap →
         </Link>
       </div>
     </div>

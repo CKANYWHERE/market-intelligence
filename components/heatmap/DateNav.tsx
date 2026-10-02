@@ -19,14 +19,14 @@ export default function DateNav({ date, prevDate, nextDate }: DateNavProps) {
         type="button"
         onClick={() => prevDate && go(prevDate)}
         disabled={!prevDate}
-        aria-label="이전 거래일"
+        aria-label="Previous trading day"
         className="rounded-lg border border-gray-800 bg-gray-900 px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white disabled:opacity-30 disabled:hover:bg-gray-900 transition-colors"
       >
-        ← 이전
+        ← Prev
       </button>
 
       <label className="relative">
-        <span className="sr-only">날짜 선택</span>
+        <span className="sr-only">Select date</span>
         <input
           type="date"
           value={date}
@@ -40,10 +40,10 @@ export default function DateNav({ date, prevDate, nextDate }: DateNavProps) {
         type="button"
         onClick={() => nextDate && go(nextDate)}
         disabled={!nextDate}
-        aria-label="다음 거래일"
+        aria-label="Next trading day"
         className="rounded-lg border border-gray-800 bg-gray-900 px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white disabled:opacity-30 disabled:hover:bg-gray-900 transition-colors"
       >
-        다음 →
+        Next →
       </button>
     </div>
   );
